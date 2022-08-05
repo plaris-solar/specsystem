@@ -6,7 +6,8 @@ from rest_framework.exceptions import ValidationError
 class Role(models.Model):
     role = models.CharField(primary_key=True, max_length=50)
     descr = models.CharField(max_length=4000, blank=True, null=True)
-    any = models.BooleanField(default=False, blank=True, null=True)
+    any = models.BooleanField(default=False, blank=True)
+    active = models.BooleanField(default=True, blank=True)
 
     class Meta:
         managed = True
@@ -36,7 +37,6 @@ class Category(models.Model):
     descr = models.CharField(max_length=4000, blank=True, null=True)
     active = models.BooleanField(default=False, blank=True, null=True)
     confidential = models.BooleanField(default=False, blank=True, null=True)
-    file_temp = models.CharField(max_length=4000, blank=True, null=True)
     jira_temp = models.CharField(max_length=4000, blank=True, null=True)
 
     class Meta:
@@ -44,13 +44,24 @@ class Category(models.Model):
         db_table = 'category'
         unique_together = (('cat', 'sub_cat'),)
 
-class CategoryRole(models.Model):
-    cat = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='roles')
+class CategorySignRole(models.Model):
+    cat = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='signRoles')
     role = models.ForeignKey(Role, on_delete=models.CASCADE)
 
     class Meta:
         managed = True
-        db_table = 'category_role'
+        db_table = 'cat_sign_role'
+        
+    def __str__(self):
+        return self.role.role
+
+class CategoryReadRole(models.Model):
+    cat = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='readRoles')
+    role = models.ForeignKey(Role, on_delete=models.CASCADE)
+
+    class Meta:
+        managed = True
+        db_table = 'cat_read_role'
         
     def __str__(self):
         return self.role.role
@@ -61,7 +72,7 @@ class Spec(models.Model):
     title = models.CharField(max_length=4000)
     keywords = models.CharField(max_length=4000)
     state = models.CharField(max_length=50)
-    cat = models.ForeignKey(Category, on_delete=models.CASCADE)
+    cat = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='specs')
     create_dt = models.DateTimeField()
     mod_ts = models.DateTimeField()
 
@@ -69,13 +80,16 @@ class Spec(models.Model):
         managed = True
         db_table = 'spec'
         unique_together = (('num', 'ver'),)
+        
+    def __str__(self):
+        return f'{self.num}-{self.ver} {self.state}: {self.title}'
 
 class SpecSig(models.Model):
-    spec = models.ForeignKey(Spec, on_delete=models.CASCADE)
-    role = models.ForeignKey(Role, on_delete=models.CASCADE)
-    signer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+')
-    delegate = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+')
-    signed_dt = models.DateTimeField(null=True)
+    spec = models.ForeignKey(Spec, on_delete=models.CASCADE, related_name='sigs')
+    role = models.ForeignKey(Role, on_delete=models.PROTECT, related_name='+')
+    signer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+', blank=True)
+    delegate = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+', blank=True)
+    signed_dt = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         managed = True
@@ -83,7 +97,7 @@ class SpecSig(models.Model):
         unique_together = (('spec', 'role', 'signer'),)
 
 class SpecHist(models.Model):
-    spec = models.ForeignKey(Spec, on_delete=models.CASCADE)
+    spec = models.ForeignKey(Spec, on_delete=models.CASCADE, related_name='hist')
     mod_ts = models.DateTimeField()
     upd_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+')
     change_type = models.CharField(max_length=50)
@@ -94,7 +108,7 @@ class SpecHist(models.Model):
         db_table = 'spec_hist'
 
 class SpecFile(models.Model):
-    spec = models.ForeignKey(Spec, on_delete=models.CASCADE)
+    spec = models.ForeignKey(Spec, on_delete=models.CASCADE, related_name='files')
     seq = models.IntegerField()
     _filename = models.CharField(max_length=4000)
     _uuid = models.CharField(max_length=48)
@@ -105,7 +119,8 @@ class SpecFile(models.Model):
 
 class SpecReference(models.Model):
     spec = models.ForeignKey(Spec, on_delete=models.CASCADE)
-    ref_spec = models.CharField(max_length=50)
+    num = models.IntegerField()
+    ver = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = True

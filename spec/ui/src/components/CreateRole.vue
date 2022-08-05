@@ -10,6 +10,9 @@
             <q-select label="Allow any signer" v-model="any" 
                 :options="[{label:'True',value:true}, {label:'False',value:false}]"
                 data-cy="any-create-role"/>
+            <q-select label="Active" v-model="active" 
+                :options="[{label:'True',value:true}, {label:'False',value:false}]"
+                data-cy="active-create-role"/>
             <q-input label="Signers" v-model.trim="signers"  data-cy="signers-create-role"/>
         </q-card-section>
 
@@ -40,20 +43,22 @@ export default {
 
     const role = ref('')
     const descr = ref('')
-    const any = ref(false)
+    const any = ref({label:'False',value:false})
+    const active = ref({label:'True',value:true})
     const signers = ref('')
 
     async function saveRole(){
+            console.log(`any: ${any.value}`)
         const body = {
             role: role.value,
             descr: descr.value,
             any: any.value.value,
+            active: active.value.value,
             users: signers.value
         }
 
         if (props.createMode) {
             let res = await postData('role/', body, 'Successfully created role ' + role.value)
-            console.log(`res`)
             if (res.status < 300){
                 emit('updateTable')
             }
@@ -67,14 +72,13 @@ export default {
     }
 
     onMounted(() => {
-        console.log('Entered onMounted')
-        console.log(`role: ${props.roleRow['role']}`)
-        console.log(`role: ${descr.value}`)
-        role.value = props.roleRow['role']
-        descr.value = props.roleRow['descr']
-        if (props.roleRow['any']) {any.value = true} else {any.value=false}
-        signers.value = props.roleRow['users']
-        console.log(`role: ${descr.value}`)
+        if (props.roleRow['role'] !== undefined) {
+            role.value = props.roleRow['role']
+            descr.value = props.roleRow['descr']
+            if (props.roleRow['any']) {any.value = {label:'True',value:true}} else {any.value={label:'False',value:false}}
+            if (props.roleRow['active']) {active.value = {label:'True',value:true}} else {active.value={label:'False',value:false}}
+            signers.value = props.roleRow['users']
+        }
     })
 </script>
 

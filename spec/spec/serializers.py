@@ -3,13 +3,13 @@ from user.models import User
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Category, CategoryRole, Role, RoleUser
+from .models import Category, CategoryReadRole, CategorySignRole, Role, RoleUser
 
 class RoleSerializer(serializers.ModelSerializer):
     users = serializers.StringRelatedField(many=True)
     class Meta:
         model = Role
-        fields = ('role', 'descr', 'any', 'users', )
+        fields = ('role', 'descr', 'any', 'active', 'users', )
 
     def to_representation(self, value):
         data = super(RoleSerializer, self).to_representation(value)
@@ -20,7 +20,7 @@ class RolePostSerializer(serializers.ModelSerializer):
     users = serializers.CharField(required=False, default=None, allow_null=True)
     class Meta:
         model = Role
-        fields = ('role', 'descr', 'any', 'users', )
+        fields = ('role', 'descr', 'any', 'active', 'users', )
     
     def create(self, validated_data):
         role_user_data = validated_data.pop("users")
@@ -33,47 +33,58 @@ class RolePostSerializer(serializers.ModelSerializer):
         return role
 
 class RoleUpdateSerializer(serializers.Serializer):
-    descr = serializers.CharField(required=False, default=None)
-    any = serializers.BooleanField(required=False, default=None)
-    users = serializers.CharField(required=False, default=None, allow_null=True)
+    descr = serializers.CharField(allow_null=True)
+    any = serializers.BooleanField()
+    active = serializers.BooleanField()
+    users = serializers.CharField(required=False, default=None, allow_blank=True)
 
 class CategorySerializer(serializers.ModelSerializer):
-    roles = serializers.StringRelatedField(many=True)
+    signRoles = serializers.StringRelatedField(many=True)
+    readRoles = serializers.StringRelatedField(many=True)
     class Meta:
         model = Category
-        fields = ('cat', 'sub_cat', 'descr', 'active', 'confidential', 'file_temp', 'jira_temp', 'roles', )
+        fields = ('cat', 'sub_cat', 'descr', 'active', 'confidential', 'jira_temp', 'signRoles', 'readRoles', )
 
     def to_representation(self, value):
         data = super(CategorySerializer, self).to_representation(value)
-        data['roles'] = ', '.join(data['roles'])
+        data['signRoles'] = ', '.join(data['signRoles'])
+        data['readRoles'] = ', '.join(data['readRoles'])
         return data
 
 class CategoryPostSerializer(serializers.ModelSerializer):
-    roles = serializers.CharField(required=False, default=None, allow_null=True)
+    signRoles = serializers.CharField(required=False, default=None, allow_blank=True)
+    readRoles = serializers.CharField(required=False, default=None, allow_blank=True)
     class Meta:
         model = Category
-        fields = ('cat', 'sub_cat', 'descr', 'active', 'confidential', 'file_temp', 'jira_temp', 'roles', )
+        fields = ('cat', 'sub_cat', 'descr', 'active', 'confidential', 'jira_temp', 'signRoles', 'readRoles',  )
     
     def create(self, validated_data):
-        category_role_data = validated_data.pop("roles")
+        sign_role_data = validated_data.pop("signRoles")
+        read_role_data = validated_data.pop("readRoles")
         category = Category.objects.create(**validated_data)
-        if category_role_data:
-            category_roles = re.split('[\s|\,|\t|\;|\:]+',category_role_data)
-            for category_role in category_roles:
-                role = Role.objects.filter(role=category_role).first()
-                if not role:
-                    raise ValidationError({"errorCode":"SPEC-S01", "error": f"Role ({category_role}) does not exist."})
-                category_role = CategoryRole.objects.create(cat=category,role=role)
+
+        if sign_role_data:
+            roles = re.split('[\s|\,|\t|\;|\:]+',sign_role_data)
+            for role in roles:
+                _role = Role.lookup(role)
+                _signRole = CategorySignRole.objects.create(cat=category,role=_role)
+
+        if read_role_data:
+            roles = re.split('[\s|\,|\t|\;|\:]+',read_role_data)
+            for role in roles:
+                _role = Role.lookup(role)
+                _readRole = CategoryReadRole.objects.create(cat=category,role=_role)
+
         return category
 
 class CategoryUpdateSerializer(serializers.Serializer):
-    cat = serializers.CharField(required=False, default=None)
-    sub_cat = serializers.CharField(required=False, default=None)
-    descr = serializers.CharField(required=False, default=None)
-    active = serializers.BooleanField(required=False, default=None)
-    confidential = serializers.BooleanField(required=False, default=None)
-    file_temp = serializers.CharField(required=False, default=None)
-    jira_temp = serializers.CharField(required=False, default=None)
-    roles = serializers.CharField(required=False, default=None, allow_null=True)
+    cat = serializers.CharField(required=False)
+    sub_cat = serializers.CharField(required=False)
+    descr = serializers.CharField()
+    active = serializers.BooleanField()
+    confidential = serializers.BooleanField()
+    jira_temp = serializers.CharField(required=False, default=None, allow_blank=True)
+    signRoles = serializers.CharField(required=False, default=None, allow_blank=True)
+    readRoles = serializers.CharField(required=False, default=None, allow_blank=True)
 
 

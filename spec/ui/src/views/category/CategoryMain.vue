@@ -294,9 +294,9 @@ export default {
             { name: 'descr', align: 'center', label: 'Description', field: 'descr', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'active', align: 'center', label: 'Active', field: 'active', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'confidential', align: 'center', label: 'Confidential', field: 'confidential', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'file_temp', align: 'center', label: 'File Template', field: 'file_temp', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'jira_temp', align: 'center', label: 'Jira Template', field: 'jira_temp', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'roles', align: 'center', label: 'Required Roles', field: 'roles', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'signRoles', align: 'center', label: 'Required Signer Roles', field: 'signRoles', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'readRoles', align: 'center', label: 'Reading Roles', field: 'readRoles', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
         ]
 </script>
 

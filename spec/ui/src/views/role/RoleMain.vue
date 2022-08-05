@@ -292,6 +292,7 @@ export default {
             { name: 'role', align: 'center', label: 'Role', field: 'role', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'descr', align: 'center', label: 'Description', field: 'descr', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'any', align: 'center', label: 'Allow any signer', field: 'any', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'active', align: 'center', label: 'Active', field: 'active', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'users', align: 'center', label: 'Allowed signers', field: 'users', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
         ]
 </script>

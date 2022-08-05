@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from utils.dev_utils import formatError
 
 from user.models import User
-from .models import Category, CategoryRole, Role, RoleUser
+from .models import Category, CategoryReadRole, CategorySignRole, Role, RoleUser
 from .serializers import CategorySerializer, CategoryPostSerializer, CategoryUpdateSerializer, RoleSerializer, RolePostSerializer, RoleUpdateSerializer
 
 class RoleList(GenericAPIView):
@@ -97,17 +97,17 @@ class RoleDetail(APIView):
                 serializer = RoleUpdateSerializer(role, data=request.data)
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-V06", "error": "Invalid message format", "schemaErrors":serializer.errors})
-                if serializer.validated_data["descr"]:
-                    role.descr = serializer.validated_data["descr"]
-                if serializer.validated_data["any"]:
-                    role.any = serializer.validated_data["any"]
-                if serializer.validated_data["users"]:
-                    RoleUser.objects.filter(role=role).delete()
-                    
-                    users = re.split('[\s|\,|\t|\;|\:]+',serializer.validated_data["users"])
-                    for username in users:
+                role.descr = serializer.validated_data["descr"]
+                role.any = serializer.validated_data["any"]
+                role.active = serializer.validated_data["active"]
+
+                RoleUser.objects.filter(role=role).delete()                    
+                users = re.split('[\s|\,|\t|\;|\:]+',serializer.validated_data["users"])
+                for username in users:
+                    if len(username) >0:
                         user = User.lookup(username=username)
                         role_user = RoleUser.objects.create(role=role, user=user)
+
                 role.save()    
             serializer = RoleSerializer(role)
             return Response(serializer.data)
@@ -139,9 +139,9 @@ class CategoryList(GenericAPIView):
         "descr": "Software Requirements",
         "active": true,
         "confidential": false,
-        "file_temp": "",
         "jira_temp": "",
-        "roles": ["IT Manager"]
+        "signRoles": "IT--Manager",
+        "readRoles": "IT--Manager, ITMgr"
     }
     """
     permission_classes = [IsSuperUserOrReadOnly]
@@ -190,9 +190,9 @@ class CategoryDetail(APIView):
         "descr": "Software Requirements",
         "active": true,
         "confidential": false,
-        "file_temp": "",
         "jira_temp": "",
-        "roles": "IT Manager, IT VP"]
+        "signRoles": "IT--Manager",
+        "readRoles": "IT--Manager, ITMgr"
     }
 
     delete:
@@ -221,27 +221,26 @@ class CategoryDetail(APIView):
                 serializer = CategoryUpdateSerializer(cat, data=request.data)
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-V14", "error": "Invalid message format", "schemaErrors":serializer.errors})
-                if serializer.validated_data["cat"]:
-                    cat.cat = serializer.validated_data["cat"]
-                if serializer.validated_data["sub_cat"]:
-                    cat.sub_cat = serializer.validated_data["sub_cat"]
-                if serializer.validated_data["descr"]:
-                    cat.descr = serializer.validated_data["descr"]
-                if serializer.validated_data["active"] is not None:
-                    cat.active = serializer.validated_data["active"]
-                if serializer.validated_data["confidential"] is not None:
-                    cat.confidential = serializer.validated_data["confidential"]
-                if serializer.validated_data["file_temp"]:
-                    cat.file_temp = serializer.validated_data["file_temp"]
-                if serializer.validated_data["jira_temp"]:
-                    cat.jira_temp = serializer.validated_data["jira_temp"]
-                if serializer.validated_data["roles"]:
-                    CategoryRole.objects.filter(cat=cat).delete()
-                    roles = re.split('[\s|\,|\t|\;|\:]+',serializer.validated_data["roles"])
-                    for rolename in roles:
+                cat.cat = serializer.validated_data["cat"]
+                cat.sub_cat = serializer.validated_data["sub_cat"]
+                cat.descr = serializer.validated_data["descr"]
+                cat.active = serializer.validated_data["active"]
+                cat.confidential = serializer.validated_data["confidential"]
+                cat.jira_temp = serializer.validated_data["jira_temp"]
+
+                CategorySignRole.objects.filter(cat=cat).delete()
+                roles = re.split('[\s|\,|\t|\;|\:]+',serializer.validated_data["signRoles"])
+                for rolename in list(filter(None, roles)):
+                    if len(rolename) > 0:
                         role = Role.lookup(roleName=rolename)
-                        CategoryRole.objects.filter(cat=cat, role_id=rolename).delete() # Prevent duplicates
-                        category_role = CategoryRole.objects.create(cat=cat, role=role)
+                        sign_role = CategorySignRole.objects.create(cat=cat, role=role)
+
+                CategoryReadRole.objects.filter(cat=cat).delete()
+                roles = re.split('[\s|\,|\t|\;|\:]+',serializer.validated_data["readRoles"])
+                for rolename in list(filter(None, roles)):
+                    if len(rolename) > 0:
+                        role = Role.lookup(roleName=rolename)
+                        read_role = CategoryReadRole.objects.create(cat=cat, role=role)
                 cat.save()
 
             serializer = CategorySerializer(cat)

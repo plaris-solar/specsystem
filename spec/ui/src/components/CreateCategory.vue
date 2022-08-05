@@ -1,7 +1,7 @@
 <template>
   <q-card class="dialog-window">
         <q-card-section class="bg-primary text-white row ">
-            <div class="text-h4">{{props.createMode?'Create':'Update '+props.categoryRow['category']}} Category</div>
+            <div class="text-h4">{{props.createMode?'Create':'Update '+props.categoryRow['cat']+'/'+props.categoryRow['sub_cat']}} Category</div>
             <q-btn icon="close" flat round dense data-cy="token-create-close" v-close-popup /> 
         </q-card-section>
         <q-card-section class="q-pt-none">
@@ -14,9 +14,9 @@
             <q-select label="Confidential" v-model="confidential" 
                 :options="[{label:'True',value:true}, {label:'False',value:false}]"
                 data-cy="confidential-create-category"/>
-            <q-input label="File Template" v-model.trim="file_temp"  data-cy="file_temp-create-category"/>
             <q-input label="Jira Template" v-model.trim="jira_temp"  data-cy="jira_temp-create-category"/>
-            <q-input label="Required Roles" v-model.trim="roles"  data-cy="roles-create-category"/>
+            <q-input label="Required Signer Roles" v-model.trim="signRoles"  data-cy="signRoles-create-category"/>
+            <q-input label="Reading Roles" v-model.trim="readRoles"  data-cy="readRoles-create-category"/>
         </q-card-section>
 
         <q-card-actions class="bg-white text-teal" align="center">
@@ -47,11 +47,11 @@ export default {
     const cat = ref('')
     const sub_cat = ref('')
     const descr = ref('')
-    const active = ref(false)
-    const confidential = ref(false)
-    const file_temp = ref('')
+    const active = ref({label:'True',value:true})
+    const confidential = ref({label:'False',value:false})
     const jira_temp = ref('')
-    const roles = ref('')
+    const signRoles = ref('')
+    const readRoles = ref('')
 
     async function saveCategory(){
         const body = {
@@ -60,9 +60,9 @@ export default {
             descr: descr.value,
             active: active.value.value,
             confidential: confidential.value.value,
-            file_temp: file_temp.value,
             jira_temp: jira_temp.value,
-            roles: roles.value
+            signRoles: signRoles.value,
+            readRoles: readRoles.value
         }
 
         if (props.createMode) {
@@ -81,14 +81,16 @@ export default {
     }
 
     onMounted(() => {
-        cat.value = props.categoryRow['cat']
-        sub_cat.value = props.categoryRow['sub_cat']
-        descr.value = props.categoryRow['descr']
-        if (props.categoryRow['active']) {active.value = true} else {active.value=false}
-        if (props.categoryRow['confidential']) {confidential.value = true} else {confidential.value=false}
-        file_temp.value = props.categoryRow['file_temp']
-        jira_temp.value = props.categoryRow['jira_temp']
-        roles.value = props.categoryRow['roles']
+        if (props.categoryRow['cat'] !== undefined) {
+            cat.value = props.categoryRow['cat']
+            sub_cat.value = props.categoryRow['sub_cat']
+            descr.value = props.categoryRow['descr']
+            if (props.categoryRow['active']) {active.value = {label:'True',value:true}} else {active.value={label:'False',value:false}}
+            if (props.categoryRow['confidential']) {confidential.value = {label:'True',value:true}} else {confidential.value={label:'False',value:false}}
+            jira_temp.value = props.categoryRow['jira_temp']
+            signRoles.value = props.categoryRow['signRoles']
+            readRoles.value = props.categoryRow['readRoles']
+        }
     })
 </script>
 
