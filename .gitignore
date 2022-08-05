@@ -1,0 +1,17 @@
+*~
+#*#
+__pycache__
+env
+memos/memos/static
+site.db
+test.db
+env.sh
+.coverage
+.vscode
+settings_local.py
+*.pyc
+memo_files
+Dockerfile
+docker-compose.yml
+memos/memos/sqlite/*
+.DS_Store

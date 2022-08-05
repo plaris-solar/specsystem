@@ -1,0 +1,816 @@
+{
+	"info": {
+		"_postman_id": "c9b68003-2fcb-423b-95a1-bc4bc3bc1bc9",
+		"name": "flexible_uploader_test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "21287187"
+	},
+	"item": [
+		{
+			"name": "get_csrf",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test get csrf\", function() {\r",
+							"    pm.response.to.have.status(200)\r",
+							"})\r",
+							"\r",
+							"pm.test(\"Test data update\", function() {\r",
+							"    var cookie = pm.response.headers.get(\"Set-Cookie\")\r",
+							"    cookie = cookie.substring(10, 74)\r",
+							"    postman.setEnvironmentVariable(\"csrf\", cookie);\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/accounts/login/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"accounts",
+						"login",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test get csrf\", function() {\r",
+							"    pm.response.to.have.status(302)\r",
+							"})\r",
+							"\r",
+							"pm.test(\"Test data update\", function() {\r",
+							"    var cookie = pm.cookies.get(\"csrftoken\")\r",
+							"    console.log(cookie)\r",
+							"    postman.setEnvironmentVariable(\"csrf\", cookie);\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"followRedirects": false
+			},
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "username",
+							"value": "{{username}}",
+							"type": "text"
+						},
+						{
+							"key": "password",
+							"value": "{{password}}",
+							"type": "text"
+						},
+						{
+							"key": "csrfmiddlewaretoken",
+							"value": "{{csrf}}",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/accounts/login/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"accounts",
+						"login",
+						""
+					],
+					"query": [
+						{
+							"key": "X-CSRFToken",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "reset_db",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test database reset\", function() {\r",
+							"    pm.response.to.have.status(204)\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text"
+					},
+					{
+						"key": "sessionid",
+						"value": "{{sessionid}}",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{url}}/db/qa/delete/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"db",
+						"qa",
+						"delete",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "doc_create_IQC_rolls",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test document create\", function() {\r",
+							"    pm.response.to.have.status(201)\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"description\": \"IQC data collection\",\r\n    \"doc_type\": \"IQC_rolls\",\r\n    \"schema\": {\r\n        \"lot_id*\": \"string\",\r\n        \"SUPPLIER_LOT*\": \"string\",\r\n        \"REV*\": \"string\",\r\n        \"DOM\": \"string\",\r\n        \"LABELS\": \"number\",\r\n        \"POV\": \"number\",\r\n        \"SUPPLIER*\": \"string\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "{{url}}/doc/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"doc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "doc_create_STK_MID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test document create\", function() {\r",
+							"    pm.response.to.have.status(201)\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"description\": \"STK_MID data collection\",\r\n    \"doc_type\": \"STK_MID\",\r\n    \"schema\": {\r\n        \"lot_id*\": \"string\",\r\n        \"POSITION*\": \"string\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "{{url}}/doc/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"doc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "csv_post_STK_MID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"postman.setEnvironmentVariable(\"date_1\", jsonData[0][\"creation_tm\"]);\r",
+							"postman.setEnvironmentVariable(\"date_2\", jsonData[1][\"creation_tm\"]);\r",
+							"\r",
+							"pm.test(\"Test database reset\", function() {\r",
+							"    pm.response.to.have.status(201)\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "FILE",
+							"type": "file",
+							"src": "sample_csvs/STK_MID-1.csv"
+						},
+						{
+							"key": "doc_type",
+							"value": "STK_MID",
+							"type": "text"
+						},
+						{
+							"key": "new_doc_descr",
+							"value": "STK_MID positions per lot",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/data/csv/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"data",
+						"csv",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "data_post_STK_MID",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);\r",
+							"\r",
+							"pm.test(\"Test database reset\", function() {\r",
+							"    pm.response.to.have.status(201)\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"doc_type\":\"STK_MID\",\r\n    \"data\": [\r\n                {\r\n                    \"lot_id\":\"E0121000000000\",\r\n                    \"POSITION\": \"5\"  \r\n            }\r\n    ]\r\n    \r\n}"
+				},
+				"url": {
+					"raw": "{{url}}/data/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"data",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "csv_post_IQC_rolls_err",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test IQC rolls data upload\", function() {\r",
+							"    pm.response.to.have.status(400)\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "FILE",
+							"type": "file",
+							"src": "sample_csvs/IQC_RCV_ROLLS-0.csv"
+						},
+						{
+							"key": "doc_type",
+							"value": "IQC_rolls",
+							"type": "text"
+						},
+						{
+							"key": "new_doc_descr",
+							"value": "IQC Data Collection Schema",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/data/csv/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"data",
+						"csv",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "doc_update_IQC_rolls",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test document create\", function() {\r",
+							"    pm.response.to.have.status(201)\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"description\": \"IQC Roll data collection\",\r\n    \"doc_type\": \"IQC_rolls\",\r\n    \"schema\": {\r\n        \"lot_id*\": \"string\",\r\n        \"SUPPLIER_LOT\": \"string\",\r\n        \"REV*\": \"string\",\r\n        \"DOM\": \"string\",\r\n        \"LABELS\": \"number\",\r\n        \"POV\": \"number\",\r\n        \"SUPPLIER*\": \"string\"\r\n    }\r\n}"
+				},
+				"url": {
+					"raw": "{{url}}/doc/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"doc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "csv_post_IQC_rolls",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test IQC rolls data upload\", function() {\r",
+							"    pm.response.to.have.status(201)\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text",
+						"disabled": true
+					},
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "FILE",
+							"type": "file",
+							"src": "sample_csvs/IQC_RCV_ROLLS-0.csv"
+						},
+						{
+							"key": "doc_type",
+							"value": "IQC_rolls",
+							"type": "text"
+						},
+						{
+							"key": "new_doc_descr",
+							"value": "IQC Data Collection Schema",
+							"type": "text",
+							"disabled": true
+						}
+					]
+				},
+				"url": {
+					"raw": "{{url}}/data/csv/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"data",
+						"csv",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "update_stk_mid_data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test update stk_mid data\", function() {\r",
+							"    pm.response.to.have.status(200)\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"doc_type\": \"STK_MID\",\r\n    \"data\": [\r\n                {\r\n                    \"row_num\": 2,\r\n                    \"creation_tm\": \"{{date_1}}\",\r\n                    \"lot_id\": \"E01210000002R3\",\r\n                    \"POSITION\": \"0\"\r\n                },\r\n                {\r\n                    \"row_num\": 3,\r\n                    \"creation_tm\": \"{{date_2}}\",\r\n                    \"lot_id\": \"E01210000002R4\",\r\n                    \"POSITION\": \"0\"\r\n                }\r\n            ]\r\n}"
+				},
+				"url": {
+					"raw": "{{url}}/data/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"data",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_stk_mid_data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test get stk_mid data\", function() {\r",
+							"    pm.response.to.have.status(200)\r",
+							"})\r",
+							"\r",
+							"pm.test(\"Test data update\", function() {\r",
+							"    var jsondata = JSON.parse(responseBody)['results'];\r",
+							"    console.log(jsondata)\r",
+							"    var data_len = jsondata.length\r",
+							"    pm.expect(jsondata[0][\"data\"][\"POSITION\"]).to.eql(\"0\")\r",
+							"    pm.expect(jsondata[1][\"data\"][\"POSITION\"]).to.eql(\"0\")\r",
+							"\r",
+							"    pm.expect(data_len).to.eql(99)\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url}}/data/?_doc_type=STK_MID",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"data",
+						""
+					],
+					"query": [
+						{
+							"key": "_doc_type",
+							"value": "STK_MID"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_all_data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test document create\", function() {\r",
+							"    pm.response.to.have.status(200)\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url}}/data/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"data",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_all_docs",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test document create\", function() {\r",
+							"    pm.response.to.have.status(200)\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url}}/doc/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"doc",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "delete_stk_mid_data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test delete STK_MID data\", function() {\r",
+							"    pm.response.to.have.status(204)\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"doc_type\": \"STK_MID\",\r\n    \"data\": [\r\n                {\r\n                    \"row_num\": 2,\r\n                    \"creation_tm\": \"{{date_1}}\",\r\n                    \"lot_id\": \"E01210000002R3\"\r\n                },\r\n                {\r\n                    \"row_num\": 3,\r\n                    \"creation_tm\": \"{{date_2}}\",\r\n                    \"lot_id\": \"E01210000002R4\"\r\n                }\r\n            ]\r\n}"
+				},
+				"url": {
+					"raw": "{{url}}/data/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"data",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "get_updated_stk_mid_data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Test get stk_mid data\", function() {\r",
+							"    pm.response.to.have.status(200)\r",
+							"})\r",
+							"\r",
+							"pm.test(\"Test data update\", function() {\r",
+							"    var jsondata = JSON.parse(responseBody)['results'];\r",
+							"    var data_len = jsondata.length\r",
+							"    pm.expect(data_len).to.eql(97)\r",
+							"})"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-CSRFToken",
+						"value": "{{csrf}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url}}/data/?_doc_type=STK_MID",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"data",
+						""
+					],
+					"query": [
+						{
+							"key": "_doc_type",
+							"value": "STK_MID"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
