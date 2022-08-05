@@ -18,13 +18,13 @@ from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion, GroupOfNamesTyp
 from . import settings_local
 # Server specific variable setup
 computer_name = os.getenv('COMPUTERNAME')
-dbhost = os.getenv('UPLOADER_DB_HOST', '.\sqlexpress')
+dbhost = os.getenv('DB_HOST', '.\sqlexpress')
 if 'test' in sys.argv:
     dbhost = '.\sqlexpress'
-    dbname = 'uploader_qa'
+    dbname = 'spec_qa'
 else: # pragma no cover
-    dbname = os.getenv('UPLOADER_DB_NAME', 'uploader_qa')
-    dbhost = os.getenv('UPLOADER_DB_HOST', '.\sqlexpress')
+    dbname = os.getenv('DB_NAME', 'spec_qa')
+    dbhost = os.getenv('DB_HOST', '.\sqlexpress')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

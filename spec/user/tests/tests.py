@@ -1,6 +1,5 @@
-import copy
 import os
-from utils.test_utils import UploaderTestCase
+from utils.test_utils import SpecTestCase
 import json
 import user.tests.test_resources as tr
 from django.conf import settings
@@ -8,7 +7,7 @@ from django.conf import settings
 TEST_FILE_DIR = 'data/tests/test_files/'
 
 
-class UserTest(UploaderTestCase):
+class UserTest(SpecTestCase):
 
     def test_token(self):
 

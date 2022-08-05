@@ -26,7 +26,7 @@ AUTH_ERRS = {
              }
 
 
-class UploaderTestCase(TransactionTestCase):
+class SpecTestCase(TransactionTestCase):
 
     def setUp(self):
         self.level_tokens = self.get_all_tokens()

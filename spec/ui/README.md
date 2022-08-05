@@ -1,4 +1,4 @@
-# uploader_frontend
+# spec_frontend
 
 ## Project setup
 ```

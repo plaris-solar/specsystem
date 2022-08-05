@@ -7,7 +7,7 @@
         <div v-if="authenticated">
             <span class="row home-header">
                 <h3 class="center">
-                    Welcome to the Flexible Data Uploader!
+                    Welcome to the Spec System!
                 </h3>
             </span>
             <h4 class="flex center">

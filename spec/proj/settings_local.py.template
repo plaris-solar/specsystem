@@ -8,8 +8,8 @@ os.environ['APP_PROD_SKEY'] = 'django-insecure-****'
 os.environ['LDAP_USER_ID'] = 'SPEC_service'
 os.environ['LDAP_PASSWD'] = ''
 
-os.environ['UPLOADER_DB_HOST'] = '.\sqlexpress'
-os.environ['UPLOADER_DB_NAME'] = 'spec_qa'
+os.environ['DB_HOST'] = '.\sqlexpress'
+os.environ['DB_NAME'] = 'spec_qa'
 
 os.environ['ADMIN_USER'] = 'spec-sup-test01'
 os.environ['ADMIN_PASSWD'] = ''
