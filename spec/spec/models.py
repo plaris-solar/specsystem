@@ -43,6 +43,24 @@ class Category(models.Model):
         managed = True
         db_table = 'category'
         unique_together = (('cat', 'sub_cat'),)
+        
+    def __str__(self):
+        return f'{self.cat}/{self.sub_cat}'
+
+    @staticmethod
+    def parse(catName):
+        catNameArr = catName.split('/', 1)
+        if len(catNameArr) != 2:
+            raise ValidationError({"errorCode":"SPEC-M03", "error": f"Category name must have one '/' separating category and sub category."})
+        return catNameArr
+
+    @staticmethod
+    def lookup(catName):
+        catNameArr = Category.parse(catName)
+        cat = Category.objects.filter(cat=catNameArr[0], sub_cat=catNameArr[1]).first()
+        if not cat:
+            raise ValidationError({"errorCode":"SPEC-M02", "error": f"Category: {catName} does not exist."})
+        return cat
 
 class CategorySignRole(models.Model):
     cat = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='signRoles')
@@ -70,7 +88,7 @@ class Spec(models.Model):
     num = models.IntegerField()
     ver = models.CharField(max_length=50)
     title = models.CharField(max_length=4000)
-    keywords = models.CharField(max_length=4000)
+    keywords = models.CharField(max_length=4000, blank=True, null=True)
     state = models.CharField(max_length=50)
     cat = models.ForeignKey(Category, on_delete=models.PROTECT, related_name='specs')
     create_dt = models.DateTimeField()
@@ -87,9 +105,10 @@ class Spec(models.Model):
 class SpecSig(models.Model):
     spec = models.ForeignKey(Spec, on_delete=models.CASCADE, related_name='sigs')
     role = models.ForeignKey(Role, on_delete=models.PROTECT, related_name='+')
-    signer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+', blank=True)
-    delegate = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+', blank=True)
+    signer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+', blank=True, null=True)
+    delegate = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='+', blank=True, null=True)
     signed_dt = models.DateTimeField(blank=True, null=True)
+    from_cat = models.BooleanField(default=False)
 
     class Meta:
         managed = True
@@ -109,16 +128,17 @@ class SpecHist(models.Model):
 
 class SpecFile(models.Model):
     spec = models.ForeignKey(Spec, on_delete=models.CASCADE, related_name='files')
-    seq = models.IntegerField()
-    _filename = models.CharField(max_length=4000)
     _uuid = models.CharField(max_length=48)
+    _filename = models.CharField(max_length=4000)
+    seq = models.IntegerField()
 
     class Meta:
         managed = True
         db_table = 'spec_file'
+        unique_together = (('spec', '_uuid'),)
 
 class SpecReference(models.Model):
-    spec = models.ForeignKey(Spec, on_delete=models.CASCADE)
+    spec = models.ForeignKey(Spec, on_delete=models.CASCADE, related_name='refs')
     num = models.IntegerField()
     ver = models.CharField(max_length=50, blank=True, null=True)
 

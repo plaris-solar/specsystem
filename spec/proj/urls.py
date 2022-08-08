@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include, re_path
-from spec.views import CategoryDetail, CategoryList, RoleDetail, RoleList
+from spec.views import CategoryDetail, CategoryList, RoleDetail, RoleList, SpecDetail, SpecList
 from user.views import GetUser, AdminToken, UserToken
 from . import views
 from django.views.generic.base import TemplateView
@@ -30,6 +30,9 @@ urlpatterns = [
     path('category/<cat>/<sub_cat>', CategoryDetail.as_view()),
     path('role/', RoleList.as_view()),
     path('role/<role>', RoleDetail.as_view()),
+    path('spec/', SpecList.as_view()),
+    path('spec/<num>', SpecList.as_view()),
+    path('spec/<num>/<ver>', SpecDetail.as_view()),
 
     path('db/qa/delete/', views.QaDbReset.as_view()),
     path('auth/info', GetUser.as_view()),

@@ -6,11 +6,13 @@ from rest_framework.decorators import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
+from spec.services.spec_create import specCreate
+from spec.services.spec_update import specUpdate
 from utils.dev_utils import formatError
 
 from user.models import User
-from .models import Category, CategoryReadRole, CategorySignRole, Role, RoleUser
-from .serializers import CategorySerializer, CategoryPostSerializer, CategoryUpdateSerializer, RoleSerializer, RolePostSerializer, RoleUpdateSerializer
+from .models import Category, CategoryReadRole, CategorySignRole, Role, RoleUser, Spec
+from .serializers import CategorySerializer, CategoryPostSerializer, CategoryUpdateSerializer, RoleSerializer, RolePostSerializer, RoleUpdateSerializer, SpecPostSerializer, SpecSerializer
 
 class RoleList(GenericAPIView):
     """ 
@@ -256,3 +258,114 @@ class CategoryDetail(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT) 
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V16")
+
+class SpecList(GenericAPIView):
+    """ 
+    get:
+    spec/
+    spec/<num>
+    Return list of specs
+
+    post:
+    Create spec
+
+    {
+        "title": "REQ, SPEC SYSTEM",
+        "keywords": "SPEC",
+        "cat": "IT",
+        "sub_cat": "Requirement",
+        "sigs": [{"role": "ITMgr", "signer": "ahawse"}],
+        "files": [{"filename": "Req.docx", "seq": 1}],
+        "refs": [{"num": 300000, "ver": "A"}]
+    }
+    """
+    permission_classes = [IsSuperUserOrReadOnly]
+    queryset = Spec.objects.all()
+    serializer_class = SpecSerializer
+    search_fields = ('title','keywords')
+
+    def get(self, request, num=None, format=None):
+        try:
+            queryset = self.filter_queryset(self.get_queryset())
+            if num is not None:
+                queryset = queryset.filter(num=num)
+            queryset = self.paginate_queryset(queryset.order_by('num', 'ver'))
+            
+            serializer = SpecSerializer(queryset, many=True)
+            return self.get_paginated_response(serializer.data)
+        except BaseException as be: # pragma: no cover
+            formatError(be, "SPEC-V17")
+
+    def post(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                serializer = SpecPostSerializer(data=request.data)
+                if not serializer.is_valid():
+                    raise ValidationError({"errorCode":"SPEC-V18", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                spec = specCreate(request, serializer.validated_data)
+            serializer = SpecSerializer(spec)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except BaseException as be: # pragma: no cover
+            formatError(be, "SPEC-V19")
+
+
+class SpecDetail(APIView):
+    """
+    get:
+    spec/<num>/<ver>
+    Return details of specific category / sub-category
+
+    put:
+    spec/<num>/<ver>
+    Update spec
+
+    {
+        "title": "REQ, SPEC SYSTEM",
+        "keywords": "SPEC",
+        "cat": "IT",
+        "sub_cat": "Requirement",
+        "sigs": [{"role": "ITMgr", "signer": "ahawse"}],
+        "files": [{"filename": "Req.docx", "seq": 1}],
+        "refs": [{"num": 300000, "ver": "A"}]
+    }
+
+    delete:
+    spec/<num>/<ver>
+    Delete specified spec entry
+    """
+    permission_classes = [IsSuperUserOrReadOnly]
+    def get_object(self, num, ver):
+        try:
+            return Spec.objects.get(num=num, ver=ver)
+        except Spec.DoesNotExist:
+            raise ValidationError({"errorCode":"SPEC-V20", "error": f"Spec ({num}/{ver}) does not exist."})
+
+    def get(self, request, num, ver, format=None):
+        try:
+            spec = self.get_object(num, ver)
+            serializer = SpecSerializer(spec)
+            return Response(serializer.data)
+        except BaseException as be: # pragma: no cover
+            formatError(be, "SPEC-V21")
+
+    def put(self, request, num, ver, format=None):
+        try:
+            with transaction.atomic():
+                spec = self.get_object(num, ver)
+                serializer = SpecPostSerializer(spec, data=request.data)
+                if not serializer.is_valid():
+                    raise ValidationError({"errorCode":"SPEC-V22", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                spec = specUpdate(request, spec, serializer.validated_data)
+            serializer = SpecSerializer(spec)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except BaseException as be: # pragma: no cover
+            formatError(be, "SPEC-V23")
+
+    def delete(self, request, num, ver, format=None):
+        try:
+            with transaction.atomic():
+                cat = self.get_object(num, ver)
+                cat.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT) 
+        except BaseException as be: # pragma: no cover
+            formatError(be, "SPEC-V24")

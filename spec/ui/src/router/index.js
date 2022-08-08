@@ -1,10 +1,8 @@
 import { createWebHistory, createRouter } from "vue-router";
 import HomePage from "@/views/home.vue";
 import CategoryPage from "@/views/category/CategoryMain.vue"
-import DocPage from "@/views/docs/DocMain.vue"
-import DocDetailPage from "@/views/docs/DocDetail.vue"
-import DataPage from "@/views/data/DataMain.vue"
 import RolePage from "@/views/role/RoleMain.vue"
+import SpecPage from "@/views/spec/SpecMain.vue"
 import TokenPage from "@/views/token/TokenMain.vue"
 
 const routes = [
@@ -19,21 +17,6 @@ const routes = [
     component: CategoryPage
   },
   {
-    path: '/ui-docs',
-    name: 'Data Management',
-    component: DocPage,
-  },
-  {
-    path: '/ui-doc-detail/:doc_type?',
-    name: 'Management',
-    component: DocDetailPage,
-  },
-  {
-    path: '/ui-data/:doc_type?',
-    name: 'Data',
-    component: DataPage
-  },
-  {
     path: '/ui-token',
     name: 'Token',
     component: TokenPage
@@ -42,7 +25,12 @@ const routes = [
     path: '/ui-role',
     name: 'Role',
     component: RolePage
-  }
+  },
+  {
+    path: '/ui-spec',
+    name: 'Spec',
+    component: SpecPage
+  },
 ];
 
 const router = createRouter({

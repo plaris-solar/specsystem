@@ -3,7 +3,7 @@ from user.models import User
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from .models import Category, CategoryReadRole, CategorySignRole, Role, RoleUser
+from .models import Category, CategoryReadRole, CategorySignRole, Role, RoleUser, Spec, SpecFile, SpecHist, SpecReference, SpecSig
 
 class RoleSerializer(serializers.ModelSerializer):
     users = serializers.StringRelatedField(many=True)
@@ -87,4 +87,59 @@ class CategoryUpdateSerializer(serializers.Serializer):
     signRoles = serializers.CharField(required=False, default=None, allow_blank=True)
     readRoles = serializers.CharField(required=False, default=None, allow_blank=True)
 
+class SpecSigSerializer(serializers.ModelSerializer):
+    signer = serializers.CharField(source='signer.__str__')
+    delegate = serializers.CharField(source='delegate.__str__')
+    class Meta:
+        model = SpecSig
+        fields = ('role', 'signer', 'delegate', 'signed_dt', 'from_cat', )
+
+    def to_representation(self, value):
+        data = super(SpecSigSerializer, self).to_representation(value)
+        if "__str__" in data['signer']:
+            data['signer'] = None
+        if "__str__" in data['delegate']:
+            data['delegate'] = None
+        return data
+
+class SpecHistSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpecHist
+        fields = ('mod_ts', 'upd_by', 'change_type', 'comment', )
+
+class SpecFileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpecFile
+        fields = ('seq', '_filename', )
+
+class SpecReferenceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SpecReference
+        fields = ('num', 'ver', )
+
+class SpecSerializer(serializers.ModelSerializer):
+    cat = serializers.CharField(source='cat.__str__')
+    sigs = SpecSigSerializer(many=True)
+    hist = SpecHistSerializer(many=True)
+    files = SpecFileSerializer(many=True)
+    refs = SpecReferenceSerializer(many=True)
+    class Meta:
+        model = Spec
+        fields = ('num', 'ver', 'title', 'keywords', 'state', 'cat', 'create_dt', 'mod_ts', 'sigs', 'hist', 'files', 'refs', )
+        
+class SpecSigPostSerializer(serializers.Serializer):
+    role = serializers.CharField()
+    signer = serializers.CharField(required=False, default=None, allow_null=True)
+    from_cat = serializers.BooleanField(required=False, default=False)
+        
+class SpecFilePostSerializer(serializers.Serializer):
+    _filename = serializers.CharField()
+
+class SpecPostSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    keywords = serializers.CharField(required=False, default=None, allow_blank=True)
+    cat = serializers.CharField()
+    sigs = SpecSigPostSerializer(many=True)
+    files = SpecFilePostSerializer(many=True)
+    refs = SpecReferenceSerializer(many=True)
 

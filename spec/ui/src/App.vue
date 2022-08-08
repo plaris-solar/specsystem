@@ -2,24 +2,6 @@
   <q-layout view="lHh lpr lff">
     <q-header elevated :class="env_color">
       <q-toolbar>
-        <div class="col">
-          <q-chip size="lg" >
-            <q-select borderless 
-                    :options="display_docs"
-                    v-model= "data_page"
-                    use-input
-                    input-debounce="0"
-                    color="blue"
-                    label="Select Page"
-                    class="q-pa-sm text-h6"
-                    clearable 
-                    @filter="filterFn"
-                    v-bind:input-style="{width: data_page ? 0: null}"
-                    data-cy="app-doc-select"
-                    @update:model-value="toData(data_page)">
-            </q-select>
-          </q-chip>
-        </div>
         <div class="col-md-auto">
         <q-toolbar-title class="text-center">
           <q-btn no-caps @click="router.push('/')">
@@ -29,21 +11,6 @@
           </q-btn>
           
         </q-toolbar-title>
-        </div>
-        <div class="col text-right">
-          <div class="q-pa-md inline" >
-            <q-btn :disable="!authenticated" color="secondary" label="Upload Data" size="1vw" @click="upload_csv = true" data-cy="app-upload-btn">
-            </q-btn>
-          </div>
-          <div class="q-pa-md inline">
-            <q-btn color="secondary" 
-                    label="Manage Data"
-                    :disable="!authenticated"
-                    @click="toDataManagement()"
-                    size="1vw"
-                    data-cy="app-management-btn">
-            </q-btn>
-          </div>
 
           <div class="q-pa-md inline" v-show="!authenticated">
             <q-btn color="positive" 
@@ -64,16 +31,16 @@
             </q-btn>
           </div>
           <div class="q-pa-md inline" v-if="isSupervisor">
-            <q-btn color="brown"
+            <q-btn color="secondary"
                     :disable="!authenticated"
-                    label="Admin"
+                    label="API Tokens"
                     size="1vw"
                     @click="router.push('/ui-token/')"
                     data-cy="app-admin-btn">
             </q-btn>
           </div>
           <div class="q-pa-md inline">
-            <q-btn color="brown"
+            <q-btn color="secondary"
                     label="Roles"
                     size="1vw"
                     @click="router.push('/ui-role/')"
@@ -81,12 +48,20 @@
             </q-btn>
           </div>
           <div class="q-pa-md inline">
-            <q-btn color="brown"
+            <q-btn color="secondary"
                     label="Categories"
                     size="1vw"
                     @click="router.push('/ui-cat/')"
                     data-cy="app-cat-btn">
             </q-btn>
+          <div class="q-pa-md inline">
+            <q-btn color="primary"
+                    label="Specs"
+                    size="1vw"
+                    @click="router.push('/ui-spec/')"
+                    data-cy="app-spec-btn">
+            </q-btn>
+          </div>
           </div>
         </div>
       </q-toolbar>
@@ -94,19 +69,11 @@
 
     <q-page-container>
       <router-view
-        :docs="docs"
         :key="route.fullPath"
-        :rerender="upload_csv"
-        @update_doc="getDocList()">
+      >
       </router-view>
     </q-page-container>
-    <q-dialog v-model="upload_csv">
-      <upload-csv-window
-          :docs="docs"
-          :doc_type="route.params.doc_type"
-          @csvUpload="closeCsvPopup"
-          data-cy="app-upload-window"/>
-    </q-dialog >
+
     <q-dialog v-model="login">
       <login-popup-page @close="login=false"/>
     </q-dialog >
@@ -114,10 +81,8 @@
 </template>
 
 <script>
-import uploadCsvWindow from '@/components/uploadCsv.vue'
 import LoginPopupPage from '@/components/LoginPopup.vue'
 import {
-  doc_list,
   retrieveData
 } from './utils';
 
@@ -128,7 +93,6 @@ import { useRouter, useRoute } from 'vue-router'
 export default {
   name: 'LayoutDefault',
   components: {
-    uploadCsvWindow,
     LoginPopupPage
   }
 }
@@ -141,11 +105,8 @@ export default {
 
   const store = useStore()
 
-  const upload_csv = ref(false)
   const login = ref(false)
 
-  const display_docs = ref([])
-  const docs = ref([])
   const data_page = ref()
 
   const env_color = ref()
@@ -159,7 +120,6 @@ export default {
   }
 
   onMounted(() => {
-    getDocList();
     if (authenticated.value) {
       store.dispatch('getPermission');
     }
@@ -169,12 +129,7 @@ export default {
   })
 
   watch(() => route.path, (new_param, old_param) => {
-    if (route.path.includes('ui-data')){
-      data_page.value = route.params.doc_type
-    }
-    else{
       data_page.value = null
-    }
   })
 
   watch(authenticated, (newVal, oldVal) => {
@@ -186,39 +141,6 @@ export default {
   async function set_app_color(){
     let resp = await retrieveData('env/')
     env_color.value = resp === 'Test' ? 'glossy bg-purple' : 'glossy bg-primary'
-  }
-
-  async function getDocList() {
-    docs.value = await doc_list();
-    display_docs.value = docs.value;
-
-  }
-
-  function closeCsvPopup(){
-    upload_csv.value = false;
-  }
-
-  function filterFn (val, update) {
-    if (val === ''){
-      update(() => {
-        display_docs.value = docs.value;
-      })
-      return;
-    }
-    update(() => {
-      const needle = val.toUpperCase()
-      display_docs.value = docs.value.filter(v => v.toUpperCase().indexOf(needle) > -1)
-    })
-  }
-
-  function toData(val){
-    if (val){
-      router.push('/ui-data/' + val)
-    }
-  }
-
-  function toDataManagement() {
-    router.push('/ui-docs')
   }
 
   async function logout(){

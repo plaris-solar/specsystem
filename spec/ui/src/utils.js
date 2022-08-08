@@ -93,7 +93,7 @@ export async function postFormData(api, body, msg) {
   return res
 }
 
-async function notifyResponse(response, msg){
+export async function notifyResponse(response, msg){
   if (msg){
     if (response.status < 300){
       showNotif(msg, 'green')
@@ -145,13 +145,6 @@ export function errorMsgHandler(obj) {
       return `${obj['errorCode']}: ${obj['error']}`;
     }
   }
-
-export async function doc_list() {
-    let url = `doc/`;
-    let res = await retrieveData(url);
-    return res.map(s => s['doc_type'].toUpperCase());
-}
-
 export function data_page_link(data_page){
     return `${serverHost}/data/?doc_type=${data_page}`
 }
