@@ -2,11 +2,8 @@
     <q-page class="flex flex-center">
         <div class="q-pa-md window-width">
             <q-table
-                title="Categories"
                 :rows="rows"
                 :columns="columns"
-                separator="cell"
-                row-key="spec"
                 :rows-per-page-options="[0]"
                 data-cy="spec-table">
                 <template v-slot:top-left>
@@ -55,17 +52,17 @@
                         <q-td v-if="isSupervisor && isAuthenticated">
                             <q-btn round color="negative" 
                                     @click="deleteSelected(props.row)"
-                                    icon="delete"
+                                    icon="delete" size="xs"
                                     data-cy="data-delete-btn">
-                            </q-btn>
-                            <q-btn round color="primary" 
-                                    @click="updateSelected(props.row)"
-                                    icon="edit"
-                                    data-cy="data-edit-btn">
                             </q-btn>
                         </q-td>
                         <q-td v-for="col in props.cols" :key="col.name" :props="props" class='text-center'>
-                            {{props.row[col.name]}}
+                            <span v-if="col.name === 'num'">
+                                <router-link :to="'/ui-spec/'+props.row['num']+'/'+props.row['ver']">
+                                    {{props.row['num']}}/{{props.row['ver']}}
+                                    </router-link>
+                            </span>
+                            <span v-else>{{props.row[col.name]}}</span>
                         </q-td>
                     </q-tr>
                 </template>
@@ -110,14 +107,12 @@ import {
 
 import { ref, onMounted, computed, defineProps, watch} from 'vue';
 import { useStore } from 'vuex'
-import CreateSpecDialog from '@/components/CreateSpec.vue'
-import UpdateSpecDialog from '@/components/UpdateSpec.vue'
+import CreateSpecDialog from '@/views/spec/CreateSpec.vue'
 
 export default {
     name: 'SpecPage',
     components: {
         CreateSpecDialog,
-        UpdateSpecDialog,
     },
 }
 </script>
@@ -199,11 +194,6 @@ export default {
 
     async function clearSelected(){
         selected.value = []
-    }
-
-    async function updateSelected(row){
-        specRow.value=row
-        upd_spec.value = true
     }
 
     function pagination_slug(page_number){
@@ -291,12 +281,13 @@ export default {
     }
 
     const columns = [
-            { name: 'num', align: 'left', label: 'Number', field: 'num', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'ver', align: 'left', label: 'Version', field: 'ver', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'num', align: 'left', label: 'Spec', field: 'num', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'title', align: 'left', label: 'Title', field: 'title', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'doc_type', align: 'left', label: 'Doc Type', field: 'doc_type', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'department', align: 'left', label: 'Department', field: 'department', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'keywords', align: 'left', label: 'Keywords', field: 'keywords', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'state', align: 'left', label: 'State', field: 'state', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'cat', align: 'left', label: 'Category', field: 'cat', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'created_by', align: 'left', label: 'Created By', field: 'created_by', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'mod_ts', align: 'left', label: 'Last Modified', field: 'mod_ts', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'sigs', align: 'left', label: 'Signatures', field: 'sigs', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
             { name: 'files', align: 'left', label: 'Files', field: 'files', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},

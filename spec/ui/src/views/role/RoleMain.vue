@@ -55,12 +55,12 @@
                         <q-td v-if="isSupervisor && isAuthenticated">
                             <q-btn round color="negative" 
                                     @click="deleteSelected(props.row['role'])"
-                                    icon="delete"
+                                    icon="delete" size="xs"
                                     data-cy="data-delete-btn">
                             </q-btn>
                             <q-btn round color="primary" 
                                     @click="updateSelected(props.row)"
-                                    icon="edit"
+                                    icon="edit" size="xs"
                                     data-cy="data-edit-btn">
                             </q-btn>
                         </q-td>
@@ -110,7 +110,7 @@ import {
 
 import { ref, onMounted, computed, defineProps, watch} from 'vue';
 import { useStore } from 'vuex'
-import CreateRoleDialog from '@/components/CreateRole.vue'
+import CreateRoleDialog from '@/views/role/CreateRole.vue'
 
 export default {
     name: 'RolePage',
@@ -291,8 +291,7 @@ export default {
     const columns = [
             { name: 'role', align: 'center', label: 'Role', field: 'role', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'descr', align: 'center', label: 'Description', field: 'descr', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'any', align: 'center', label: 'Allow any signer', field: 'any', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'active', align: 'center', label: 'Active', field: 'active', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'spec_one', align: 'center', label: 'Must Specify Signer', field: 'spec_one', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'users', align: 'center', label: 'Allowed signers', field: 'users', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
         ]
 </script>

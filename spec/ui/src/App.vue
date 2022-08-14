@@ -41,6 +41,14 @@
           </div>
           <div class="q-pa-md inline">
             <q-btn color="secondary"
+                    label="Doc Types"
+                    size="1vw"
+                    @click="router.push('/ui-doctype/')"
+                    data-cy="app-doctype-btn">
+            </q-btn>
+          </div>
+          <div class="q-pa-md inline">
+            <q-btn color="secondary"
                     label="Roles"
                     size="1vw"
                     @click="router.push('/ui-role/')"
@@ -49,10 +57,18 @@
           </div>
           <div class="q-pa-md inline">
             <q-btn color="secondary"
-                    label="Categories"
+                    label="Departments"
                     size="1vw"
-                    @click="router.push('/ui-cat/')"
-                    data-cy="app-cat-btn">
+                    @click="router.push('/ui-dept/')"
+                    data-cy="app-dept-btn">
+            </q-btn>
+          </div>
+          <div class="q-pa-md inline">
+            <q-btn color="secondary"
+                    label="Approval Matrix"
+                    size="1vw"
+                    @click="router.push('/ui-apvl-mt/')"
+                    data-cy="app-apvl-mt-btn">
             </q-btn>
           <div class="q-pa-md inline">
             <q-btn color="primary"

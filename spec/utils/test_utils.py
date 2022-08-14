@@ -110,7 +110,6 @@ class SpecTestCase(TransactionTestCase):
         # Set token
         headers = {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': tok,
                 }
 
         response = self.client.post(f'/auth/token/{os.getenv(f"ADMIN_USER")}', **headers)

@@ -6,7 +6,7 @@
 
 import { Notify } from 'quasar'
 
-export const serverHost = process.env.NODE_ENV === 'production' ? '' : 'http://127.0.0.1:8000';
+export const apiServerHost = process.env.NODE_ENV === 'production' ? '' : 'http://127.0.0.1:8000';
 
 export const metadata_cols = ['row_num', 'creation_tm', '_new_row']
 
@@ -14,7 +14,7 @@ export const data_types = ['string', 'number', 'datetm', 'date']
 
 export async function retrieveData(api) {
     let method = 'GET'
-    let url = `${serverHost}/${api}`
+    let url = `${apiServerHost}/${api}`
     let res = await getHeader().then((header) => sendRequest(url, header, null, method))
     res = await res?.json();
     return res;
@@ -32,7 +32,7 @@ export function removeFromList(elem, list){
 
 export async function postData(api, body, msg) {
   let method = 'POST'
-  let url = `${serverHost}/${api}`
+  let url = `${apiServerHost}/${api}`
   let res = await getHeader().then((header) => sendRequest(url, header, JSON.stringify(body), method))
   notifyResponse(res, msg)
   return res
@@ -40,7 +40,7 @@ export async function postData(api, body, msg) {
 
 export async function deleteData(api, body, msg) {
   let method = 'DELETE'
-  let url = `${serverHost}/${api}`
+  let url = `${apiServerHost}/${api}`
   let res = await getHeader().then((header) => sendRequest(url, header, JSON.stringify(body), method))
   notifyResponse(res, msg)
   return res
@@ -48,7 +48,7 @@ export async function deleteData(api, body, msg) {
 
 export async function putData(api, body, msg) {
   let method = 'PUT'
-  let url = `${serverHost}/${api}`
+  let url = `${apiServerHost}/${api}`
   let res = await getHeader().then((header) => sendRequest(url, header, JSON.stringify(body), method))
   notifyResponse(res, msg)
   return res
@@ -77,7 +77,7 @@ async function getHeader(){
 }
 
 // Don't include content type in the header for form type request payloads
-async function getFormHeader(){
+export async function getFormHeader(){
   let tok = getCookie('csrftoken')
   return {
           'X-CSRFToken': tok,
@@ -87,7 +87,7 @@ async function getFormHeader(){
   // put this in uploadcsv
 export async function postFormData(api, body, msg) {
   let method = 'POST'
-  let url = `${serverHost}/${api}`
+  let url = `${apiServerHost}/${api}`
   let res = await getFormHeader().then((header) => sendRequest(url, header, body, method))
   notifyResponse(res, msg)
   return res
@@ -146,7 +146,7 @@ export function errorMsgHandler(obj) {
     }
   }
 export function data_page_link(data_page){
-    return `${serverHost}/data/?doc_type=${data_page}`
+    return `${apiServerHost}/data/?doc_type=${data_page}`
 }
 
 export function showNotif (msg, color) {        

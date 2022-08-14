@@ -66,7 +66,7 @@
 
     import { ref, computed, onMounted } from 'vue';
     import { useStore } from 'vuex'
-    import CreateTokenDialog from '@/components/CreateToken.vue'
+    import CreateTokenDialog from '@/views/token/CreateToken.vue'
 
     export default {
         name: 'TokenPage',

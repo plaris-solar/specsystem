@@ -13,8 +13,6 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 from pathlib import Path
 import sys, os
 import proj.signal_loggers as request_logger
-import ldap
-from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion, GroupOfNamesType, LDAPGroupQuery
 from . import settings_local
 # Server specific variable setup
 computer_name = os.getenv('COMPUTERNAME')
@@ -58,6 +56,9 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',  # https://www.django-rest-framework.org/api-guide/authentication/
     'spec.apps.SpecConfig',
     'user.apps.UserConfig',
+
+    'django_cleanup.apps.CleanupConfig', # should be placed after your apps
+
 ]
 
 MIDDLEWARE = [

@@ -15,7 +15,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include, re_path
-from spec.views import CategoryDetail, CategoryList, RoleDetail, RoleList, SpecDetail, SpecList
+from spec.views.approvalMatrixViews import ApprovalMatrixDetail, ApprovalMatrixList
+from spec.views.docTypeViews import DocTypeDetail, DocTypeList
+from spec.views.departmentViews import DepartmentDetail, DepartmentList
+from spec.views.roleViews import RoleDetail, RoleList
+from spec.views.specViews import SpecDetail, SpecFileDetail, SpecList
 from user.views import GetUser, AdminToken, UserToken
 from . import views
 from django.views.generic.base import TemplateView
@@ -23,16 +27,21 @@ from django.views.generic.base import TemplateView
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # path('cat/', CategoryList.as_view()),
-    # path('cat/<category>', CategoryDetail.as_view()),
-    path('category/', CategoryList.as_view()),
-    path('category/<cat>', CategoryList.as_view()),
-    path('category/<cat>/<sub_cat>', CategoryDetail.as_view()),
+    # path('cat/', ApprovalMatrixList.as_view()),
+    # path('cat/<ApprovalMatrix>', ApprovalMatrixDetail.as_view()),
+    path('approvalmatrix/', ApprovalMatrixList.as_view()),
+    path('approvalmatrix/<name>', ApprovalMatrixDetail.as_view()),
+    path('doctype/', DocTypeList.as_view()),
+    path('doctype/<doctype>', DocTypeDetail.as_view()),
+    path('dept/', DepartmentList.as_view()),
+    path('dept/<dept>', DepartmentDetail.as_view()),
     path('role/', RoleList.as_view()),
     path('role/<role>', RoleDetail.as_view()),
+    path('spec/file/<num>/<ver>/<fileName>', SpecFileDetail.as_view()),
     path('spec/', SpecList.as_view()),
     path('spec/<num>', SpecList.as_view()),
     path('spec/<num>/<ver>', SpecDetail.as_view()),
+    path('spec/file/<num>/<ver>', SpecFileDetail.as_view()),
 
     path('db/qa/delete/', views.QaDbReset.as_view()),
     path('auth/info', GetUser.as_view()),

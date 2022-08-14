@@ -1,4 +1,4 @@
-import { serverHost } from '@/utils.js';
+import { apiServerHost } from '@/utils.js';
 import {createStore} from 'vuex'
 import {notifyLoginFail} from '@/utils.js'
 import createPersistedState from "vuex-persistedstate";
@@ -23,7 +23,7 @@ const getters = {
 
 const actions = {
   async login({ commit }, payload) {
-    let res = await window.fetch(`${serverHost}/accounts/login/`, {
+    let res = await window.fetch(`${apiServerHost}/accounts/login/`, {
       method: 'POST',
       credentials: 'include',
       body: payload.form,
@@ -40,14 +40,14 @@ const actions = {
     }
   },
   async logout({ commit }) {
-    let res = await window.fetch(`${serverHost}/accounts/logout/`);
+    let res = await window.fetch(`${apiServerHost}/accounts/logout/`);
     if (res.ok) {
       commit('logout');
     }
   },
   async getPermission({commit}) {
     let isSupervisor = false;
-    let res = await window.fetch(`${serverHost}/auth/info`, {
+    let res = await window.fetch(`${apiServerHost}/auth/info`, {
       credentials: 'include',
     });
     if (res.ok) {
