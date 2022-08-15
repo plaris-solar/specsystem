@@ -32,8 +32,6 @@
                     </q-btn>
                 </template>
                 <template v-slot:header="props">
-                    <q-th v-if="isSupervisor && isAuthenticated" style="width: 15em">
-                    </q-th>
                     <q-th v-for="col in columns" 
                           :key="col.name" 
                           :props="props" 
@@ -49,13 +47,6 @@
                 </template>
                 <template v-slot:body="props">
                     <q-tr :props="props" @click="props.row._new_row && !props.selected ? props.selected=true : false">
-                        <q-td v-if="isSupervisor && isAuthenticated">
-                            <q-btn round color="negative" 
-                                    @click="deleteSelected(props.row)"
-                                    icon="delete" size="xs"
-                                    data-cy="data-delete-btn">
-                            </q-btn>
-                        </q-td>
                         <q-td v-for="col in props.cols" :key="col.name" :props="props" class='text-center'>
                             <span v-if="col.name === 'num'">
                                 <router-link :to="'/ui-spec/'+props.row['num']+'/'+props.row['ver']">
@@ -85,14 +76,7 @@
             </q-table>
             <q-dialog v-model="add_spec">
                 <create-spec-dialog
-                    :specRow="{}"
                     :createMode="true"
-                    @updateTable="getTableData(page_num)"/>
-            </q-dialog >
-            <q-dialog v-model="upd_spec">
-                <update-spec-dialog
-                    :specRow = "specRow"
-                    :createMode="false"
                     @updateTable="getTableData(page_num)"/>
             </q-dialog >
         </div>
@@ -102,7 +86,6 @@
 <script>
 import {
     retrieveData,
-    deleteData,
 } from '@/utils.js';
 
 import { ref, onMounted, computed, defineProps, watch} from 'vue';
@@ -136,7 +119,6 @@ export default {
     const filter_val = ref()
     const filtered = ref(false)
     const filter_slug = ref('')
-    const specRow = ref()
     const sort_slug = ref('')
     const sort_value = ref(0)
     const sort_col = ref('')
@@ -177,23 +159,6 @@ export default {
 
         set_pagination_params(page_number, data_rows.count)
         setSelected()
-    }
-
-    async function deleteSelected(specRow){
-        if (!window.confirm(`Delete spec: ${specRow['num']}/${specRow['ver']}?`)) {
-            return
-        }
-        
-        deleteData(`spec/${specRow['num']}/${specRow['ver']}`, '{}', `Deleted spec: ${specRow['num']}/${specRow['ver']} successfully.`).then((res) => {
-            if (res.status < 300){
-                clearSelected()
-                getTableData(1)
-            }
-        })
-    }
-
-    async function clearSelected(){
-        selected.value = []
     }
 
     function pagination_slug(page_number){

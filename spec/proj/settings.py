@@ -20,9 +20,13 @@ dbhost = os.getenv('DB_HOST', '.\sqlexpress')
 if 'test' in sys.argv:
     dbhost = '.\sqlexpress'
     dbname = 'spec_qa'
+    dbuid = ''
+    dbpasswd = ''
 else: # pragma no cover
     dbname = os.getenv('DB_NAME', 'spec_qa')
     dbhost = os.getenv('DB_HOST', '.\sqlexpress')
+    dbuid = os.getenv('DB_USER', '')
+    dbpasswd = os.getenv('DB_PASSWD', '')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -121,6 +125,8 @@ DATABASES = {
         "ENGINE": "mssql",
         "NAME": dbname,
         "HOST": dbhost,
+        "USER": dbuid,
+        "PASSWORD": dbpasswd,
         "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server",
         },
     },
