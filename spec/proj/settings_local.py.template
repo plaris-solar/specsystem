@@ -3,26 +3,34 @@ import os
 from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion, GroupOfNamesType, LDAPGroupQuery
 from pathlib import Path
 
-os.environ['APP_PROD_SKEY'] = 'django-insecure-****'
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'django-insecure-*_GenerateAcustomKey'
 
-os.environ['LDAP_USER_ID'] = 'SPEC_service'
-os.environ['LDAP_PASSWD'] = ''
+os.environ['LDAP_USER_ID'] = 'LdapService'
+os.environ['LDAP_PASSWD'] = 'LdapPasswd'
 
-os.environ['DB_HOST'] = '.\sqlexpress'
-os.environ['DB_NAME'] = 'spec_qa'
+DATABASES = {
+    "default": {
+        "ENGINE": "mssql",
+        "NAME": 'spec_qa',
+        "HOST": '.\sqlexpress',
+        "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server",
+        },
+    },
+}
 
 os.environ['ADMIN_USER'] = 'spec-sup-test01'
-os.environ['ADMIN_PASSWD'] = ''
+os.environ['ADMIN_PASSWD'] = 'SupPasswd'
 
 os.environ['USER_USER'] = 'spec-user-test01'
-os.environ['USER_PASSWD'] = ''
+os.environ['USER_PASSWD'] = 'UserPasswd'
 
 os.environ['AD_SUFFIX'] = 'Test'
 
 # Settings for LDAP.
-AUTH_LDAP_SERVER_URI = "ldaps://ldap"
+AUTH_LDAP_SERVER_URI = "ldaps://company.local"
 AUTH_LDAP_CONNECTION_OPTIONS= {
-    ldap.OPT_X_TLS_CACERTFILE: os.getenv('LDAP_CA_FILE_PATH') if 'LDAP_CA_FILE_PATH' in os.environ else '',
+    ldap.OPT_X_TLS_CACERTFILE: '',
     # get/set validation strategy for server cert.
     ldap.OPT_X_TLS_REQUIRE_CERT: ldap.OPT_X_TLS_ALLOW,
     # set and apply TLS settings to internal TLS context. Value 0 creates a new client-side context.
@@ -49,77 +57,43 @@ AUTH_LDAP_USER_ATTR_MAP = {
 }
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {
     "is_active": (
-        LDAPGroupQuery(f"CN=SPEC-Supervisor-{os.environ['AD_SUFFIX']},OU=Application Groups,OU=Groups,OU=Company,DC=Company,DC=local") |
-        LDAPGroupQuery(f"CN=SPEC-User-{os.environ['AD_SUFFIX']},OU=Application Groups,OU=Groups,OU=Company,DC=Company,DC=local")
+        LDAPGroupQuery(f"CN=FDU-Supervisor-{os.environ['AD_SUFFIX']},OU=Application Groups,OU=Groups,OU=Company,DC=Company,DC=local") |
+        LDAPGroupQuery(f"CN=FDU-User-{os.environ['AD_SUFFIX']},OU=Application Groups,OU=Groups,OU=Company,DC=Company,DC=local")
     ),
-    "is_superuser": f"CN=SPEC-Supervisor-{os.environ['AD_SUFFIX']},OU=Application Groups,OU=Groups,OU=Company,DC=Company,DC=local"
+    "is_superuser": f"CN=FDU-Supervisor-{os.environ['AD_SUFFIX']},OU=Application Groups,OU=Groups,OU=Company,DC=Company,DC=local"
 }
+# Cache distinguished names and group memberships for an hour to minimize
+# LDAP traffic.
+AUTH_LDAP_CACHE_TIMEOUT = 3600
 
-LOG_DIR = os.path.join(Path(__file__).resolve().parent.parent, 'logs')
-LOGGING = {
-                "version": 1,
-                "disable_existing_loggers": False,
-                'formatters': {
-                    'simple': {
-                        'format': ' {name}:{lineno} {levelname} {asctime} : {message}',
-                        'datefmt': '%Y-%m-%d %H:%M:%S',
-                        'style': '{',
-                    },
-                },
+LOG_DIR = 'c:\Logs'
+LOGGING_OVERRIDES = {
                 "handlers": {
                     'djangoInfo': {
-                        'level': 'DEBUG',
-                        'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
                         'filename': os.path.join(LOG_DIR, "django.log"),
-                        'maxBytes': 1024*1024*10,
-                        'backupCount': 10,
-                        'use_gzip': True,
-                        'formatter': 'simple',
-                        'delay': True,
                     },
                     'appInfo': {
-                        'level': 'DEBUG',
-                        'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
                         'filename': os.path.join(LOG_DIR, "spec.log"),
-                        'maxBytes': 1024*1024*10,
-                        'backupCount': 10,
-                        'use_gzip': True,
-                        'formatter': 'simple',
-                        'delay': True,
                     },
                     'authInfo': {
-                        'level': 'DEBUG',
-                        'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
                         'filename': os.path.join(LOG_DIR, "auth.log"),
-                        'maxBytes': 1024*1024*10,
-                        'backupCount': 10,
-                        'use_gzip': True,
-                        'formatter': 'simple',
-                        'delay': True,
-                    },
-                    "console": {
-                        "class": "logging.StreamHandler",
-                        'formatter': 'simple',
                     },
                 },
                 "loggers": {
                     'django': {
-                        'handlers': ['console', 'djangoInfo'],
+                        'handlers': ['console', ],
                         'level': 'INFO',
-                        'propagate': True,
                     },
                     'requests': {
-                        'handlers': ['console', 'appInfo'],
+                        'handlers': ['console', ],
                         'level': 'INFO',
-                        'propagate': True,
                     },
                     'data': {
-                        'handlers': ['console', 'appInfo'],
+                        'handlers': ['console', ],
                         'level': 'INFO',
-                        'propagate': True,
                     },
                     "django_auth_ldap": {
-                        "handlers": ["console", 'authInfo'],
+                        "handlers": ['console', ],
                         "level": "DEBUG",
                     },
                 },

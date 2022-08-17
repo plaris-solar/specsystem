@@ -5,7 +5,7 @@
             <q-btn icon="close" flat round dense data-cy="token-create-close" v-close-popup /> 
         </q-card-section>
         <q-card-section class="q-pt-none">
-            <q-input label="Role" v-model.trim="role" v-if="props.createMode" data-cy="role-create-role"/>
+            <q-input label="Role" v-model.trim="role" v-show="props.createMode" data-cy="role-create-role"/>
             <q-input label="Description" v-model.trim="descr" data-cy="descr-create-role"/>
             <q-select label="Must Specify Signer" v-model="spec_one" 
                 :options="[{label:'True',value:true}, {label:'False',value:false}]"

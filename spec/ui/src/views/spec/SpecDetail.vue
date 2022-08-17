@@ -40,11 +40,11 @@
                         icon-right="add" size="xs"
                         no-caps
                         data-cy="add_sig-btn"
-                        v-if="edit">
+                        v-show="edit">
                     </q-btn>
                 </template>
                 <template v-slot:header>
-                    <q-th v-if="edit"/>
+                    <q-th v-show="edit"/>
                     <q-th>Role</q-th>
                     <q-th>Signer</q-th>
                     <q-th>Signed</q-th>
@@ -52,17 +52,17 @@
                 </template>
                 <template v-slot:body="tprops">
                     <q-tr>
-                        <q-td v-if="edit">
+                        <q-td v-show="edit">
                             <q-btn round color="negative" 
                                     @click="deleteSig(tprops.row)"
                                     icon="delete" size="xs" dense
                                     data-cy="data-delete-btn"
-                                    v-if="!tprops.row['from_am']">
+                                    v-show="!tprops.row['from_am']">
                             </q-btn>
                         </q-td>
                         <q-td v-if="!tprops.row['_new']" style="white-space: nowrap;">
                             {{tprops.row["role"]}}
-                            <span  v-if="tprops.row['spec_one']">*</span></q-td>
+                            <span  v-show="tprops.row['spec_one']">*</span></q-td>
                         <q-td v-else>   
                             <q-select
                                 v-model="tprops.row['role']"
@@ -96,18 +96,18 @@
                         icon-right="add" size="xs"
                         no-caps
                         data-cy="add_ref-btn"
-                        v-if="edit">
+                        v-show="edit">
                     </q-btn>
                 </template>
 
                 <template v-slot:header>
-                    <q-th v-if="edit"/>
+                    <q-th v-show="edit"/>
                     <q-th>Num</q-th>
                     <q-th>Ver (optional)</q-th>
                 </template>
                 <template v-slot:body="tprops">
                     <q-tr>
-                        <q-td v-if="edit">
+                        <q-td v-show="edit">
                             <q-btn round color="negative" 
                                     @click="deleteRef(tprops.row)"
                                     icon="delete" size="xs" dense
@@ -132,13 +132,13 @@
                 hide-bottom
                 data-cy="spec-detail-files">
                 <template v-slot:header>
-                    <q-th v-if="edit"/>
+                    <q-th v-show="edit"/>
                     <q-th>File Name</q-th>
                     <q-th>Add to PDF</q-th>
                 </template>
                 <template v-slot:body="tprops">
                     <q-tr>
-                        <q-td v-if="edit">
+                        <q-td v-show="edit">
                             <q-btn round color="negative" 
                                     @click="deleteFile(tprops.row)"
                                     icon="delete" size="xs" dense
@@ -185,11 +185,11 @@
            </q-table>
         </q-card-section>
 
-        <span v-if="state === 'Draft'">
-            <q-card-actions v-if="!edit" class="bg-white text-teal" align="center">
+        <span v-show="state === 'Draft'">
+            <q-card-actions v-show="!edit" class="bg-white text-teal" align="center">
             <q-btn label="Edit" color="primary" size="lg" class="filter-btn" @click="edit=true" data-cy="spec-detail-update"/>
             </q-card-actions>
-            <q-card-actions v-else class="bg-white text-teal" align="center">
+            <q-card-actions v-show="edit" class="bg-white text-teal" align="center">
             <q-btn label="Save" color="primary" size="lg" class="filter-btn" @click="saveSpec()" data-cy="spec-detail-update"/>
             <div class="spacer"/>
             <q-btn label="Delete" color="red" size="lg" class="filter-btn" @click="deleteSpec()"  data-cy="spec-detail-cancel"/>

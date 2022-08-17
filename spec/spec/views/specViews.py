@@ -7,6 +7,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from spec.services.spec_create import specCreate
+from ..services.spec_route import specReject, specSign, specSubmit
 from spec.services.spec_update import specFileUpload, specUpdate
 from utils.dev_utils import formatError
 
@@ -178,3 +179,71 @@ class SpecFileDetail(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT) 
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V24")
+
+
+class SpecSubmit(APIView):
+    """
+    post:
+    spec/submit/<num>/<ver>
+    Submit spec for signatures
+
+    {
+    }
+    """
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    def post(self, request, num, ver, format=None):
+        try:
+            with transaction.atomic():
+                spec = Spec.lookup(num, ver, request.user)
+                spec = specSubmit(request, spec, serializer.validated_data)
+            serializer = SpecSerializer(spec)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except BaseException as be: # pragma: no cover
+            formatError(be, "SPEC-V23")
+
+
+class SpecSign(APIView):
+    """
+    post:
+    spec/sign/<num>/<ver>
+    Sign spec
+
+    {
+    }
+    """
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    def post(self, request, num, ver, format=None):
+        try:
+            with transaction.atomic():
+                spec = Spec.lookup(num, ver, request.user)
+                spec = specSign(request, spec, serializer.validated_data)
+            serializer = SpecSerializer(spec)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except BaseException as be: # pragma: no cover
+            formatError(be, "SPEC-V23")
+
+
+
+class SpecReject(APIView):
+    """
+    post:
+    spec/reject/<num>/<ver>
+    Reject spec send back to Draft
+
+    {
+    }
+    """
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    def post(self, request, num, ver, format=None):
+        try:
+            with transaction.atomic():
+                spec = Spec.lookup(num, ver, request.user)
+                serializer = SpecPostSerializer(spec, data=request.data)
+                if not serializer.is_valid():
+                    raise ValidationError({"errorCode":"SPEC-V22", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                spec = specReject(request, spec, serializer.validated_data)
+            serializer = SpecSerializer(spec)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except BaseException as be: # pragma: no cover
+            formatError(be, "SPEC-V23")
+

@@ -5,7 +5,7 @@
             <q-btn icon="close" flat round dense data-cy="token-create-close" v-close-popup /> 
         </q-card-section>
         <q-card-section class="q-pt-none">
-            <q-input label="Approval Matrix" v-model.trim="name" v-if="props.createMode" data-cy="name-create-ApprovalMatrix"/>
+            <q-input label="Approval Matrix" v-model.trim="name" v-show="props.createMode" data-cy="name-create-ApprovalMatrix"/>
             <q-input label="Doc Type" v-model.trim="doc_type" data-cy="doc_type-create-ApprovalMatrix"/>
             <q-input label="Department" v-model.trim="department" data-cy="department-create-ApprovalMatrix"/>
             <q-input label="Jira Template" v-model.trim="jira_temp"  data-cy="jira_temp-create-ApprovalMatrix"/>

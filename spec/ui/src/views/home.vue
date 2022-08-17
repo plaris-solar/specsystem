@@ -1,10 +1,10 @@
 <template>
     <q-page class="flex center">
-        <div v-if="!authenticated">
+        <div v-show="!authenticated">
             <login-page/>
         </div>
 
-        <div v-if="authenticated">
+        <div v-show="authenticated">
             <span class="row home-header">
                 <h3 class="center">
                     Welcome to the Spec System!

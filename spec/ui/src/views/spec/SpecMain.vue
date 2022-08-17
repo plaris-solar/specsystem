@@ -23,7 +23,7 @@
                 </template>
                 <template v-slot:top-right>
                     <q-btn color="primary" 
-                        v-if="isSupervisor && isAuthenticated"
+                        v-show="isSupervisor && isAuthenticated"
                         @click="add_spec = true"
                         label="Add Spec"
                         icon-right="add"
@@ -34,15 +34,8 @@
                 <template v-slot:header="props">
                     <q-th v-for="col in columns" 
                           :key="col.name" 
-                          :props="props" 
-                          @mouseover="hover_target = col.name"
-                          @mouseout="hover_target = null"
-                          @click="applySort(col.name)">
+                          :props="props" >
                             {{col.label}}
-                        <q-icon v-if="col.name == sort_col"
-                               :name="getSortIcon()"/> 
-                        <q-icon v-else
-                               :name="(hover_target == col.name) ? 'arrow_upward' : null"/>
                     </q-th>
                 </template>
                 <template v-slot:body="props">
@@ -102,14 +95,9 @@ export default {
 
 <script setup>
 
-    const sort_icons = [null, 'arrow_upward', 'arrow_downward']
-    const sort_toggle = [null, 'asc', 'desc']
-
     const rows_per_page = 20
 
     const store = useStore()
-
-    const hover_target = ref('')
 
     const rows = ref([])
     const selected = ref([])
@@ -120,8 +108,6 @@ export default {
     const filtered = ref(false)
     const filter_slug = ref('')
     const sort_slug = ref('')
-    const sort_value = ref(0)
-    const sort_col = ref('')
     const upd_spec = ref(false);
 
     const page_num = ref(1)
@@ -224,25 +210,6 @@ export default {
     async function clearFilters(){
         filtered.value = false;
         clearFilter()
-    }
-
-    function getSortIcon(){
-        return sort_icons[sort_value.value]
-    }
-
-    function applySort(col_name){
-        sort_slug.value = ''
-        if (col_name === sort_col.value){
-            sort_value.value = (sort_value.value + 1) % 3
-        }
-        else{
-            sort_col.value = col_name
-            sort_value.value = 1
-        }
-        if (sort_value.value != 0){
-            sort_slug.value = `&sort_${sort_col.value}=${sort_toggle[sort_value.value]}`
-        }
-        getTableData(1)
     }
 
     const columns = [

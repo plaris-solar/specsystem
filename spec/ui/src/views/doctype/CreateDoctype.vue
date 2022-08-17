@@ -5,7 +5,7 @@
             <q-btn icon="close" flat round dense data-cy="token-create-close" v-close-popup /> 
         </q-card-section>
         <q-card-section class="q-pt-none">
-            <q-input label="Name" v-model.trim="doctype" v-if="props.createMode" data-cy="doctype-create-doctype"/>
+            <q-input label="Name" v-model.trim="doctype" v-show="props.createMode" data-cy="doctype-create-doctype"/>
             <q-input label="Description" v-model.trim="descr" data-cy="descr-create-doctype"/>
             <q-select label="Confidential" v-model="confidential" 
                 :options="[{label:'True',value:true}, {label:'False',value:false}]"

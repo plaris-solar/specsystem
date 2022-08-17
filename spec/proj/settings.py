@@ -10,23 +10,13 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
+import json
 from pathlib import Path
 import sys, os
 import proj.signal_loggers as request_logger
-from . import settings_local
+
 # Server specific variable setup
 computer_name = os.getenv('COMPUTERNAME')
-dbhost = os.getenv('DB_HOST', '.\sqlexpress')
-if 'test' in sys.argv:
-    dbhost = '.\sqlexpress'
-    dbname = 'spec_qa'
-    dbuid = ''
-    dbpasswd = ''
-else: # pragma no cover
-    dbname = os.getenv('DB_NAME', 'spec_qa')
-    dbhost = os.getenv('DB_HOST', '.\sqlexpress')
-    dbuid = os.getenv('DB_USER', '')
-    dbpasswd = os.getenv('DB_PASSWD', '')
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -38,16 +28,14 @@ TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('APP_PROD_SKEY')
+SECRET_KEY = 'django-insecure-*OverrideThisInSetting.Local*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
 # Application definition
-
 INSTALLED_APPS = [
     'corsheaders',
     'django.contrib.admin',
@@ -118,18 +106,11 @@ WSGI_APPLICATION = 'proj.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
-
 DATABASES = {
-    "default": {
-        "ENGINE": "mssql",
-        "NAME": dbname,
-        "HOST": dbhost,
-        "USER": dbuid,
-        "PASSWORD": dbpasswd,
-        "OPTIONS": {"driver": "ODBC Driver 17 for SQL Server",
-        },
-    },
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'specdb',
+    }
 }
 AUTHENTICATION_BACKENDS = [
     "django_auth_ldap.backend.LDAPBackend",
@@ -177,22 +158,83 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGGING = settings_local.LOGGING
+LOG_DIR = os.path.join(Path(__file__).resolve().parent.parent, 'logs')
+LOGGING = {
+                "version": 1,
+                "disable_existing_loggers": False,
+                'formatters': {
+                    'simple': {
+                        'format': ' {name}:{lineno} {levelname} {asctime} : {message}',
+                        'datefmt': '%Y-%m-%d %H:%M:%S',
+                        'style': '{',
+                    },
+                },
+                "handlers": {
+                    'djangoInfo': {
+                        'level': 'DEBUG',
+                        'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
+                        'filename': os.path.join(LOG_DIR, "django.log"),
+                        'maxBytes': 1024*1024*10,
+                        'backupCount': 10,
+                        'use_gzip': True,
+                        'formatter': 'simple',
+                        'delay': True,
+                    },
+                    'appInfo': {
+                        'level': 'DEBUG',
+                        'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
+                        'filename': os.path.join(LOG_DIR, "spec.log"),
+                        'maxBytes': 1024*1024*10,
+                        'backupCount': 10,
+                        'use_gzip': True,
+                        'formatter': 'simple',
+                        'delay': True,
+                    },
+                    'authInfo': {
+                        'level': 'DEBUG',
+                        'class': 'concurrent_log_handler.ConcurrentRotatingFileHandler',
+                        'filename': os.path.join(LOG_DIR, "auth.log"),
+                        'maxBytes': 1024*1024*10,
+                        'backupCount': 10,
+                        'use_gzip': True,
+                        'formatter': 'simple',
+                        'delay': True,
+                    },
+                    "console": {
+                        "class": "logging.StreamHandler",
+                        'formatter': 'simple',
+                    },
+                },
+                "loggers": {
+                    'django': {
+                        'handlers': ['djangoInfo'],
+                        'level': 'INFO',
+                        'propagate': True,
+                    },
+                    'requests': {
+                        'handlers': ['appInfo'],
+                        'level': 'INFO',
+                        'propagate': True,
+                    },
+                    'data': {
+                        'handlers': ['appInfo'],
+                        'level': 'INFO',
+                        'propagate': True,
+                    },
+                    "django_auth_ldap": {
+                        "handlers": ['authInfo'],
+                        "level": "INFO",
+                    },
+                },
+            }
+
+# Override default settings
+try:
+    from .settings_local import *
+except ImportError:
+    pass
+from deepmerge import always_merger
+if LOGGING_OVERRIDES:
+    always_merger.merge(LOGGING, LOGGING_OVERRIDES)
+
 request_logger.log_all_requests()
-
-# LDAP settings are in setting_local
-# but need to be in settings.py so they are found by the libraries
-AUTH_LDAP_CONNECTION_OPTIONS = settings_local.AUTH_LDAP_CONNECTION_OPTIONS
-AUTH_LDAP_SERVER_URI = settings_local.AUTH_LDAP_SERVER_URI
-AUTH_LDAP_START_TLS = settings_local.AUTH_LDAP_START_TLS
-AUTH_LDAP_BIND_DN = settings_local.AUTH_LDAP_BIND_DN
-AUTH_LDAP_BIND_PASSWORD = os.getenv('LDAP_PASSWD')
-AUTH_LDAP_USER_SEARCH = settings_local.AUTH_LDAP_USER_SEARCH
-AUTH_LDAP_GROUP_SEARCH = settings_local.AUTH_LDAP_GROUP_SEARCH
-AUTH_LDAP_GROUP_TYPE = settings_local.AUTH_LDAP_GROUP_TYPE
-AUTH_LDAP_USER_ATTR_MAP = settings_local.AUTH_LDAP_USER_ATTR_MAP
-AUTH_LDAP_USER_FLAGS_BY_GROUP = settings_local.AUTH_LDAP_USER_FLAGS_BY_GROUP
-
-# Cache distinguished names and group memberships for an hour to minimize
-# LDAP traffic.
-AUTH_LDAP_CACHE_TIMEOUT = 3600

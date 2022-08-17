@@ -5,7 +5,7 @@
             <q-btn icon="close" flat round dense data-cy="token-create-close" v-close-popup /> 
         </q-card-section>
         <q-card-section class="q-pt-none">
-            <q-input label="Name" v-model.trim="department" v-if="props.createMode" data-cy="department-create-department"/>
+            <q-input label="Name" v-model.trim="department" v-show="props.createMode" data-cy="department-create-department"/>
             <q-input label="Read Roles" v-model.trim="readRoles" data-cy="readroles-create-department"/>
         </q-card-section>
 

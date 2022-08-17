@@ -19,7 +19,7 @@ from spec.views.approvalMatrixViews import ApprovalMatrixDetail, ApprovalMatrixL
 from spec.views.docTypeViews import DocTypeDetail, DocTypeList
 from spec.views.departmentViews import DepartmentDetail, DepartmentList
 from spec.views.roleViews import RoleDetail, RoleList
-from spec.views.specViews import SpecDetail, SpecFileDetail, SpecList
+from spec.views.specViews import SpecDetail, SpecFileDetail, SpecList, SpecReject, SpecSign, SpecSubmit
 from user.views import GetUser, AdminToken, UserToken
 from . import views
 from django.views.generic.base import TemplateView
@@ -42,6 +42,9 @@ urlpatterns = [
     path('spec/<num>', SpecList.as_view()),
     path('spec/<num>/<ver>', SpecDetail.as_view()),
     path('spec/file/<num>/<ver>', SpecFileDetail.as_view()),
+    path('spec/submit/<num>/<ver>', SpecSubmit.as_view()),
+    path('spec/sign/<num>/<ver>', SpecSign.as_view()),
+    path('spec/reject/<num>/<ver>', SpecReject.as_view()),
 
     path('db/qa/delete/', views.QaDbReset.as_view()),
     path('auth/info', GetUser.as_view()),

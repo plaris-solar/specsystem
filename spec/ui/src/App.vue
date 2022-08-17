@@ -30,7 +30,7 @@
                     data-cy="app-logout-btn">
             </q-btn>
           </div>
-          <div class="q-pa-md inline" v-if="isSupervisor">
+          <div class="q-pa-md inline" v-show="isSupervisor">
             <q-btn color="secondary"
                     :disable="!authenticated"
                     label="API Tokens"
