@@ -60,7 +60,6 @@ export default {
 
 
         let res = await postData('spec/', body, null)
-        console.log(`res`)
         if (res.status < 300){
             let body = await res?.json()
             notifyResponse(res, `Spec created: ${body.num}/${body.ver}`)

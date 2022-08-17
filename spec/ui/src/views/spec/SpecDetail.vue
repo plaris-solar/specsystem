@@ -77,7 +77,15 @@
                                 :data-cy="genCy(`signer`, tprops.row['signer'])"
                                 dense borderless :readonly="!edit"/>                        
                         </q-td>
-                        <q-td>{{tprops.row["signed_dt"]}}</q-td>
+                        <q-td>
+                            {{tprops.row["signed_dt"]}}
+                            <q-btn 
+                                v-if="state === 'Signoff' && tprops.row['signed_dt'] === null" 
+                                label="Sign" @click="signRole(tprops.row)"  data-cy="spec-detail-sign"/>
+                            <q-btn 
+                                v-if="state === 'Signoff'" 
+                                label="Reject" @click="rejectRole(tprops.row)"  data-cy="spec-detail-reject"/>
+                        </q-td>
                         <q-td>{{tprops.row["delgate"]}}</q-td>
                     </q-tr>
                 </template>
@@ -187,21 +195,28 @@
 
         <span v-show="state === 'Draft'">
             <q-card-actions v-show="!edit" class="bg-white text-teal" align="center">
-            <q-btn label="Edit" color="primary" size="lg" class="filter-btn" @click="edit=true" data-cy="spec-detail-update"/>
+                <q-btn label="Edit" color="primary" size="lg" class="filter-btn" @click="edit=true" data-cy="spec-detail-update"/>
+                <div class="spacer"/>
+                <q-btn label="Submit" color="primary" size="lg" class="filter-btn" @click="submitSpec()"  data-cy="spec-detail-cancel"/>
             </q-card-actions>
             <q-card-actions v-show="edit" class="bg-white text-teal" align="center">
-            <q-btn label="Save" color="primary" size="lg" class="filter-btn" @click="saveSpec()" data-cy="spec-detail-update"/>
-            <div class="spacer"/>
-            <q-btn label="Delete" color="red" size="lg" class="filter-btn" @click="deleteSpec()"  data-cy="spec-detail-cancel"/>
-            <div class="spacer"/>
-            <q-btn label="Cancel" color="red" size="lg" class="filter-btn" @click="cancel()"  data-cy="spec-detail-cancel"/>
+                <q-btn label="Save" color="primary" size="lg" class="filter-btn" @click="saveSpec()" data-cy="spec-detail-update"/>
+                <div class="spacer"/>
+                <q-btn label="Delete" color="red" size="lg" class="filter-btn" @click="deleteSpec()"  data-cy="spec-detail-cancel"/>
+                <div class="spacer"/>
+                <q-btn label="Cancel" color="red" size="lg" class="filter-btn" @click="cancel()"  data-cy="spec-detail-cancel"/>
+            </q-card-actions>
+        </span>
+        <span v-show="state === 'Active' || state === 'Obsolete'">
+            <q-card-actions class="bg-white text-teal" align="center">
+                <q-btn label="Revise" color="primary" size="lg" class="filter-btn" @click="reviseSpec()"  data-cy="spec-detail-update"/>
             </q-card-actions>
         </span>
     </q-card>
 </template>
 
 <script>
-import { apiServerHost, defineProps, deleteData, genCy, getCookie, putData, retrieveData } from '@/utils.js'
+import { apiServerHost, defineProps, deleteData, genCy, getCookie, notifyResponse, postData, putData, retrieveData } from '@/utils.js'
 import {ref, onMounted} from 'vue'
 import {useRouter, } from 'vue-router'
 
@@ -330,6 +345,49 @@ export default {
     async function refreshFileList() {
         let res = await retrieveData(`spec/${props.num}/${props.ver}`);
         fileRows.value = res['files']
+    }
+
+    async function rejectRole(sigRow){
+        postData(`spec/reject/${props.num}/${props.ver}`, 
+            {'role':sigRow['role'], 'signer':sigRow['signer'], 'comment':'test'}, 
+            `Signed spec: ${props.num}/${props.ver} successfully.`).then((res) => {
+            
+            if (res.status < 300){
+                router.go()
+            }
+        })
+    }
+
+    async function reviseSpec(){
+        if (!window.confirm(`Create new revision of spec: ${props.num}/${props.ver}?`)) {
+            return
+        }
+        
+        let res = await postData(`spec/${props.num}/${props.ver}`, {}, null)
+        if (res.status < 300){
+            let body = await res?.json()
+            notifyResponse(res, `Spec created: ${body.num}/${body.ver}`)
+            router.push({name:"Spec Detail", params:{num:body.num, ver:body.ver}})
+        } else {
+            notifyResponse(res, ' ')
+        }
+    }
+
+    async function signRole(sigRow){
+        let res = await postData(`spec/sign/${props.num}/${props.ver}`, {'role':sigRow['role'], 'signer':sigRow['signer']}, `Signed spec: ${props.num}/${props.ver} successfully.`).then((res) => {
+            if (res.status < 300){
+                router.go()
+            }
+        })
+    }
+
+    async function submitSpec(){
+        
+        postData(`spec/submit/${props.num}/${props.ver}`, {}, `Submitted spec: ${props.num}/${props.ver} for signatures successfully.`).then((res) => {
+            if (res.status < 300){
+                router.go()
+            }
+        })
     }
 
     async function loadLists() {

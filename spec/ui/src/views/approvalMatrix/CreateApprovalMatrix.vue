@@ -54,7 +54,6 @@ export default {
 
         if (props.createMode) {
             let res = await postData('approvalmatrix/', body, 'Successfully created ApprovalMatrix ' + name.value)
-            console.log(`res`)
             if (res.status < 300){
                 emit('updateTable')
             }

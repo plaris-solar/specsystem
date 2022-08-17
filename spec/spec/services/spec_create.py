@@ -1,3 +1,5 @@
+from django.core.files.base import ContentFile
+from spec.services.revletter import get_next_version
 from user.models import User
 from ..models import ApprovalMatrix, Department, DocType, Role, Spec, SpecSig, SpecFile, SpecReference
 
@@ -17,7 +19,7 @@ def specSigCreate(request, spec, role, signerName, from_am):
     specRole = SpecSig.objects.create(spec=spec, role=role, signer=signer, from_am=from_am)
 
 def specFileCreate(request, spec, filename, seq):
-    specRole = SpecFile.objects.create(spec=spec, filename=filename, seq=seq)
+    specFile = SpecFile.objects.create(spec=spec, filename=filename, seq=seq)
 
 def specCreate(request, validated_data):
     sigs_data = validated_data.pop("sigs")
@@ -39,7 +41,7 @@ def specCreate(request, validated_data):
 
     spec = Spec.objects.create(**validated_data)
 
-    apvl_mt = ApprovalMatrix.lookup(docTypeName, deptName)
+    apvl_mt = ApprovalMatrix.lookup(spec.doc_type, spec.department)
     for signRole in apvl_mt.signRoles.all():
         specSigCreate(request, spec, signRole.role, None, True)
     for sig_data in sigs_data:
@@ -51,5 +53,40 @@ def specCreate(request, validated_data):
     for ref_data in refs_data:
         ref_data['spec'] = spec
         SpecReference.objects.create(**ref_data)
+
+    return spec
+
+def specRevise(request, spec):
+    orig_spec = Spec.objects.get(id=spec.id)
+
+    spec.id = None
+    spec.ver = get_next_version(spec.ver)
+    spec.state = 'Draft'
+    spec.created_by = request.user
+    spec.create_dt = request._req_dt
+    spec.mod_ts = request._req_dt
+    
+    spec.save()
+    
+    apvl_mt = ApprovalMatrix.lookup(spec.doc_type, spec.department)
+    for signRole in apvl_mt.signRoles.all():
+        specSigCreate(request, spec, signRole.role, None, True)
+        
+    for specFile in orig_spec.files.all():      
+        if specFile.seq == 0: # Skip the rendered PDF
+            continue  
+        specFile.id = None
+        specFile.spec=spec
+        # Create a copy of the file, so it is independent
+        # This assures the original file is not deleted from disk as the new spec is edited.
+        new_file = ContentFile(specFile.file.read())
+        new_file.name = specFile.filename
+        specFile.file = new_file
+        specFile.save()
+
+    for ref_data in orig_spec.refs.all():
+        ref_data.id = None
+        ref_data.spec=spec
+        ref_data.save()
 
     return spec
