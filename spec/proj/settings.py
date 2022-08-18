@@ -234,7 +234,11 @@ try:
 except ImportError:
     pass
 from deepmerge import always_merger
-if LOGGING_OVERRIDES:
-    always_merger.merge(LOGGING, LOGGING_OVERRIDES)
+
+try:
+    if LOGGING_OVERRIDES:
+        always_merger.merge(LOGGING, LOGGING_OVERRIDES)
+except:
+    pass
 
 request_logger.log_all_requests()

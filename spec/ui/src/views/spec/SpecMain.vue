@@ -221,9 +221,6 @@ export default {
             { name: 'state', align: 'left', label: 'State', field: 'state', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'created_by', align: 'left', label: 'Created By', field: 'created_by', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'mod_ts', align: 'left', label: 'Last Modified', field: 'mod_ts', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'sigs', align: 'left', label: 'Signatures', field: 'sigs', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
-            { name: 'files', align: 'left', label: 'Files', field: 'files', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
-            { name: 'refs', align: 'left', label: 'References', field: 'refs', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
         ]
 </script>
 

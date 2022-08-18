@@ -16,6 +16,7 @@ class SpecSigSerializer(serializers.ModelSerializer):
         return data
 
 class SpecHistSerializer(serializers.ModelSerializer):
+    upd_by = serializers.CharField(source='upd_by.username')
     class Meta:
         model = SpecHist
         fields = ('mod_ts', 'upd_by', 'change_type', 'comment', )
