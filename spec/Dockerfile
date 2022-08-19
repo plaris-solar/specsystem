@@ -1,4 +1,4 @@
-FROM python:3.10
+FROM nikolaik/python-nodejs:python3.10-nodejs16
 ENV APP=/app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
@@ -18,8 +18,6 @@ RUN apt-get update \
     libssl-dev \
     unixodbc-dev \
     unixodbc \
-    nodejs \
-    npm  \
     vim
     
 # This block loads the drivers required to make pyodbc and microsoft sql server work
@@ -53,7 +51,7 @@ RUN npm run build
 
 WORKDIR $APP
 RUN python manage.py collectstatic --noinput
-RUN chmoda+x/app/start-server.sh
+RUN chmod a+x /app/start-server.sh
 
 EXPOSE 8020
 STOPSIGNAL SIGTERM
