@@ -192,6 +192,29 @@
                 </template>
            </q-table>
         </q-card-section>
+        
+        <q-card-section class="q-pt-none">
+            History:
+            <q-table
+                :rows="histRows"
+                hide-bottom
+                data-cy="spec-detail-files">
+                <template v-slot:header>
+                    <q-th>Who</q-th>
+                    <q-th>When</q-th>
+                    <q-th>Operation</q-th>
+                    <q-th>Comment</q-th>
+                </template>
+                <template v-slot:body="tprops">
+                    <q-tr>
+                        <q-td>{{tprops.row['upd_by']}}</q-td>  
+                        <q-td>{{tprops.row['mod_ts']}}</q-td>  
+                        <q-td>{{tprops.row['change_type']}}</q-td>  
+                        <q-td>{{tprops.row['comment']}}</q-td>    
+                    </q-tr>
+                </template>
+           </q-table>
+        </q-card-section>
 
         <span v-show="state === 'Draft'">
             <q-card-actions v-show="!edit" class="bg-white text-teal" align="center">

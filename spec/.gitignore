@@ -71,3 +71,4 @@ proj/settings_local.py
 
 # npm package artifacts
 package-lock.json
+/specdb
