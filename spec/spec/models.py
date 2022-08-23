@@ -104,25 +104,33 @@ class ApprovalMatrix(models.Model):
         return f'{self.name}'
 
     @staticmethod
-    def lookup(doc_type, department, orig_dept=None):
+    def lookup(doc_type, deptName, orig_dept=None):
         """
         The match on department tries to find the most specific match, first.
-        If an exact match isn't found, the last / and following part is removed and tried again
+        If an exact match isn't found, the last : and following part is removed and tried again
         """
-        if department is None:
-            department = ''
+        if deptName is None:
+            deptName = '__Generic__'
         
-        apvl_mt = ApprovalMatrix.objects.filter(doc_type=doc_type, department=department).first()
+        apvl_mt = None
+        try: # Department not being found will be retried below, so eat any error on missing part
+            department = Department.lookup(deptName)
+            apvl_mt = ApprovalMatrix.objects.filter(doc_type=doc_type, department=department).first()
+        except:
+            pass
         if apvl_mt:
             return apvl_mt
         
         if orig_dept is None:
-            orig_dept = department
-        if department and '/' in department:
-            # Remove the last slash and everything after it, to check on the department's parent
-            parent_dept = re.sub('/[^/]*$', '', department)
-            if parent_dept != department:
-                return ApprovalMatrix.lookup(doc_type, parent_dept, orig_dept)
+            orig_dept = deptName
+        if deptName and ':' in deptName:
+            # Remove the last : and everything after it, to check on the department's parent
+            parent_dept = re.sub(':[^:]*$', '', deptName)
+            return ApprovalMatrix.lookup(doc_type, parent_dept, orig_dept)
+        
+        # Finally, try with department named __Generic__ as a coomon root department
+        if deptName != '__Generic__':
+            return ApprovalMatrix.lookup(doc_type, None, orig_dept)
         
         raise ValidationError({"errorCode":"SPEC-M04", "error": f"No Approval Matrix found for Doc Type {doc_type} and department {orig_dept}"})
 

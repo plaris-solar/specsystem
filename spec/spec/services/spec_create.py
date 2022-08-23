@@ -41,7 +41,7 @@ def specCreate(request, validated_data):
 
     spec = Spec.objects.create(**validated_data)
 
-    apvl_mt = ApprovalMatrix.lookup(spec.doc_type, spec.department)
+    apvl_mt = ApprovalMatrix.lookup(spec.doc_type, deptName)
     for signRole in apvl_mt.signRoles.all():
         specSigCreate(request, spec, signRole.role, None, True)
     for sig_data in sigs_data:

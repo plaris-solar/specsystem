@@ -8,14 +8,10 @@ RUN apt-get update \
     build-essential \
     libpq-dev \
     gettext \
-    curl \
-    gcc  \
-    libc-dev \
     libsasl2-dev \
     nginx \
     python-dev \
     libldap2-dev \
-    libssl-dev \
     unixodbc-dev \
     unixodbc \
     vim
