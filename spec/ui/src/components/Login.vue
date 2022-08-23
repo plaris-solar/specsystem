@@ -31,7 +31,7 @@
 <script>
 import {ref, onMounted, watch, computed, defineEmits, defineProps} from 'vue'
 import { useStore } from 'vuex'
-import {serverHost, getCookie} from '@/utils.js'
+import {apiServerHost, getCookie} from '@/utils.js'
 
 export default {
     name: 'LoginPage'
@@ -99,7 +99,7 @@ export default {
     }
 
     async function setCSRFToken() {
-      await window.fetch(serverHost + "/accounts/login/");
+      await window.fetch(apiServerHost + "/accounts/login/");
       csrf.value = getCookie("csrftoken")
     }
 </script>
