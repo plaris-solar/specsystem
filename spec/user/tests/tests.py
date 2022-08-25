@@ -73,7 +73,7 @@ class UserTest(SpecTestCase):
         response = self.get_request('/auth/info', auth_lvl='ADMIN')
         self.assertEqual(response.status_code, 200)
         resp = json.loads(response.content)
-        self.assertEqual(resp['is_supervisor'], True)
+        self.assertEqual(resp['is_admin'], True)
 
     def test_token_expiration(self):
         # Set the token expiration time to 0 so tokens expire instantly

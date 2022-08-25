@@ -87,7 +87,8 @@ class GetUser(APIView):
             token = Token.objects.filter(user=request.user).first()
             ret = {
                 "user": request.user.username,
-                "is_supervisor": request.user.is_superuser,
+                "is_admin": request.user.is_superuser,
+                "is_readAll": request.user.is_superuser,
             }
             return Response(ret)
         except BaseException as be:  # pragma: no cover

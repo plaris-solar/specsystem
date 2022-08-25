@@ -7,7 +7,7 @@ const initialState = {
   authenticated: localStorage.getItem('authenticated') || '',
   username: localStorage.getItem('username') || '',
   failedLogin: false,
-  isSupervisor: false,
+  isAdmin: false,
 };
 
 const getters = {
@@ -18,7 +18,7 @@ const getters = {
     return state.authenticated? state.username : null;
   },
   failedLogin: state => state.failedLogin,
-  isSupervisor: state => state.isSupervisor,
+  isAdmin: state => state.isAdmin,
 };
 
 const actions = {
@@ -46,19 +46,19 @@ const actions = {
     }
   },
   async getPermission({commit}) {
-    let isSupervisor = false;
+    let isAdmin = false;
     let res = await window.fetch(`${apiServerHost}/auth/info`, {
       credentials: 'include',
     });
     if (res.ok) {
       res = await res.json();
-      isSupervisor = res['is_supervisor'];
+      isAdmin = res['is_admin'];
     } else {
-      isSupervisor = false;
+      isAdmin = false;
       commit('logout');
     }
     commit('setPermission', {
-      isSupervisor: isSupervisor,
+      isAdmin: isAdmin,
     });
   },
 };
@@ -80,10 +80,10 @@ const mutations = {
     state.username = null;
     localStorage.setItem('authenticated', '');
     localStorage.setItem('username', '');
-    state.isSupervisor = false;
+    state.isAdmin = false;
   },
   setPermission(state, payload) {
-    state.isSupervisor = payload.isSupervisor;
+    state.isAdmin = payload.isAdmin;
   },
 };
 

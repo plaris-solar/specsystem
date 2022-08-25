@@ -57,10 +57,10 @@ AUTH_LDAP_USER_ATTR_MAP = {
 }
 AUTH_LDAP_USER_FLAGS_BY_GROUP = {
     "is_active": (
-        LDAPGroupQuery(f"CN=FDU-Supervisor-{os.environ['AD_SUFFIX']},OU=Application Groups,OU=Groups,OU=Company,DC=Company,DC=local") |
-        LDAPGroupQuery(f"CN=FDU-User-{os.environ['AD_SUFFIX']},OU=Application Groups,OU=Groups,OU=Company,DC=Company,DC=local")
+        LDAPGroupQuery(f"CN=SPEC-Admin-{os.environ['AD_SUFFIX']},OU=Application Groups,OU=Groups,OU=Company,DC=Company,DC=local") |
+        LDAPGroupQuery(f"CN=SPEC-ReadAll-{os.environ['AD_SUFFIX']},OU=Application Groups,OU=Groups,OU=Company,DC=Company,DC=local")
     ),
-    "is_superuser": f"CN=FDU-Supervisor-{os.environ['AD_SUFFIX']},OU=Application Groups,OU=Groups,OU=Company,DC=Company,DC=local"
+    "is_superuser": f"CN=SPEC-Admin-{os.environ['AD_SUFFIX']},OU=Application Groups,OU=Groups,OU=Company,DC=Company,DC=local"
 }
 # Cache distinguished names and group memberships for an hour to minimize
 # LDAP traffic.

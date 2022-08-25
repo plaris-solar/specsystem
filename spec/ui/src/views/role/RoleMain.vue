@@ -26,7 +26,7 @@
                 </template>
                 <template v-slot:top-right>
                     <q-btn color="primary" 
-                        v-show="isSupervisor && isAuthenticated"
+                        v-show="isAdmin && isAuthenticated"
                         @click="add_role = true"
                         label="Add Role"
                         icon-right="add"
@@ -35,7 +35,7 @@
                     </q-btn>
                 </template>
                 <template v-slot:header="props">
-                    <q-th v-show="isSupervisor && isAuthenticated" style="width: 15em">
+                    <q-th v-show="isAdmin && isAuthenticated" style="width: 15em">
                     </q-th>
                     <q-th v-for="col in columns" 
                           :key="col.name" 
@@ -45,7 +45,7 @@
                 </template>
                 <template v-slot:body="props">
                     <q-tr :props="props" @click="props.row._new_row && !props.selected ? props.selected=true : false">
-                        <q-td v-show="isSupervisor && isAuthenticated">
+                        <q-td v-show="isAdmin && isAuthenticated">
                             <q-btn round color="negative" 
                                     @click="deleteSelected(props.row['role'])"
                                     icon="delete" size="xs"
@@ -135,7 +135,7 @@ export default {
     const num_pages = ref()
 
     const isAuthenticated = ref(computed(() => store.getters.authenticated))
-    const isSupervisor = ref(computed(() => store.getters.isSupervisor))
+    const isAdmin = ref(computed(() => store.getters.isAdmin))
 
     const props = defineProps({
         rerender: Boolean,

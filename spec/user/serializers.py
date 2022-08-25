@@ -13,7 +13,8 @@ class TokenSerializer(serializers.ModelSerializer):
             "created": instance.created,
             "expires_in": str(expires_in(instance)),
             "expired": is_token_expired(instance),
-            "supervisor": instance.user.is_staff,
-            "operator": instance.user.is_active,
+            "admin": instance.user.is_superuser,
+            "read_all": instance.user.is_staff,
+            "active": instance.user.is_active,
         }
         return data

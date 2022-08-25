@@ -30,7 +30,7 @@
                     data-cy="app-logout-btn">
             </q-btn>
           </div>
-          <div class="q-pa-md inline" v-show="isSupervisor">
+          <div class="q-pa-md inline" v-show="isAdmin">
             <q-btn color="secondary"
                     :disable="!authenticated"
                     label="API Tokens"
@@ -128,7 +128,7 @@ export default {
   const env_color = ref()
 
   const authenticated = ref(computed(() => store.getters.authenticated))
-  const isSupervisor = ref(computed(() => store.getters.isSupervisor))
+  const isAdmin = ref(computed(() => store.getters.isAdmin))
 
 
   if (!env_color.value){

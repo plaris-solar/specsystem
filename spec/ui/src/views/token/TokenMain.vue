@@ -4,7 +4,7 @@
         
             <div class="row manage-tools">
                 <div class="text-right upload-btn">  
-                    <q-btn color="green" size='large' :disable="!isSupervisor" @click="new_tok = true" data-cy="token-create-btn">
+                    <q-btn color="green" size='large' :disable="!isAdmin" @click="new_tok = true" data-cy="token-create-btn">
                         <div class="text-center">
                             New Token
                         </div>
@@ -12,7 +12,7 @@
                 </div>
 
                 <div class="text-right upload-btn">  
-                    <q-btn color="negative" size='large' @click="deleteToken()" :disable="!isSupervisor" data-cy="token-delete-btn">
+                    <q-btn color="negative" size='large' @click="deleteToken()" :disable="!isAdmin" data-cy="token-delete-btn">
                         <div class="text-center">
                             Delete Token
                         </div>
@@ -79,15 +79,16 @@
             { name: 'created', align: 'center', label: 'Created', field: 'created', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'exp_date', align: 'center', label: 'Expires in', field: 'expires_in', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'expired', align: 'center', label: 'Expired', field: 'expired', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'supervisor', align: 'center', label: 'Supervisor', field: 'supervisor', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'user', align: 'center', label: 'User', field: 'operator', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'admin', align: 'center', label: 'Admin', field: 'admin', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'read_all', align: 'center', label: 'Read All', field: 'read_all', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'active', align: 'center', label: 'Active', field: 'active', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
         ]
 </script>
 
 <script setup>
 
     const store = useStore();
-    const isSupervisor = ref(computed(() => store.getters.isSupervisor))
+    const isAdmin = ref(computed(() => store.getters.isAdmin))
     const rows = ref([])
     const new_tok = ref(false)
     const selected = ref([])
