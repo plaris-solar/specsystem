@@ -8,7 +8,7 @@ class ApprovalMatrixSerializer(serializers.ModelSerializer):
     signRoles = serializers.StringRelatedField(many=True)
     class Meta:
         model = ApprovalMatrix
-        fields = ('name', 'doc_type', 'department', 'jira_temp', 'signRoles', )
+        fields = ('id', 'doc_type', 'department', 'signRoles', )
 
     def to_representation(self, value):
         data = super(ApprovalMatrixSerializer, self).to_representation(value)
@@ -21,7 +21,7 @@ class ApprovalMatrixPostSerializer(serializers.ModelSerializer):
     signRoles = serializers.CharField(required=False, default=None, allow_blank=True)
     class Meta:
         model = ApprovalMatrix
-        fields = ('name', 'doc_type', 'department', 'jira_temp', 'signRoles',  )
+        fields = ('id', 'doc_type', 'department', 'signRoles',  )
     
     def create(self, validated_data):
         sign_role_data = validated_data.pop("signRoles")
@@ -31,7 +31,7 @@ class ApprovalMatrixPostSerializer(serializers.ModelSerializer):
         apvl_mt = ApprovalMatrix.objects.create(**validated_data)
 
         if sign_role_data:
-            roles = re.split('[\s|\,|\t|\;|\:]+',sign_role_data)
+            roles = re.split(r"[\s:;,]+",sign_role_data)
             for role in roles:
                 _role = Role.lookup(role)
                 _signRole = ApprovalMatrixSignRole.objects.create(apvl_mt=apvl_mt,role=_role)
@@ -44,7 +44,7 @@ class ApprovalMatrixUpdateSerializer(serializers.ModelSerializer):
     signRoles = serializers.CharField(required=False, default=None, allow_blank=True)
     class Meta:
         model = ApprovalMatrix
-        fields = ('name', 'doc_type', 'department', 'jira_temp', 'signRoles',  )
+        fields = ('id', 'doc_type', 'department', 'signRoles',  )
     
     def update(self, apvl_mt, validated_data):
         sign_role_data = validated_data.pop("signRoles")
@@ -54,7 +54,7 @@ class ApprovalMatrixUpdateSerializer(serializers.ModelSerializer):
 
         ApprovalMatrixSignRole.objects.filter(apvl_mt=apvl_mt).delete()
         if sign_role_data:
-            roles = re.split('[\s|\,|\t|\;|\:]+',sign_role_data)
+            roles = re.split(r"[\s:;,]+",sign_role_data)
             for role in roles:
                 _role = Role.lookup(role)
                 _signRole = ApprovalMatrixSignRole.objects.create(apvl_mt=apvl_mt,role=_role)

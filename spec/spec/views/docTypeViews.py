@@ -22,7 +22,8 @@ class DocTypeList(GenericAPIView):
     {
         "name": "WI",
         "descr": "Work Instruction",
-        "confidential": false
+        "confidential": false,
+        "jira_temp": ""
     }
     """
     permission_classes = [IsSuperUserOrReadOnly]
@@ -43,8 +44,8 @@ class DocTypeList(GenericAPIView):
     def post(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                if re.search('[\s|\,|\t|\;|/]+',request.data["name"]):
-                    raise ValidationError({"errorCode":"SPEC-V17", "error": "Doc Type names cannot contain special characters, including: space, comma, tab, semicolon and slash"})
+                if re.search(r'[^-a-zA-Z0-9_]+',request.data["name"]):
+                    raise ValidationError({"errorCode":"SPEC-V17", "error": "Document Type names cannot contain special characters, including: space, comma, tab, semicolon and slash"})
                 serializer = DocTypeSerializer(data=request.data)
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-DTV03", "error": "Invalid message format", "schemaErrors":serializer.errors})
@@ -68,7 +69,8 @@ class DocTypeDetail(APIView):
     {
         "name": "WI",
         "descr": "Work Instruction",
-        "confidential": false
+        "confidential": false,
+        "jira_temp": ""
     }
 
     delete:

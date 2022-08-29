@@ -25,7 +25,7 @@ class DepartmentPostSerializer(serializers.ModelSerializer):
         readRoles_data = validated_data.pop("readRoles")
         dept = Department.objects.create(**validated_data)
         if readRoles_data:
-            roles = re.split('[\s|\,|\t|\;|\:]+',readRoles_data)
+            roles = re.split(r"[\s:;,]+",readRoles_data)
             for roleName in roles:
                 role = Role.lookup(roleName)
                 deptReadRole = DepartmentReadRole.objects.create(dept=dept,role=role)
@@ -38,7 +38,7 @@ class DepartmentUpdateSerializer(serializers.Serializer):
         readRoles_data = validated_data.pop("readRoles")
         DepartmentReadRole.objects.filter(dept=dept).delete()
         if readRoles_data:
-            roles = re.split('[\s|\,|\t|\;|\:]+',readRoles_data)
+            roles = re.split(r"[\s:;,]+",readRoles_data)
             for roleName in roles:
                 role = Role.lookup(roleName)
                 deptReadRole = DepartmentReadRole.objects.create(dept=dept,role=role)

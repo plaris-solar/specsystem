@@ -30,7 +30,7 @@ urlpatterns = [
     # path('cat/', ApprovalMatrixList.as_view()),
     # path('cat/<ApprovalMatrix>', ApprovalMatrixDetail.as_view()),
     path('approvalmatrix/', ApprovalMatrixList.as_view()),
-    path('approvalmatrix/<name>', ApprovalMatrixDetail.as_view()),
+    path('approvalmatrix/<id>', ApprovalMatrixDetail.as_view()),
     path('doctype/', DocTypeList.as_view()),
     path('doctype/<doctype>', DocTypeDetail.as_view()),
     path('dept/', DepartmentList.as_view()),

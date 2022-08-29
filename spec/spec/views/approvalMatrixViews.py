@@ -21,22 +21,20 @@ class ApprovalMatrixList(GenericAPIView):
     Create ApprovalMatrix
 
     {
-        "name": "IT/Requirement",
         "doc_type": "Requirement",
         "dept": "IT",
-        "jira_temp": "",
         "signRoles": "ITMgr"
     }
     """
     permission_classes = [IsSuperUserOrReadOnly]
     queryset = ApprovalMatrix.objects.all()
     serializer_class = ApprovalMatrixSerializer
-    search_fields = ('name','doc_type__name','department__name')
+    search_fields = ('doc_type__name','department__name')
 
     def get(self, request, format=None):
         try:
             queryset = self.filter_queryset(self.get_queryset())
-            queryset = self.paginate_queryset(queryset.order_by('name'))
+            queryset = self.paginate_queryset(queryset.order_by('id'))
             
             serializer = ApprovalMatrixSerializer(queryset, many=True)
             return self.get_paginated_response(serializer.data)
@@ -46,8 +44,6 @@ class ApprovalMatrixList(GenericAPIView):
     def post(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                if re.search('[\s|\,|\t|\;|/]+',request.data["name"]):
-                    raise ValidationError({"errorCode":"SPEC-V17", "error": "Approval Matrix names cannot contain special characters, including: space, comma, tab, semicolon and slash"})
                 serializer = ApprovalMatrixPostSerializer(data=request.data)
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-V10", "error": "Invalid message format", "schemaErrors":serializer.errors})
@@ -69,10 +65,8 @@ class ApprovalMatrixDetail(APIView):
     Update ApprovalMatrix / sub-ApprovalMatrix with new description or roles
 
     {
-        "name": "IT/Requirement",
         "doc_type": "Requirement",
         "dept": "IT",
-        "jira_temp": "",
         "signRoles": "ITMgr"
     }
 
@@ -81,24 +75,24 @@ class ApprovalMatrixDetail(APIView):
     Delete specified ApprovalMatrix / sub-ApprovalMatrix entry
     """
     permission_classes = [IsSuperUserOrReadOnly]
-    def get_object(self, name):
+    def get_object(self, id):
         try:
-            return ApprovalMatrix.objects.get(name=name)
+            return ApprovalMatrix.objects.get(id=id)
         except ApprovalMatrix.DoesNotExist:
-            raise ValidationError({"errorCode":"SPEC-V12", "error": f"ApprovalMatrix ({name}) does not exist."})
+            raise ValidationError({"errorCode":"SPEC-V12", "error": f"ApprovalMatrix ({id}) does not exist."})
 
-    def get(self, request, name, format=None):
+    def get(self, request, id, format=None):
         try:
-            apvl_mt = self.get_object(name)
+            apvl_mt = self.get_object(id)
             serializer = ApprovalMatrixSerializer(apvl_mt)
             return Response(serializer.data)
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V13")
 
-    def put(self, request, name, format=None):
+    def put(self, request, id, format=None):
         try:
             with transaction.atomic():
-                apvl_mt = self.get_object(name)
+                apvl_mt = self.get_object(id)
                 serializer = ApprovalMatrixUpdateSerializer(apvl_mt, data=request.data)
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-V14", "error": "Invalid message format", "schemaErrors":serializer.errors})
@@ -108,10 +102,10 @@ class ApprovalMatrixDetail(APIView):
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V15")
 
-    def delete(self, request, name, format=None):
+    def delete(self, request, id, format=None):
         try:
             with transaction.atomic():
-                apvl_mt = self.get_object(name)
+                apvl_mt = self.get_object(id)
                 apvl_mt.delete()
             return Response(status=status.HTTP_204_NO_CONTENT) 
         except BaseException as be: # pragma: no cover

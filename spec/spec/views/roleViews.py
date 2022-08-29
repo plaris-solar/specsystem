@@ -45,7 +45,7 @@ class RoleList(GenericAPIView):
     def post(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                if re.search('[\s|\,|\t|\;|/]+',request.data["role"]):
+                if re.search(r'[^-a-zA-Z0-9_]+',request.data["role"]):
                     raise ValidationError({"errorCode":"SPEC-V17", "error": "Role names cannot contain special characters, including: space, comma, tab, semicolon and colon"})
                 serializer = RolePostSerializer(data=request.data)
                 if not serializer.is_valid():

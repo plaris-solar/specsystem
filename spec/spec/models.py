@@ -8,6 +8,7 @@ class DocType(models.Model):
     name = models.CharField(primary_key=True, max_length=50)
     descr = models.CharField(max_length=4000, blank=True, null=True)
     confidential = models.BooleanField(default=False, blank=True)
+    jira_temp = models.CharField(max_length=4000, blank=True, null=True)
 
     class Meta:
         managed = True
@@ -20,7 +21,7 @@ class DocType(models.Model):
     def lookup(docTypeName):
         doctype = DocType.objects.filter(name=docTypeName).first()
         if not doctype:
-            raise ValidationError({"errorCode":"SPEC-M01", "error": f"Doc Type: {docTypeName} does not exist."})
+            raise ValidationError({"errorCode":"SPEC-M01", "error": f"Document Type: {docTypeName} does not exist."})
         return doctype
 
 class Role(models.Model):
@@ -90,10 +91,8 @@ class DepartmentReadRole(models.Model):
         return self.role.role
 
 class ApprovalMatrix(models.Model):
-    name = models.CharField(primary_key=True, max_length=50)
     doc_type = models.ForeignKey(DocType, on_delete=models.CASCADE, related_name='+')
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='+', blank=True, null=True)
-    jira_temp = models.CharField(max_length=4000, blank=True, null=True)
 
     class Meta:
         managed = True
@@ -101,7 +100,7 @@ class ApprovalMatrix(models.Model):
         unique_together = (('doc_type', 'department'),)
         
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.doc_type}-{self.department}'
 
     @staticmethod
     def lookup(doc_type, deptName, orig_dept=None):
@@ -132,7 +131,7 @@ class ApprovalMatrix(models.Model):
         if deptName != '__Generic__':
             return ApprovalMatrix.lookup(doc_type, None, orig_dept)
         
-        raise ValidationError({"errorCode":"SPEC-M04", "error": f"No Approval Matrix found for Doc Type {doc_type} and department {orig_dept}"})
+        raise ValidationError({"errorCode":"SPEC-M04", "error": f"No Approval Matrix found for Document Type {doc_type} and department {orig_dept}"})
 
 class ApprovalMatrixSignRole(models.Model):
     apvl_mt = models.ForeignKey(ApprovalMatrix, on_delete=models.CASCADE, related_name='signRoles')
@@ -157,6 +156,7 @@ class Spec(models.Model):
     create_dt = models.DateTimeField()
     mod_ts = models.DateTimeField()
     jira = models.CharField(max_length=4000, blank=True, null=True)
+    anon_access = models.BooleanField(default=False)
 
     class Meta:
         managed = True

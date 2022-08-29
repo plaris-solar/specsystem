@@ -41,7 +41,7 @@
           </div>
           <div class="q-pa-md inline">
             <q-btn color="secondary"
-                    label="Doc Types"
+                    label="Document Types"
                     size="1vw"
                     @click="router.push('/ui-doctype/')"
                     data-cy="app-doctype-btn">

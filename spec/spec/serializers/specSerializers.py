@@ -37,7 +37,7 @@ class SpecSerializer(serializers.ModelSerializer):
     created_by = serializers.StringRelatedField()
     class Meta:
         model = Spec
-        fields = ('num', 'ver', 'title', 'doc_type', 'department', 'keywords', 'state', 'created_by', 'create_dt', 'mod_ts', 'jira', )
+        fields = ('num', 'ver', 'title', 'doc_type', 'department', 'keywords', 'state', 'created_by', 'create_dt', 'mod_ts', 'jira', 'anon_access',)
 
     def to_representation(self, value):
         data = super(SpecSerializer, self).to_representation(value)
@@ -74,6 +74,7 @@ class SpecPostSerializer(serializers.Serializer):
     sigs = SpecSigPostSerializer(many=True)
     files = SpecFilePostSerializer(many=True)
     refs = SpecReferenceSerializer(many=True)
+    anon_access = serializers.BooleanField(required=False, default=False, allow_null=True)
         
 class FilePostSerializer(serializers.Serializer):
     file = serializers.FileField(required=False, default=None, allow_null=True)

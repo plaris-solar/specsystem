@@ -221,6 +221,7 @@ export default {
             { name: 'state', align: 'left', label: 'State', field: 'state', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'created_by', align: 'left', label: 'Created By', field: 'created_by', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'mod_ts', align: 'left', label: 'Last Modified', field: 'mod_ts', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'anon_access', align: 'left', label: 'Anonymous Access', field: 'anon_access', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
         ]
 </script>
 

@@ -25,7 +25,7 @@ class RolePostSerializer(serializers.ModelSerializer):
         role_user_data = validated_data.pop("users")
         role = Role.objects.create(**validated_data)
         if role_user_data:
-            users = re.split('[\s|\,|\t|\;|\:]+',role_user_data)
+            users = re.split(r"[\s:;,]+",role_user_data)
             for role_user in users:
                 user = User.lookup(username=role_user)
                 role_user = RoleUser.objects.create(role=role,user=user)
@@ -42,7 +42,7 @@ class RoleUpdateSerializer(serializers.Serializer):
         role.save()
 
         RoleUser.objects.filter(role=role).delete()                    
-        users = re.split('[\s|\,|\t|\;|\:]+', validated_data["users"])
+        users = re.split(r"[\s:;,]+", validated_data["users"])
         for username in users:
             if len(username) > 0:
                 user = User.lookup(username=username)

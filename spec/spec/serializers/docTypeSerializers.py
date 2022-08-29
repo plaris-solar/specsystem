@@ -5,10 +5,10 @@ from ..models import DocType
 class DocTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocType
-        fields = ('name', 'descr', 'confidential', )
+        fields = ('name', 'descr', 'confidential', 'jira_temp', )
 
 class DocTypePutSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocType
-        fields = ('descr', 'confidential', )
+        fields = ('descr', 'confidential', 'jira_temp', )
 

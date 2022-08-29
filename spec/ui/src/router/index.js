@@ -26,7 +26,7 @@ const routes = [
   },
   {
     path: '/ui-doctype',
-    name: 'Doc Type',
+    name: 'Document Type',
     component: DocTypePage
   },
   {

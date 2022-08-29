@@ -6,7 +6,7 @@
         </q-card-section>
         <q-card-section class="q-pt-none">
             <q-select
-                label="Doc Type"
+                label="Document Type"
                 v-model="doc_type"
                 :options="doc_typeList"
                 emit-value

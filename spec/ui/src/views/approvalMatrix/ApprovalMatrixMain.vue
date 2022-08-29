@@ -256,10 +256,8 @@ export default {
     }
     
     const columns = [
-            { name: 'name', align: 'center', label: 'Approval Matrix', field: 'name', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'doc_type', align: 'center', label: 'Doc Type', field: 'sub_cdoc_typeat', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'department', align: 'center', label: 'Department', field: 'department', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'jira_temp', align: 'center', label: 'Jira Template', field: 'jira_temp', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'signRoles', align: 'center', label: 'Required Signer Roles', field: 'signRoles', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
         ]
 </script>

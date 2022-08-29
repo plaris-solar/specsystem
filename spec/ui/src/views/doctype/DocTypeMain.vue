@@ -259,6 +259,7 @@ export default {
             { name: 'name', align: 'center', label: 'Name', field: 'name', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'descr', align: 'center', label: 'Description', field: 'descr', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'confidential', align: 'center', label: 'Confidential', field: 'confidential', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'jira_temp', align: 'center', label: 'Jira Template', field: 'jira_temp', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
         ]
 </script>
 

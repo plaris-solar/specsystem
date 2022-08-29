@@ -6,7 +6,7 @@
 
         <q-card-section class="q-pt-none">
             <q-select
-                label="Doc Type"
+                label="Document Type"
                 v-model="doc_type"
                 :options="doc_typeList"
                 emit-value
@@ -26,6 +26,9 @@
 
             Jira: <a :href="jira" target="_blank" rel="noopener noreferrer">{{String(jira).substring(String(jira).lastIndexOf('/')+1)}}</a>
             <q-input label="Jira" v-model.trim="jira" data-cy="spec-detail-jira" dense :readonly="!edit"/>
+            <q-select label="Anonymous Access" v-model="anon_access" 
+                :options="[{label:'True',value:true}, {label:'False',value:false}]"
+                data-cy="spec-detail-anon_access" dense :readonly="!edit"/>
         </q-card-section>
 
         <q-card-section class="q-pt-none">
@@ -254,6 +257,7 @@ export default {
         ver: String,
     })
 
+    const anon_access = ref({label:'False',value:false})
     const created_by = ref('')
     const create_dt = ref('')
     const department = ref('')
