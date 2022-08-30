@@ -174,7 +174,7 @@ export default {
         }
         
         deleteData(`doctype/${doctype}`, '{}', `Deleted doctype: ${doctype} successfully.`).then((res) => {
-            if (res.status < 300){
+            if (res.__resp_status < 300){
                 clearSelected()
                 getTableData(1)
             }

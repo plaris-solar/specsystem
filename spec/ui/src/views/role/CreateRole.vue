@@ -53,13 +53,13 @@ export default {
 
         if (props.createMode) {
             let res = await postData('role/', body, 'Successfully created role ' + role.value)
-            if (res.status < 300){
+            if (res.__resp_status < 300){
                 emit('updateTable')
             }
         }
         else {
             let res = await putData(`role/${role.value}`, body, 'Successfully updated role ' + role.value)
-            if (res.status < 300){
+            if (res.__resp_status < 300){
                 emit('updateTable')
             }
         }

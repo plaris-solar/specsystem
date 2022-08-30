@@ -16,8 +16,7 @@ export async function retrieveData(api) {
     let method = 'GET'
     let url = `${apiServerHost}/${api}`
     let res = await getHeader().then((header) => sendRequest(url, header, null, method))
-    res = await res?.json();
-    return res;
+    return notifyResponse(res)
 }
 
 export function isEmptyDict(dict){
@@ -34,24 +33,21 @@ export async function postData(api, body, msg) {
   let method = 'POST'
   let url = `${apiServerHost}/${api}`
   let res = await getHeader().then((header) => sendRequest(url, header, JSON.stringify(body), method))
-  notifyResponse(res, msg)
-  return res
+  return notifyResponse(res, msg)
 }
 
 export async function deleteData(api, body, msg) {
   let method = 'DELETE'
   let url = `${apiServerHost}/${api}`
   let res = await getHeader().then((header) => sendRequest(url, header, JSON.stringify(body), method))
-  notifyResponse(res, msg)
-  return res
+  return notifyResponse(res, msg)
 }
 
 export async function putData(api, body, msg) {
   let method = 'PUT'
   let url = `${apiServerHost}/${api}`
   let res = await getHeader().then((header) => sendRequest(url, header, JSON.stringify(body), method))
-  notifyResponse(res, msg)
-  return res
+  return notifyResponse(res, msg)
 }
 
 async function sendRequest(url, header, body, method) {
@@ -89,20 +85,24 @@ export async function postFormData(api, body, msg) {
   let method = 'POST'
   let url = `${apiServerHost}/${api}`
   let res = await getFormHeader().then((header) => sendRequest(url, header, body, method))
-  notifyResponse(res, msg)
-  return res
+  return notifyResponse(res, msg)
 }
 
-export async function notifyResponse(response, msg){
-  if (msg){
-    if (response.status < 300){
+export async function notifyResponse(response, msg) {
+  let resp_body = await response?.json()
+  if (typeof resp_body === 'object') {
+    resp_body.__resp_status = response.status
+  }
+
+  if (response.status < 300) {
+    if (msg) {
       showNotif(msg, 'green')
     }
-    else{
-        let err_body = await response?.json()
-        showNotif(errorMsgHandler(err_body), 'red')
-    }
   }
+  else {
+      showNotif(errorMsgHandler(resp_body), 'red')
+  }
+  return resp_body
 }
 
 export function getCookie(name) {
@@ -123,6 +123,7 @@ export function getCookie(name) {
 
 
 export function errorMsgHandler(obj) {
+  if (typeof obj === 'object') {
     if ('detail' in obj) {
       return obj['detail'];
     } else if ('schemaErrors' in obj) {
@@ -144,7 +145,11 @@ export function errorMsgHandler(obj) {
     } else {
       return `${obj['errorCode']}: ${obj['error']}`;
     }
-  }
+  } else {
+    return obj;
+  } 
+}
+
 export function data_page_link(data_page){
     return `${apiServerHost}/data/?doc_type=${data_page}`
 }

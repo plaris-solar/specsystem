@@ -242,7 +242,8 @@
 </template>
 
 <script>
-import { apiServerHost, defineProps, deleteData, genCy, getCookie, notifyResponse, postData, putData, retrieveData } from '@/utils.js'
+import { apiServerHost, defineProps, deleteData, genCy, getCookie, postData, putData, retrieveData, 
+        showNotif, } from '@/utils.js'
 import {ref, onMounted} from 'vue'
 import {useRouter, } from 'vue-router'
 
@@ -292,7 +293,7 @@ export default {
 
         let res = await putData(`spec/${props.num}/${props.ver}`, body, 
             'Successfully updated spec ' + props.num + '/' + props.ver)
-        if (res.status < 300){
+        if (res.__resp_status < 300){
             edit.value = false
         }
     }
@@ -328,7 +329,7 @@ export default {
         }
         
         deleteData(`spec/${props.num}/${props.ver}`, '{}', `Deleted spec: ${props.num}/${props.ver} successfully.`).then((res) => {
-            if (res.status < 300){
+            if (res.__resp_status < 300){
                 router.push({name:"Spec"})
             }
         })
@@ -379,7 +380,7 @@ export default {
             {'role':sigRow['role'], 'signer':sigRow['signer'], 'comment':'test'}, 
             `Signed spec: ${props.num}/${props.ver} successfully.`).then((res) => {
             
-            if (res.status < 300){
+            if (res.__resp_status < 300){
                 router.go()
             }
         })
@@ -391,18 +392,15 @@ export default {
         }
         
         let res = await postData(`spec/${props.num}/${props.ver}`, {}, null)
-        if (res.status < 300){
-            let body = await res?.json()
-            notifyResponse(res, `Spec created: ${body.num}/${body.ver}`)
-            router.push({name:"Spec Detail", params:{num:body.num, ver:body.ver}})
-        } else {
-            notifyResponse(res, ' ')
+        if (res.__resp_status < 300) {
+            showNotif(`Spec created: ${res.num}/${res.ver}`, 'green')
+            router.push({name:"Spec Detail", params:{num:res.num, ver:res.ver}})
         }
     }
 
     async function signRole(sigRow){
         let res = await postData(`spec/sign/${props.num}/${props.ver}`, {'role':sigRow['role'], 'signer':sigRow['signer']}, `Signed spec: ${props.num}/${props.ver} successfully.`).then((res) => {
-            if (res.status < 300){
+            if (res.__resp_status < 300){
                 router.go()
             }
         })
@@ -411,7 +409,7 @@ export default {
     async function submitSpec(){
         
         postData(`spec/submit/${props.num}/${props.ver}`, {}, `Submitted spec: ${props.num}/${props.ver} for signatures successfully.`).then((res) => {
-            if (res.status < 300){
+            if (res.__resp_status < 300){
                 router.go()
             }
         })

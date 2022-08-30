@@ -31,7 +31,7 @@
 </template>
 
 <script>
-import { notifyResponse, postData, retrieveData, } from '@/utils.js'
+import { postData, retrieveData, showNotif, } from '@/utils.js'
 import {ref, onMounted} from 'vue'
 import {useRouter, } from 'vue-router'
 
@@ -60,12 +60,9 @@ export default {
 
 
         let res = await postData('spec/', body, null)
-        if (res.status < 300){
-            let body = await res?.json()
-            notifyResponse(res, `Spec created: ${body.num}/${body.ver}`)
-            router.push({name:"Spec Detail", params:{num:body.num, ver:body.ver}})
-        } else {
-            notifyResponse(res, ' ')
+        if (res.__resp_status < 300) {
+            showNotif(`Spec created: ${res.num}/${res.ver}`, 'green')
+            router.push({name:"Spec Detail", params:{num:res.num, ver:res.ver}})
         }
     }
 

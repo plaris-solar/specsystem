@@ -177,6 +177,8 @@ class Spec(models.Model):
     def lookup(num, ver, user):
         try:
             spec = Spec.objects.get(num=num, ver=ver)
+            if not spec.anon_access and not user.is_authenticated:
+                raise ValidationError({"errorCode":"SPEC-M08", "error": f"spec {num}-{ver} cannot read without logging in."})
             if spec.doc_type.confidential:
                 if not spec.department.isReader(user):
                     if spec.state != "Draft" or user != spec.created_by:

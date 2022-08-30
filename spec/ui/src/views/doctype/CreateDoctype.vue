@@ -53,13 +53,13 @@ export default {
 
         if (props.createMode) {
             let res = await postData('doctype/', body, 'Successfully created doctype ' + doctype.value)
-            if (res.status < 300){
+            if (res.__resp_status < 300){
                 emit('updateTable')
             }
         }
         else {
             let res = await putData(`doctype/${doctype.value}`, body, 'Successfully updated doctype ' + doctype.value)
-            if (res.status < 300){
+            if (res.__resp_status < 300){
                 emit('updateTable')
             }
         }

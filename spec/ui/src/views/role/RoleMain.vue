@@ -174,7 +174,7 @@ export default {
         }
         
         deleteData(`role/${role}`, '{}', `Deleted role: ${role} successfully.`).then((res) => {
-            if (res.status < 300){
+            if (res.__resp_status < 300){
                 clearSelected()
                 getTableData(1)
             }
