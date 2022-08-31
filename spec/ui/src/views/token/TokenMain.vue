@@ -106,7 +106,6 @@
     async function getTokenVal(user){
         if ((typeof user !== 'undefined') && user){
             let res = await postData(`auth/token/${user}`, {}, null)
-            res = await res.json()
             return res['Authorization']
         }
     }

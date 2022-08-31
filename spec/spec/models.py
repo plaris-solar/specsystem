@@ -4,6 +4,17 @@ from django.contrib.auth.models import User
 from django.db import models
 from rest_framework.exceptions import ValidationError
 
+class UserDelegate(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='delegates')
+    delegate = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
+
+    class Meta:
+        managed = True
+        db_table = 'user_delegate'
+
+    def __str__(self):
+        return self.delegate.username
+
 class DocType(models.Model):
     name = models.CharField(primary_key=True, max_length=50)
     descr = models.CharField(max_length=4000, blank=True, null=True)
@@ -103,11 +114,14 @@ class ApprovalMatrix(models.Model):
         return f'{self.doc_type}-{self.department}'
 
     @staticmethod
-    def lookup(doc_type, deptName, orig_dept=None):
+    def lookupRoles(doc_type, deptName, orig_dept=None):
         """
-        The match on department tries to find the most specific match, first.
-        If an exact match isn't found, the last : and following part is removed and tried again
+        Find all the Roles required.
+        Match on doc_type and department. Then remove the tail of the department after the colon and check again.
+        The combined list of roles from the specific department upto the __Generic__ department are added into the list.
         """
+        ret = []
+
         if deptName is None:
             deptName = '__Generic__'
         
@@ -118,20 +132,20 @@ class ApprovalMatrix(models.Model):
         except:
             pass
         if apvl_mt:
-            return apvl_mt
+            ret = list(apvl_mt.signRoles.all())
         
         if orig_dept is None:
             orig_dept = deptName
         if deptName and ':' in deptName:
             # Remove the last : and everything after it, to check on the department's parent
             parent_dept = re.sub(':[^:]*$', '', deptName)
-            return ApprovalMatrix.lookup(doc_type, parent_dept, orig_dept)
+            return ret + ApprovalMatrix.lookupRoles(doc_type, parent_dept, orig_dept)
         
         # Finally, try with department named __Generic__ as a coomon root department
         if deptName != '__Generic__':
-            return ApprovalMatrix.lookup(doc_type, None, orig_dept)
+            return ret + ApprovalMatrix.lookupRoles(doc_type, None, orig_dept)
         
-        raise ValidationError({"errorCode":"SPEC-M04", "error": f"No Approval Matrix found for Document Type {doc_type} and department {orig_dept}"})
+        return ret
 
 class ApprovalMatrixSignRole(models.Model):
     apvl_mt = models.ForeignKey(ApprovalMatrix, on_delete=models.CASCADE, related_name='signRoles')

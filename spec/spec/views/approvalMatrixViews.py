@@ -34,7 +34,7 @@ class ApprovalMatrixList(GenericAPIView):
     def get(self, request, format=None):
         try:
             queryset = self.filter_queryset(self.get_queryset())
-            queryset = self.paginate_queryset(queryset.order_by('id'))
+            queryset = self.paginate_queryset(queryset.order_by('doc_type__name','department__name'))
             
             serializer = ApprovalMatrixSerializer(queryset, many=True)
             return self.get_paginated_response(serializer.data)

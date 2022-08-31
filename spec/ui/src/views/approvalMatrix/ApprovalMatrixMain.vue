@@ -169,16 +169,15 @@ export default {
     }
 
     async function deleteSelected(apvlMtRow){
-        if (!window.confirm(`Delete ApprovalMatrix: ${apvlMtRow['name']}?`)) {
+        if (!window.confirm(`Delete ApprovalMatrix: ${apvlMtRow['doc_type']}-${apvlMtRow['department']}?`)) {
             return
         }
         
-        deleteData(`approvalmatrix/${apvlMtRow['name']}`, '{}', `Deleted ApprovalMatrix: ${apvlMtRow['name']} successfully.`).then((res) => {
-            if (res.__resp_status < 300){
-                clearSelected()
-                getTableData(1)
-            }
-        })
+        let res = await deleteData(`approvalmatrix/${apvlMtRow['id']}`, '{}', `Deleted ApprovalMatrix: ${apvlMtRow['doc_type']}-${apvlMtRow['department']} successfully.`)
+        if (res.__resp_status < 300) {
+            clearSelected()
+            getTableData(1)
+        }
     }
 
     async function clearSelected(){

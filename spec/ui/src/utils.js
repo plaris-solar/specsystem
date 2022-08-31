@@ -89,7 +89,13 @@ export async function postFormData(api, body, msg) {
 }
 
 export async function notifyResponse(response, msg) {
-  let resp_body = await response?.json()
+  let resp_body = {}
+  try {
+    resp_body = await response?.json()
+  }
+  catch (err) {
+    resp_body = {}
+  }
   if (typeof resp_body === 'object') {
     resp_body.__resp_status = response.status
   }

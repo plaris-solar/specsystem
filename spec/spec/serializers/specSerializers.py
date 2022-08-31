@@ -58,7 +58,7 @@ class SpecSerializer(serializers.ModelSerializer):
         
 class SpecSigPostSerializer(serializers.Serializer):
     role = serializers.CharField()
-    signer = serializers.CharField(required=False, default=None, allow_null=True)
+    signer = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
     from_am = serializers.BooleanField(required=False, default=False)
         
 class SpecFilePostSerializer(serializers.Serializer):

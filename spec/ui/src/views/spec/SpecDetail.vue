@@ -239,6 +239,13 @@
             </q-card-actions>
         </span>
     </q-card>
+    <q-dialog v-model="reject_spec">
+        <reject-spec-dialog
+            :num = "props.num"
+            :ver = "props.ver"
+            :sigRow = "sigRow"
+            @updateSpec="loadSpec()"/>
+    </q-dialog >
 </template>
 
 <script>
@@ -246,9 +253,13 @@ import { apiServerHost, defineProps, deleteData, genCy, getCookie, postData, put
         showNotif, } from '@/utils.js'
 import {ref, onMounted} from 'vue'
 import {useRouter, } from 'vue-router'
+import RejectSpecDialog from '@/views/spec/RejectSpec.vue'
 
 export default {
     name: 'SpecDetailPage',
+    components: {
+        RejectSpecDialog,
+    },
 }
 </script>
 
@@ -272,8 +283,10 @@ export default {
     const jira = ref('')
     const mod_ts = ref('')
     const refRows = ref([])
+    const reject_spec = ref(false)
     const roleList = ref([])
     const router=useRouter();
+    const sigRow = ref({})
     const sigRows = ref([])
     const state = ref('')
     const title = ref('')
@@ -295,6 +308,7 @@ export default {
             'Successfully updated spec ' + props.num + '/' + props.ver)
         if (res.__resp_status < 300){
             edit.value = false
+            loadForm(res)
         }
     }
 
@@ -335,9 +349,9 @@ export default {
         })
     }
 
-    async function loadSpec() {
-        let res = await retrieveData(`spec/${props.num}/${props.ver?props.ver:'*'}`);
-        
+    function loadForm(res) {        
+        reject_spec.value = false
+
         ver.value = res['ver']
         doc_type.value = res['doc_type']
         department.value = res['department']
@@ -352,6 +366,11 @@ export default {
         fileRows.value = res['files']
         refRows.value = res['refs']
         histRows.value = res['hist']
+    }
+
+    async function loadSpec() {
+        let res = await retrieveData(`spec/${props.num}/${props.ver?props.ver:'*'}`);
+        loadForm(res)
     }
 
     async function moveFileRowUp(fileRow) {
@@ -375,15 +394,9 @@ export default {
         fileRows.value = res['files']
     }
 
-    async function rejectRole(sigRow){
-        postData(`spec/reject/${props.num}/${props.ver}`, 
-            {'role':sigRow['role'], 'signer':sigRow['signer'], 'comment':'test'}, 
-            `Signed spec: ${props.num}/${props.ver} successfully.`).then((res) => {
-            
-            if (res.__resp_status < 300){
-                router.go()
-            }
-        })
+    async function rejectRole(row){
+        sigRow.value=row
+        reject_spec.value = true
     }
 
     async function reviseSpec(){

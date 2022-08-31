@@ -1,6 +1,6 @@
 from django.db import transaction
 from django.http import FileResponse
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import status
 from rest_framework.decorators import APIView
 from rest_framework.exceptions import ValidationError

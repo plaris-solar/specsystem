@@ -1,0 +1,16 @@
+﻿role,descr,spec_one,users
+ReadAll,Can Read all documents,false,hrust ehejlek
+CEO,CEO,true,hrust
+Legal,Legal,true,ehejlek
+Operations-Fab1,Operations Fab 1,true,dkistner
+Operations-Pilot,Operations Pilot Line,true,skistner wramos
+RnD,R&D,true,alahiri mramasubramanian
+Equip-Eng,Equipment Engineering,true,bbusacca
+Prod-Eng,Product Engineering,true,bbusacca kmatsubayashi bchandler
+Mfg-Test,Manufacturing - Test,true,xhao
+CustAppEng,Customer Applications Engineering,true,jhallmark
+Sales,Sales,true,rschmitt
+NPI,NPI,true,fchen
+Quality,Quality,true,jgriggs ecarr
+SupplyChain,Supply Chain,true,tchang qchen
+IT,IT,true,jdoan kschneider

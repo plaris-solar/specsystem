@@ -20,6 +20,7 @@ from spec.views.docTypeViews import DocTypeDetail, DocTypeList
 from spec.views.departmentViews import DepartmentDetail, DepartmentList
 from spec.views.roleViews import RoleDetail, RoleList
 from spec.views.specViews import SpecDetail, SpecFileDetail, SpecList, SpecReject, SpecSign, SpecSubmit
+from spec.views.userViews import UserDetail, UserList
 from user.views import GetUser, AdminToken, UserToken
 from . import views
 from django.views.generic.base import TemplateView
@@ -51,6 +52,8 @@ urlpatterns = [
     path('auth/token/<username>', AdminToken.as_view()),
     path('auth/token', UserToken.as_view()),
     path('env/', views.Env.as_view()),
+    path('user/', UserList.as_view()),
+    path('user/<username>', UserDetail.as_view()),
     path('accounts/', include('django.contrib.auth.urls')),
     re_path(r'^.*$', TemplateView.as_view(template_name="index.html")),
 ]

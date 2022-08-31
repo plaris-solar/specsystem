@@ -1,4 +1,4 @@
-from .spec_create import specSigCreate
+from .spec_create import specSetReqSigs, specSigCreate
 from ..models import Role, SpecFile, SpecReference
 
 def specUpdate(request, spec, validated_data):
@@ -14,10 +14,12 @@ def specUpdate(request, spec, validated_data):
     spec.jira = validated_data.pop("jira")
     spec.save()
 
-    # Clear previous sig entries
-    spec.sigs.all().delete()
+    # Clear previous sig entries, preload required sigs
+    specSetReqSigs(request, spec)
     for sig_data in sigs_data:
-        specSigCreate(request, spec, Role.lookup(sig_data['role']), sig_data['signer'], sig_data['from_am'])
+        if sig_data['from_am'] and not sig_data['signer']:
+            continue
+        specSigCreate(request, spec, Role.lookup(sig_data['role']), sig_data['signer'], False)
 
     # Clear the previous references
     spec.refs.all().delete()

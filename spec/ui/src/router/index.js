@@ -7,6 +7,7 @@ import RolePage from "@/views/role/RoleMain.vue"
 import SpecDetailPage from "@/views/spec/SpecDetail.vue"
 import SpecPage from "@/views/spec/SpecMain.vue"
 import TokenPage from "@/views/token/TokenMain.vue"
+import UserDetailPage from "@/views/user/UserDetail.vue"
 
 const routes = [
   {
@@ -48,6 +49,12 @@ const routes = [
     path: '/ui-spec/:num/:ver?',
     name: 'Spec Detail',
     component: SpecDetailPage,
+    props: true,
+  },
+  {
+    path: '/ui-user/:username',
+    name: 'User Detail',
+    component: UserDetailPage,
     props: true,
   },
 ];

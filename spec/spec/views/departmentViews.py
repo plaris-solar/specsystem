@@ -42,7 +42,7 @@ class DepartmentList(GenericAPIView):
     def post(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                if re.search(r'[^-a-zA-Z0-9_]+',request.data["name"]):
+                if re.search(r'[^-a-zA-Z0-9_:]+',request.data["name"]):
                     raise ValidationError({"errorCode":"SPEC-V17", "error": "Department names cannot contain special characters, including: space, comma, tab, semicolon and slash"})
                 serializer = DepartmentPostSerializer(data=request.data)
                 if not serializer.is_valid():

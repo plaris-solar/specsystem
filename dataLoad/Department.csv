@@ -1,0 +1,15 @@
+﻿name,readRoles
+__Generic__,ReadAll
+Legal,Legal
+Operations:Fab1,Operations-Fab1
+Operations:Pilot,Operations-Pilot
+RnD,RnD
+Equip-Eng,Equip-Eng
+Prod-Eng,Prod-Eng
+Mfg-Test,Mfg-Test
+CustAppEng,CustAppEng
+Sales,Sales
+NPI,NPI
+Quality,Quality
+SupplyChain,SupplyChain
+IT,IT

@@ -70,6 +70,7 @@
                     @click="router.push('/ui-apvl-mt/')"
                     data-cy="app-apvl-mt-btn">
             </q-btn>
+          </div>
           <div class="q-pa-md inline">
             <q-btn color="primary"
                     label="Specs"
@@ -78,6 +79,13 @@
                     data-cy="app-spec-btn">
             </q-btn>
           </div>
+          <div class="q-pa-md inline" v-show="username !== null">
+            <q-btn color="primary"
+                    label="User"
+                    size="1vw"
+                    @click="router.push('/ui-user/'+username)"
+                    data-cy="app-user-btn">
+            </q-btn>
           </div>
         </div>
       </q-toolbar>
@@ -129,6 +137,7 @@ export default {
 
   const authenticated = ref(computed(() => store.getters.authenticated))
   const isAdmin = ref(computed(() => store.getters.isAdmin))
+  const username = ref(computed(() => store.getters.username))
 
 
   if (!env_color.value){

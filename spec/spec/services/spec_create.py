@@ -10,13 +10,19 @@ def specSigCreate(request, spec, role, signerName, from_am):
         signer = None
 
     if not from_am and signer:
-        specRole = SpecSig.objects.filter(spec=spec, role=role, role__users__user=signer, signer=None, from_am=True).first()
+        specRole = SpecSig.objects.filter(spec=spec, role=role, signer=None, from_am=True).first()
         if specRole:
             specRole.signer = signer
             specRole.save()
             return
 
     specRole = SpecSig.objects.create(spec=spec, role=role, signer=signer, from_am=from_am)
+
+def specSetReqSigs(request, spec):
+    spec.sigs.all().delete()
+    signRoles = ApprovalMatrix.lookupRoles(spec.doc_type, spec.department.name)
+    for signRole in signRoles:
+        specSigCreate(request, spec, signRole.role, None, True)
 
 def specFileCreate(request, spec, filename, seq):
     specFile = SpecFile.objects.create(spec=spec, filename=filename, seq=seq)
@@ -41,9 +47,7 @@ def specCreate(request, validated_data):
 
     spec = Spec.objects.create(**validated_data)
 
-    apvl_mt = ApprovalMatrix.lookup(spec.doc_type, deptName)
-    for signRole in apvl_mt.signRoles.all():
-        specSigCreate(request, spec, signRole.role, None, True)
+    specSetReqSigs(request, spec)
     for sig_data in sigs_data:
         specSigCreate(request, spec, Role.lookup(sig_data['role']), sig_data['signer'], False)
 
@@ -68,10 +72,8 @@ def specRevise(request, spec):
     
     spec.save()
     
-    apvl_mt = ApprovalMatrix.lookup(spec.doc_type, spec.department)
-    for signRole in apvl_mt.signRoles.all():
-        specSigCreate(request, spec, signRole.role, None, True)
-        
+    specSetReqSigs(request, spec)
+       
     for specFile in orig_spec.files.all():      
         if specFile.seq == 0: # Skip the rendered PDF
             continue  
