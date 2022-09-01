@@ -25,7 +25,7 @@ def specUpdate(request, spec, validated_data):
     spec.save()
 
     # If spec is not in draft state, don't touch the signatures for an admin edit.
-    if spec.state != 'Draft':
+    if spec.state == 'Draft':
         # Clear previous sig entries, preload required sigs
         specSetReqSigs(request, spec)
         for sig_data in sigs_data:
