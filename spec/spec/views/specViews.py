@@ -58,7 +58,7 @@ class SpecList(GenericAPIView):
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-V18", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 spec = specCreate(request, serializer.validated_data)
-            serializer = SpecSerializer(spec)
+            serializer = SpecSerializer(spec, context={'user':request.user})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V19")
@@ -75,13 +75,15 @@ class SpecDetail(APIView):
     Update spec
 
     {
+        "state": "Draft",
         "title": "REQ, SPEC SYSTEM",
         "keywords": "SPEC",
         "cat": "IT",
         "sub_cat": "Requirement",
         "sigs": [{"role": "ITMgr", "signer": "ahawse"}],
         "files": [{"filename": "Req.docx", "seq": 1}],
-        "refs": [{"num": 300000, "ver": "A"}]
+        "refs": [{"num": 300000, "ver": "A"}],
+        "comment": "Changes made today"
     }
 
     post:
@@ -97,7 +99,7 @@ class SpecDetail(APIView):
     def get(self, request, num, ver, format=None):
         try:
             spec = Spec.lookup(num, ver, request.user)
-            serializer = SpecSerializer(spec)
+            serializer = SpecSerializer(spec, context={'user':request.user})
             return Response(serializer.data)
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V21")
@@ -110,7 +112,7 @@ class SpecDetail(APIView):
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-V22", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 spec = specUpdate(request, spec, serializer.validated_data)
-            serializer = SpecSerializer(spec)
+            serializer = SpecSerializer(spec, context={'user':request.user})
             return Response(serializer.data, status=status.HTTP_200_OK)
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V30")
@@ -120,7 +122,7 @@ class SpecDetail(APIView):
             with transaction.atomic():
                 spec = Spec.lookup(num, ver, request.user)
                 spec = specRevise(request, spec)
-            serializer = SpecSerializer(spec)
+            serializer = SpecSerializer(spec, context={'user':request.user})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V24")
@@ -128,8 +130,9 @@ class SpecDetail(APIView):
     def delete(self, request, num, ver, format=None):
         try:
             with transaction.atomic():
-                cat = Spec.lookup(num, ver, request.user)
-                cat.delete()
+                spec = Spec.lookup(num, ver, request.user)
+                spec.checkEditable(request.user)
+                spec.delete()
             return Response(status=status.HTTP_204_NO_CONTENT) 
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V24")
@@ -176,7 +179,7 @@ class SpecFileDetail(APIView):
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-V22", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 spec = specFileUpload(request, spec, serializer.validated_data)
-            serializer = SpecSerializer(spec)
+            serializer = SpecSerializer(spec, context={'user':request.user})
             return Response(serializer.data, status=status.HTTP_200_OK)
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V23")
@@ -207,7 +210,7 @@ class SpecSubmit(APIView):
             with transaction.atomic():
                 spec = Spec.lookup(num, ver, request.user)
                 spec = specSubmit(request, spec)
-            serializer = SpecSerializer(spec)
+            serializer = SpecSerializer(spec, context={'user':request.user})
             return Response(serializer.data, status=status.HTTP_200_OK)
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V25")
@@ -233,7 +236,7 @@ class SpecSign(APIView):
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-V29", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 spec = specSign(request, spec, serializer.validated_data)
-            serializer = SpecSerializer(spec)
+            serializer = SpecSerializer(spec, context={'user':request.user})
             return Response(serializer.data, status=status.HTTP_200_OK)
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V26")
@@ -258,7 +261,7 @@ class SpecReject(APIView):
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-V27", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 spec = specReject(request, spec, serializer.validated_data)
-            serializer = SpecSerializer(spec)
+            serializer = SpecSerializer(spec, context={'user':request.user})
             return Response(serializer.data, status=status.HTTP_200_OK)
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V28")

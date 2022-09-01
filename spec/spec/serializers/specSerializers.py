@@ -54,6 +54,11 @@ class SpecSerializer(serializers.ModelSerializer):
         hist = value.hist.order_by('-mod_ts', ).all()
         data['hist'] = SpecHistSerializer(hist, many=True, context=self.context).data
 
+        user = self.context.get("user")
+        data['watched'] = False
+        if user is not None:
+            data['watched'] = user.watches.filter(num=value.num).first() != None
+
         return data
         
 class SpecSigPostSerializer(serializers.Serializer):
@@ -66,6 +71,7 @@ class SpecFilePostSerializer(serializers.Serializer):
     incl_pdf = serializers.BooleanField(required=False, default=False)
 
 class SpecPostSerializer(serializers.Serializer):
+    state = serializers.CharField()
     title = serializers.CharField()
     doc_type = serializers.CharField()
     department = serializers.CharField()
@@ -75,6 +81,7 @@ class SpecPostSerializer(serializers.Serializer):
     files = SpecFilePostSerializer(many=True)
     refs = SpecReferenceSerializer(many=True)
     anon_access = serializers.BooleanField(required=False, default=False, allow_null=True)
+    comment = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
         
 class FilePostSerializer(serializers.Serializer):
     file = serializers.FileField(required=False, default=None, allow_null=True)

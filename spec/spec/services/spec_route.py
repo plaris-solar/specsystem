@@ -26,6 +26,12 @@ def specSubmit(request, spec):
     spec.state = 'Signoff'
     spec.save()
 
+    # Clear any signatures that may have been inadvertantly left
+    for sig in spec.sigs.all():
+        sig.delegate = None
+        sig.signed_dt = None
+        sig.save()
+
     SpecHist.objects.create(
         spec=spec,
         mod_ts = request._req_dt,
@@ -37,6 +43,36 @@ def specSubmit(request, spec):
     return spec
 
 def specSign(request, spec, validated_data):
+    if spec.state != 'Signoff':
+        raise ValidationError({"errorCode":"SPEC-R10", "error": "Spec must be in Signoff state to accept signatures"})
+        
+    sig = spec.sigs.filter(role__role=validated_data['role'], signer__username=validated_data['signer']).first()
+    if sig is None:
+        raise ValidationError({"errorCode":"SPEC-R11", "error": f"Spec does not have Role {validated_data['role']} / Signer {validated_data['signer']} entry."})
+    if sig.delegate is not None:
+        return spec # Already signed
+    # If user is not the designated signer, see if they are an admin or delegate
+    if request.user != sig.signer:
+        if not request.user.is_superuser:
+            if request.user.username not in sig.signer.delegates.values_list('delegate__username', flat=True):
+                raise ValidationError({"errorCode":"SPEC-R12", "error": f"Current user {request.user.username} is not a delegate for {sig.signer.username}"})
+    sig.delegate = request.user
+    sig.signed_dt = request._req_dt
+    sig.save()
+    SpecHist.objects.create(
+        spec=spec,
+        mod_ts = request._req_dt,
+        upd_by = request.user,
+        change_type = 'Sign',
+        comment = f'Signature of Role: {sig.role.role}, Signer: {sig.signer.username}, Performed by: {request.user.username}'
+    )
+
+    # If not completely signed, return the current spec
+    toBeSigned = spec.sigs.filter(delegate__isnull=True).count()
+    if toBeSigned > 0:
+        return spec
+
+    # Signatures complete, so Obsolete any previous version and activate this one.
     specs = Spec.objects.filter(num=spec.num, state='Active')
     for s in specs:
         s.mod_ts = request._req_dt
@@ -69,6 +105,12 @@ def specReject(request, spec, validated_data):
     spec.mod_ts = request._req_dt
     spec.state = 'Draft'
     spec.save()
+
+    # Clear any signatures
+    for sig in spec.sigs.all():
+        sig.delegate = None
+        sig.signed_dt = None
+        sig.save()
 
     SpecHist.objects.create(
         spec=spec,

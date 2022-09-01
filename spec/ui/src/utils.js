@@ -183,7 +183,19 @@ export function notifyLoginFail (msg) {
   })
 }
 
-export function dateString(){
-  var ds = (new Date()).toISOString().replace(/[^0-9]/g, "");
-  return ds
+const zeroPad = (num, places) => String(num).padStart(places, '0')
+export function dispDate(date) {
+  if (!date)
+    return null;
+
+  var d = new Date(date);
+  var year = d.getFullYear();
+  var month = zeroPad(d.getMonth() + 1, 2);
+  var day = zeroPad(d.getDate(),2);
+  var hour = zeroPad(d.getHours(), 2);
+  var min = zeroPad(d.getMinutes(), 2);
+  var sec = zeroPad(d.getSeconds(), 2);
+  var tm = d.toLocaleTimeString('en-us',{timeZoneName:'short'}).split(' ')[2];
+
+  return `${year}-${month}-${day} ${hour}:${min}:${sec} ${tm}`;
 }

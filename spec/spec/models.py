@@ -15,6 +15,17 @@ class UserDelegate(models.Model):
     def __str__(self):
         return self.delegate.username
 
+class UserWatch(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watches')
+    num = models.IntegerField()
+
+    class Meta:
+        managed = True
+        db_table = 'user_watch'
+
+    def __str__(self):
+        return str(self.num)
+
 class DocType(models.Model):
     name = models.CharField(primary_key=True, max_length=50)
     descr = models.CharField(max_length=4000, blank=True, null=True)
@@ -190,9 +201,12 @@ class Spec(models.Model):
     @staticmethod
     def lookup(num, ver, user):
         try:
-            spec = Spec.objects.get(num=num, ver=ver)
+            if ver != "*":
+                spec = Spec.objects.get(num=num, ver=ver)
+            else:
+                spec = Spec.objects.get(num=num, state="Active")
             if not spec.anon_access and not user.is_authenticated:
-                raise ValidationError({"errorCode":"SPEC-M08", "error": f"spec {num}-{ver} cannot read without logging in."})
+                raise ValidationError({"errorCode":"SPEC-M08", "error": f"spec {spec.num}-{spec.ver} cannot read without logging in."})
             if spec.doc_type.confidential:
                 if not spec.department.isReader(user):
                     if spec.state != "Draft" or user != spec.created_by:

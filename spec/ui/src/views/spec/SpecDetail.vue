@@ -1,10 +1,23 @@
 <template>
   <q-card class="dialog-window">
         <q-card-section class="bg-primary text-white row ">
-            <div class="text-h5">{{props.num}}/{{props.ver}} - {{state}}</div>
+            <div class="text-h5">
+                {{props.num}}/{{props.ver}}
+            </div>
         </q-card-section>
 
-        <q-card-section class="q-pt-none">
+        <q-card-section class="q-pt-none row">
+            <q-select
+                label="State"
+                v-model="state"
+                :options="[{label:'Draft',value:'Draft'},{label:'Signoff',value:'Signoff'},{label:'Active',value:'Active'},{label:'Obsolete',value:'Obsolete'},]"
+                emit-value
+                dense :readonly="!edit || !isAdmin"
+                data-cy="spec-detail-state"
+            />
+            <q-select label="Anonymous Access" v-model="anon_access" 
+                :options="[{label:'True',value:true}, {label:'False',value:false}]"
+                data-cy="spec-detail-anon_access" dense :readonly="!edit || !isAdmin"/>
             <q-select
                 label="Document Type"
                 v-model="doc_type"
@@ -21,14 +34,17 @@
                 dense :readonly="!edit"
                 data-cy="spec-detail-department"
             />
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
             <q-input label="Title" v-model.trim="title" data-cy="spec-detail-title" dense :readonly="!edit"/>
             <q-input label="Keywords" v-model.trim="keywords" data-cy="spec-detail-keywords" dense :readonly="!edit"/>
 
-            Jira: <a :href="jira" target="_blank" rel="noopener noreferrer">{{String(jira).substring(String(jira).lastIndexOf('/')+1)}}</a>
-            <q-input label="Jira" v-model.trim="jira" data-cy="spec-detail-jira" dense :readonly="!edit"/>
-            <q-select label="Anonymous Access" v-model="anon_access" 
-                :options="[{label:'True',value:true}, {label:'False',value:false}]"
-                data-cy="spec-detail-anon_access" dense :readonly="!edit"/>
+            <span v-show="String(jira).length > 0">
+                Jira: <a :href="jira" target="_blank" rel="noopener noreferrer">{{String(jira).substring(String(jira).lastIndexOf('/')+1)}}</a>
+            </span>
+            <q-input v-show="edit && isAdmin" label="Jira" v-model.trim="jira" data-cy="spec-detail-jira" dense :readonly="!edit"/>
+
         </q-card-section>
 
         <q-card-section class="q-pt-none">
@@ -37,15 +53,6 @@
                 :rows="sigRows"
                 hide-bottom
                 data-cy="spec-detail-sigs">
-                <template v-slot:top-left v-if="edit">
-                    <q-btn color="primary" dense
-                        @click="sigRows.push({_new:true})"
-                        icon-right="add" size="xs"
-                        no-caps
-                        data-cy="add_sig-btn"
-                        v-show="edit">
-                    </q-btn>
-                </template>
                 <template v-slot:header>
                     <q-th v-show="edit"/>
                     <q-th>Role</q-th>
@@ -81,16 +88,25 @@
                                 dense borderless :readonly="!edit"/>                        
                         </q-td>
                         <q-td>
-                            {{tprops.row["signed_dt"]}}
+                            {{dispDate(tprops.row["signed_dt"])}}
                             <q-btn 
-                                v-if="state === 'Signoff' && tprops.row['signed_dt'] === null" 
+                                v-if="state_loaded === 'Signoff' && tprops.row['signed_dt'] === null" 
                                 label="Sign" @click="signRole(tprops.row)"  data-cy="spec-detail-sign"/>
                             <q-btn 
-                                v-if="state === 'Signoff'" 
+                                v-if="state_loaded === 'Signoff' && tprops.row['signed_dt'] === null" 
                                 label="Reject" @click="rejectRole(tprops.row)"  data-cy="spec-detail-reject"/>
                         </q-td>
-                        <q-td>{{tprops.row["delgate"]}}</q-td>
+                        <q-td>{{tprops.row["delegate"]}}</q-td>
                     </q-tr>
+                </template>
+                <template v-slot:bottom-row v-if="edit">
+                    <q-btn color="primary" dense
+                        @click="sigRows.push({_new:true})"
+                        icon-right="add" size="xs"
+                        no-caps
+                        data-cy="add_sig-btn"
+                        v-show="edit">
+                    </q-btn>
                 </template>
            </q-table>
         </q-card-section>
@@ -101,16 +117,6 @@
                 :rows="refRows"
                 hide-bottom
                 data-cy="spec-detail-refs">
-                <template v-slot:top-left v-if="edit">
-                    <q-btn color="primary" dense
-                        @click="refRows.push({_new:true})"
-                        icon-right="add" size="xs"
-                        no-caps
-                        data-cy="add_ref-btn"
-                        v-show="edit">
-                    </q-btn>
-                </template>
-
                 <template v-slot:header>
                     <q-th v-show="edit"/>
                     <q-th>Num</q-th>
@@ -133,7 +139,16 @@
                         </q-td>
                     </q-tr>
                 </template>
-           </q-table>
+                <template v-slot:bottom-row v-if="edit">
+                    <q-btn color="primary" dense
+                        @click="refRows.push({_new:true})"
+                        icon-right="add" size="xs"
+                        no-caps
+                        data-cy="add_ref-btn"
+                        v-show="edit">
+                    </q-btn>
+                </template>
+            </q-table>
         </q-card-section>
         
         <q-card-section class="q-pt-none">
@@ -211,7 +226,7 @@
                 <template v-slot:body="tprops">
                     <q-tr>
                         <q-td>{{tprops.row['upd_by']}}</q-td>  
-                        <q-td>{{tprops.row['mod_ts']}}</q-td>  
+                        <q-td>{{dispDate(tprops.row['mod_ts'])}}</q-td>  
                         <q-td>{{tprops.row['change_type']}}</q-td>  
                         <q-td>{{tprops.row['comment']}}</q-td>    
                     </q-tr>
@@ -219,7 +234,11 @@
            </q-table>
         </q-card-section>
 
-        <span v-show="state === 'Draft'">
+        <q-card-section class="q-pt-none">
+            <q-input label="Comment" v-model.trim="comment" data-cy="spec-detail-comment" type="textarea" v-show="edit"/>
+        </q-card-section>
+
+        <span v-show="state_loaded === 'Draft'">
             <q-card-actions v-show="!edit" class="bg-white text-teal" align="center">
                 <q-btn label="Edit" color="primary" size="lg" class="filter-btn" @click="edit=true" data-cy="spec-detail-update"/>
                 <div class="spacer"/>
@@ -233,9 +252,19 @@
                 <q-btn label="Cancel" color="red" size="lg" class="filter-btn" @click="cancel()"  data-cy="spec-detail-cancel"/>
             </q-card-actions>
         </span>
-        <span v-show="state === 'Active' || state === 'Obsolete'">
+        <span v-show="state_loaded === 'Active' || state_loaded === 'Obsolete'">
             <q-card-actions class="bg-white text-teal" align="center">
                 <q-btn label="Revise" color="primary" size="lg" class="filter-btn" @click="reviseSpec()"  data-cy="spec-detail-update"/>
+            </q-card-actions>
+        </span>
+        <span v-show="state_loaded !== 'Draft' && isAdmin">
+            <q-card-actions v-show="!edit" class="bg-white text-teal" align="center">
+                <q-btn label="Admin Edit" color="red" size="lg" class="filter-btn" @click="edit=true" data-cy="spec-detail-update"/>
+            </q-card-actions>
+            <q-card-actions v-show="edit" class="bg-white text-teal" align="center">
+                <q-btn label="Admin Save" color="primary" size="lg" class="filter-btn" @click="saveSpec()" data-cy="spec-detail-update"/>
+                <div class="spacer"/>
+                <q-btn label="Cancel" color="red" size="lg" class="filter-btn" @click="cancel()"  data-cy="spec-detail-cancel"/>
             </q-card-actions>
         </span>
     </q-card>
@@ -249,10 +278,11 @@
 </template>
 
 <script>
-import { apiServerHost, defineProps, deleteData, genCy, getCookie, postData, putData, retrieveData, 
+import { apiServerHost, defineProps, deleteData, dispDate, genCy, getCookie, postData, putData, retrieveData, 
         showNotif, } from '@/utils.js'
-import {ref, onMounted} from 'vue'
-import {useRouter, } from 'vue-router'
+import { computed, onMounted, ref, } from 'vue'
+import { useRouter, } from 'vue-router'
+import { useStore } from 'vuex'
 import RejectSpecDialog from '@/views/spec/RejectSpec.vue'
 
 export default {
@@ -268,8 +298,10 @@ export default {
         num: String,
         ver: String,
     })
+    const store = useStore()
 
     const anon_access = ref({label:'False',value:false})
+    const comment = ref('')
     const created_by = ref('')
     const create_dt = ref('')
     const department = ref('')
@@ -277,6 +309,7 @@ export default {
     const doc_type = ref('')
     const doc_typeList = ref([])
     const edit = ref(false)
+    const isAdmin = ref(computed(() => store.getters.isAdmin))
     const keywords = ref('')
     const fileRows = ref([])
     const histRows = ref([])
@@ -289,11 +322,13 @@ export default {
     const sigRow = ref({})
     const sigRows = ref([])
     const state = ref('')
+    const state_loaded = ref('')
     const title = ref('')
     const ver = ref('')
 
     async function saveSpec(){
         const body = {
+            state: state.value,
             doc_type: doc_type.value,
             department: department.value,
             title: title.value,
@@ -302,6 +337,7 @@ export default {
             sigs:sigRows.value,
             files:fileRows.value,
             refs:refRows.value,
+            comment:comment.value,
         }
 
         let res = await putData(`spec/${props.num}/${props.ver}`, body, 
@@ -350,6 +386,7 @@ export default {
     }
 
     function loadForm(res) {        
+        edit.value = false
         reject_spec.value = false
 
         ver.value = res['ver']
@@ -358,6 +395,7 @@ export default {
         title.value = res['title']
         keywords.value = res['keywords']
         state.value = res['state']
+        state_loaded.value = res['state']
         created_by.value = res['created_by']
         create_dt.value = res['create_dt']
         mod_ts.value = res['mod_ts']
