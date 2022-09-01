@@ -33,6 +33,7 @@ def specCreate(request, validated_data):
     refs_data = validated_data.pop("refs")
     docTypeName = validated_data.pop("doc_type")
     deptName = validated_data.pop("department")
+    comment = validated_data.pop("comment")
 
     validated_data['doc_type'] = DocType.lookup(docTypeName)
     validated_data['department'] = Department.lookup(deptName)

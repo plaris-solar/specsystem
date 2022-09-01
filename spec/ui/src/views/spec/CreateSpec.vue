@@ -50,6 +50,7 @@ export default {
 
     async function saveSpec(){
         const body = {
+            state: 'Draft',
             title: title.value,
             doc_type: doc_type.value,
             department: department.value,
