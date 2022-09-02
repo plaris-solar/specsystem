@@ -45,7 +45,19 @@
                                 <router-link :to="'/ui-spec/'+props.row['num']+'/'+props.row['ver']">
                                     {{props.row['num']}}/{{props.row['ver']}}
                                     </router-link>
+                                &nbsp;
+                                <q-btn v-if="!props.row['watched']" round color="primary" 
+                                        @click="setWatch(props.row['num'].toString())"
+                                        icon="visibility_off" size="xs"
+                                        data-cy="set-watch">
+                                </q-btn>
+                                <q-btn v-if="props.row['watched']" round color="primary" 
+                                        @click="clearWatch(props.row['num'].toString())"
+                                        icon="visibility" size="xs"
+                                        data-cy="clear-watch">
+                                </q-btn>
                             </span>
+                            <span v-else-if="col.name === 'mod_ts'">{{dispDate(props.row[col.name])}}</span>
                             <span v-else>{{props.row[col.name]}}</span>
                         </q-td>
                     </q-tr>
@@ -77,9 +89,7 @@
 </template>
 
 <script>
-import {
-    retrieveData,
-} from '@/utils.js';
+import { deleteData, dispDate, postData, retrieveData, } from '@/utils.js';
 
 import { ref, onMounted, computed, defineProps, watch} from 'vue';
 import { useStore } from 'vuex'
@@ -115,6 +125,7 @@ export default {
 
     const isAuthenticated = ref(computed(() => store.getters.authenticated))
     const isAdmin = ref(computed(() => store.getters.isAdmin))
+    const username = ref(computed(() => store.getters.username))
 
     const props = defineProps({
         rerender: Boolean,
@@ -210,6 +221,22 @@ export default {
     async function clearFilters(){
         filtered.value = false;
         clearFilter()
+    }    
+    
+    async function setWatch(num) {        
+        postData(`user/watch/${username.value}/${num}`, '{}', `Set watch on: ${num} successfully.`).then((res) => {
+            if (res.__resp_status < 300){
+                getTableData(page_num.value)
+            }
+        })
+    }   
+    
+    async function clearWatch(num) {        
+        deleteData(`user/watch/${username.value}/${num}`, '{}', `Deleted watch on: ${num} successfully.`).then((res) => {
+            if (res.__resp_status < 300){
+                getTableData(page_num.value)
+            }
+        })
     }
 
     const columns = [

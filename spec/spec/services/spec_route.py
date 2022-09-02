@@ -64,7 +64,7 @@ def specSign(request, spec, validated_data):
         mod_ts = request._req_dt,
         upd_by = request.user,
         change_type = 'Sign',
-        comment = f'Signature of Role: {sig.role.role}, Signer: {sig.signer.username}, Performed by: {request.user.username}'
+        comment = f'Signature of Role: {sig.role.role}, Signer: {(sig.signer or None) and sig.signer.username}, Performed by: {request.user.username}'
     )
 
     # If not completely signed, return the current spec

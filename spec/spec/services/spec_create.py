@@ -1,4 +1,5 @@
 from django.core.files.base import ContentFile
+from rest_framework.exceptions import ValidationError
 from spec.services.revletter import get_next_version
 from user.models import User
 from ..models import ApprovalMatrix, Department, DocType, Role, Spec, SpecSig, SpecFile, SpecReference
@@ -62,10 +63,18 @@ def specCreate(request, validated_data):
     return spec
 
 def specRevise(request, spec):
+    # Grab a copy of the spec being copied for related items below.
     orig_spec = Spec.objects.get(id=spec.id)
 
+    inProcessSpec = Spec.objects.filter(num=spec.num, state__in=['Draft', 'Signoff']).first()
+    if inProcessSpec is not None:
+        raise ValidationError({"errorCode":"SPEC-C01", "error": f"Version {inProcessSpec.ver} is in state {inProcessSpec.state}. Cannot start a new revision."})
+
+    # Get the latest revision, incase they are copying an obsolete version instead of the active version
+    latestSpec = Spec.objects.filter(num=spec.num).order_by('-ver').first()
+
     spec.id = None
-    spec.ver = get_next_version(spec.ver)
+    spec.ver = get_next_version(latestSpec.ver)
     spec.state = 'Draft'
     spec.created_by = request.user
     spec.create_dt = request._req_dt

@@ -51,6 +51,7 @@
                                     icon="delete" size="xs"
                                     data-cy="data-delete-btn">
                             </q-btn>
+                            &nbsp;
                             <q-btn round color="primary" 
                                     @click="updateSelected(props.row)"
                                     icon="edit" size="xs"

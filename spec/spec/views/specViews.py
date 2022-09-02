@@ -46,7 +46,7 @@ class SpecList(GenericAPIView):
                 queryset = queryset.filter(num=num)
             queryset = self.paginate_queryset(queryset.order_by('num', 'ver'))
             
-            serializer = SpecSerializer(queryset, many=True)
+            serializer = SpecSerializer(queryset, many=True, context={'user':request.user})
             return self.get_paginated_response(serializer.data)
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V17")

@@ -44,13 +44,14 @@
                     </q-th>
                 </template>
                 <template v-slot:body="props">
-                    <q-tr :props="props" @click="props.row._new_row && !props.selected ? props.selected=true : false">
+                    <q-tr :props="props">
                         <q-td v-show="isAdmin && isAuthenticated">
                             <q-btn round color="negative" 
                                     @click="deleteSelected(props.row['role'])"
                                     icon="delete" size="xs"
                                     data-cy="data-delete-btn">
                             </q-btn>
+                            &nbsp;
                             <q-btn round color="primary" 
                                     @click="updateSelected(props.row)"
                                     icon="edit" size="xs"

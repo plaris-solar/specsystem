@@ -13,8 +13,11 @@ class UserSerializer(serializers.ModelSerializer):
     def to_representation(self, value):
         data = super(UserSerializer, self).to_representation(value)
         data['delegates'] = ', '.join(sorted(data['delegates']))
-        data['watches'] = value.watches.values_list('num', flat=True)
-        data['watches_str'] = ', '.join(sorted(data['watches']))
+        data['watches'] = list(value.watches.order_by('num').values_list('num', flat=True))
+        watches_str = []
+        for watch in data['watches']:
+            watches_str.append(str(watch))
+        data['watches_str'] = ', '.join(sorted(watches_str))
         return data
 
 class UserUpdateSerializer(serializers.Serializer):

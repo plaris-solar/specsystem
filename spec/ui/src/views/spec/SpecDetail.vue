@@ -1,9 +1,11 @@
 <template>
   <q-card class="dialog-window">
-        <q-card-section class="bg-primary text-white row ">
-            <div class="text-h5">
-                {{props.num}}/{{props.ver}}
-            </div>
+        <q-card-section class="row">
+            <q-input v-model="ver" 
+                :prefix="props.num+' /'"
+                data-cy="spec-detail-num" dense :readonly="true" borderless 
+                class="text-h5 text-white"
+                label-color="white"/>
         </q-card-section>
 
         <q-card-section class="q-pt-none row">
@@ -182,7 +184,7 @@
                             </q-btn>
                         </q-td>
                         <q-td>
-                            <a :href="apiServerHost+'/spec/file/'+props.num+'/'+props.ver+'/'+tprops.row['filename']" data-cy="spec-detail-file-filename"
+                            <a :href="apiServerHost+'/spec/file/'+props.num+'/'+ver.value+'/'+tprops.row['filename']" data-cy="spec-detail-file-filename"
                                 target="_blank">
                                 {{tprops.row['filename']}}
                             </a>
@@ -201,7 +203,7 @@
                         :fieldName="(file) =>`file`"
                         :headers="[{name:'X-CSRFToken',value:getCookie('csrftoken') }]"
                         with-credentials
-                        :url="files=>`${apiServerHost}/spec/file/${props.num}/${props.ver}`"
+                        :url="files=>`${apiServerHost}/spec/file/${props.num}/${ver.value}`"
                         label="Select File to Upload"
                         @uploaded="refreshFileList"
                         data-cy="add_file-uploader"
@@ -267,11 +269,41 @@
                 <q-btn label="Cancel" color="red" size="lg" class="filter-btn" @click="cancel()"  data-cy="spec-detail-cancel"/>
             </q-card-actions>
         </span>
+
+        <div class="q-pa-md window-width">
+            <q-table
+                :rows="version_list"
+                :columns="spec_columns"
+                :rows-per-page-options="[0]"
+                data-cy="spec-table">
+                <template v-slot:header="props">
+                    <q-th v-for="col in columns" 
+                          :key="col.name" 
+                          :props="props" >
+                            {{col.label}}
+                    </q-th>
+                </template>
+                <template v-slot:body="props">
+                    <q-tr :props="props" @click="props.row._new_row && !props.selected ? props.selected=true : false">
+                        <q-td v-for="col in props.cols" :key="col.name" :props="props" class='text-center'>
+                            <span v-if="col.name === 'num'">
+                                <router-link :to="'/ui-spec/'+props.row['num']+'/'+props.row['ver']">
+                                    {{props.row['num']}}/{{props.row['ver']}}
+                                    </router-link>
+                            </span>
+                            <span v-else-if="col.name === 'mod_ts'">{{dispDate(props.row[col.name])}}</span>
+                            <span v-else>{{props.row[col.name]}}</span>
+                        </q-td>
+                    </q-tr>
+                </template>
+            </q-table>
+        </div>
+
     </q-card>
     <q-dialog v-model="reject_spec">
         <reject-spec-dialog
             :num = "props.num"
-            :ver = "props.ver"
+            :ver = "ver.value"
             :sigRow = "sigRow"
             @updateSpec="loadSpec()"/>
     </q-dialog >
@@ -325,6 +357,7 @@ export default {
     const state_loaded = ref('')
     const title = ref('')
     const ver = ref('')
+    const version_list = ref([])
 
     async function saveSpec(){
         const body = {
@@ -340,8 +373,8 @@ export default {
             comment:comment.value,
         }
 
-        let res = await putData(`spec/${props.num}/${props.ver}`, body, 
-            'Successfully updated spec ' + props.num + '/' + props.ver)
+        let res = await putData(`spec/${props.num}/${ver.value}`, body, 
+            'Successfully updated spec ' + props.num + '/' + ver.value)
         if (res.__resp_status < 300){
             edit.value = false
             loadForm(res)
@@ -349,7 +382,9 @@ export default {
     }
 
     onMounted(() => {
+        ver.value = props.ver
         loadSpec()
+        loadOtherVersions()
         loadLists()
     })
 
@@ -361,7 +396,7 @@ export default {
         if (!window.confirm(`Delete file: ${fileRow.filename}?`)) {
             return
         }
-        let res = await deleteData(`spec/file/${props.num}/${props.ver}/${fileRow.filename}`, {}, `Deleting file: ${fileRow.filename}`);
+        let res = await deleteData(`spec/file/${props.num}/${ver.value}/${fileRow.filename}`, {}, `Deleting file: ${fileRow.filename}`);
         fileRows.value.splice(fileRows.value.indexOf(fileRow), 1)
     }
 
@@ -374,11 +409,11 @@ export default {
     }
 
     async function deleteSpec(){
-        if (!window.confirm(`Delete spec: ${props.num}/${props.ver}?`)) {
+        if (!window.confirm(`Delete spec: ${props.num}/${ver.value}?`)) {
             return
         }
         
-        deleteData(`spec/${props.num}/${props.ver}`, '{}', `Deleted spec: ${props.num}/${props.ver} successfully.`).then((res) => {
+        deleteData(`spec/${props.num}/${ver.value}`, '{}', `Deleted spec: ${props.num}/${ver.value} successfully.`).then((res) => {
             if (res.__resp_status < 300){
                 router.push({name:"Spec"})
             }
@@ -406,8 +441,13 @@ export default {
         histRows.value = res['hist']
     }
 
+    async function loadOtherVersions() {
+        let res = await retrieveData(`spec/${props.num}`);
+        version_list.value = res['results']
+    }
+
     async function loadSpec() {
-        let res = await retrieveData(`spec/${props.num}/${props.ver?props.ver:'*'}`);
+        let res = await retrieveData(`spec/${props.num}/${ver.value?ver.value:'*'}`);
         loadForm(res)
     }
 
@@ -428,7 +468,7 @@ export default {
     }
 
     async function refreshFileList() {
-        let res = await retrieveData(`spec/${props.num}/${props.ver}`);
+        let res = await retrieveData(`spec/${props.num}/${ver.value}`);
         fileRows.value = res['files']
     }
 
@@ -438,11 +478,11 @@ export default {
     }
 
     async function reviseSpec(){
-        if (!window.confirm(`Create new revision of spec: ${props.num}/${props.ver}?`)) {
+        if (!window.confirm(`Create new revision of spec: ${props.num}/${ver.value}?`)) {
             return
         }
         
-        let res = await postData(`spec/${props.num}/${props.ver}`, {}, null)
+        let res = await postData(`spec/${props.num}/${ver.value}`, {}, null)
         if (res.__resp_status < 300) {
             showNotif(`Spec created: ${res.num}/${res.ver}`, 'green')
             router.push({name:"Spec Detail", params:{num:res.num, ver:res.ver}})
@@ -450,7 +490,7 @@ export default {
     }
 
     async function signRole(sigRow){
-        let res = await postData(`spec/sign/${props.num}/${props.ver}`, {'role':sigRow['role'], 'signer':sigRow['signer']}, `Signed spec: ${props.num}/${props.ver} successfully.`).then((res) => {
+        let res = await postData(`spec/sign/${props.num}/${ver.value}`, {'role':sigRow['role'], 'signer':sigRow['signer']}, `Signed spec: ${props.num}/${ver.value} successfully.`).then((res) => {
             if (res.__resp_status < 300){
                 router.go()
             }
@@ -459,7 +499,7 @@ export default {
 
     async function submitSpec(){
         
-        postData(`spec/submit/${props.num}/${props.ver}`, {}, `Submitted spec: ${props.num}/${props.ver} for signatures successfully.`).then((res) => {
+        postData(`spec/submit/${props.num}/${ver.value}`, {}, `Submitted spec: ${props.num}/${ver.value} for signatures successfully.`).then((res) => {
             if (res.__resp_status < 300){
                 router.go()
             }
@@ -476,6 +516,18 @@ export default {
         data_rows = await retrieveData('dept/?limit=1000');
         deptList.value = data_rows['results'].map((e) => {return ({label:e['name'],value:e['name']})})
     }
+
+    const spec_columns = [
+            { name: 'num', align: 'left', label: 'Spec', field: 'num', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'title', align: 'left', label: 'Title', field: 'title', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'doc_type', align: 'left', label: 'Doc Type', field: 'doc_type', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'department', align: 'left', label: 'Department', field: 'department', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'keywords', align: 'left', label: 'Keywords', field: 'keywords', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'state', align: 'left', label: 'State', field: 'state', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'created_by', align: 'left', label: 'Created By', field: 'created_by', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'mod_ts', align: 'left', label: 'Last Modified', field: 'mod_ts', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'anon_access', align: 'left', label: 'Anonymous Access', field: 'anon_access', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+        ]
 </script>
 
 <style scoped>

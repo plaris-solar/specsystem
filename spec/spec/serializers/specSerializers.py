@@ -55,9 +55,10 @@ class SpecSerializer(serializers.ModelSerializer):
         data['hist'] = SpecHistSerializer(hist, many=True, context=self.context).data
 
         user = self.context.get("user")
-        data['watched'] = False
-        if user is not None:
+        try:
             data['watched'] = user.watches.filter(num=value.num).first() != None
+        except:  # AnonymousUser does not have the watches attribute
+            data['watched'] = False
 
         return data
         
