@@ -442,7 +442,7 @@ export default {
     }
 
     async function loadOtherVersions() {
-        let res = await retrieveData(`spec/${props.num}`);
+        let res = await retrieveData(`spec/${props.num}?incl_obsolete=true`);
         version_list.value = res['results']
     }
 

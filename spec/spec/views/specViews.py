@@ -26,9 +26,9 @@ class SpecList(GenericAPIView):
 
     {
         "title": "REQ, SPEC SYSTEM",
+        "doc_type": "Requirement",
+        "department": "IT",
         "keywords": "SPEC",
-        "cat": "IT",
-        "sub_cat": "Requirement",
         "sigs": [{"role": "ITMgr", "signer": "ahawse"}],
         "files": [{"filename": "Req.docx", "seq": 1}],
         "refs": [{"num": 300000, "ver": "A"}]
@@ -41,9 +41,18 @@ class SpecList(GenericAPIView):
 
     def get(self, request, num=None, format=None):
         try:
-            queryset = self.filter_queryset(self.get_queryset())
+            queryset = self.queryset
+            queryset = queryset.filter(num = request.GET.get('num')) if request.GET.get('num') else queryset
+            queryset = queryset.filter(title__contains = request.GET.get('title')) if request.GET.get('title') else queryset
+            queryset = queryset.filter(keywords__contains = request.GET.get('keywords')) if request.GET.get('keywords') else queryset
+            queryset = queryset.filter(state__contains = request.GET.get('state')) if request.GET.get('state') else queryset
+            queryset = queryset.filter(created_by__contains = request.GET.get('created_by')) if request.GET.get('created_by') else queryset
+
             if num is not None:
                 queryset = queryset.filter(num=num)
+            
+            if not request.GET.get('incl_obsolete'):                
+                queryset = queryset.exclude(state='Obsolete')
             queryset = self.paginate_queryset(queryset.order_by('num', 'ver'))
             
             serializer = SpecSerializer(queryset, many=True, context={'user':request.user})

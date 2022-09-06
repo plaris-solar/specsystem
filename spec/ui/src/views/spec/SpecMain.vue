@@ -7,18 +7,19 @@
                 :rows-per-page-options="[0]"
                 data-cy="spec-table">
                 <template v-slot:top-left>
-                    <div class="row">
-                        <q-input 
-                            v-model="filter_val"
-                            @keydown.enter.prevent="applyFilter(`&search=${filter_val}`)"                             
-                            label="filter value"
-                            data-cy="data-filter-input"/>
+                    <div>
                         <q-btn round color="primary" 
-                            @click="clearFilters()"
-                            icon="clear"
-                            no-caps
-                            data-cy="data-clear-filter-btn">                       
-                        </q-btn>
+                            @click="applyFilter()"
+                            icon="filter_alt"
+                            data-cy="data-filter-btn"/>     
+                        <q-btn round color="primary" 
+                            @click="clearFilter()"
+                            icon="filter_alt_off"
+                            data-cy="data-clear-filter-btn"/>    
+                        <q-checkbox v-model="incl_obsolete" 
+                            label="Include Obsolete Versions"
+                            @click="applyFilter()"
+                            data-cy="incl_obsolete-checkbox" />                   
                     </div>
                 </template>
                 <template v-slot:top-right>
@@ -36,6 +37,12 @@
                           :key="col.name" 
                           :props="props" >
                             {{col.label}}
+                            <q-input 
+                                v-model.trim="filter[col.name]" 
+                                data-cy="spec-detail-ref-num" 
+                                dense 
+                                @keydown.enter="applyFilter()"
+                                @blur="applyFilter()"/>
                     </q-th>
                 </template>
                 <template v-slot:body="props">
@@ -113,10 +120,9 @@ export default {
     const selected = ref([])
 
     const add_spec = ref(false);
-    const filter_select = ref()
-    const filter_val = ref()
-    const filtered = ref(false)
+    const filter = ref({})
     const filter_slug = ref('')
+    const incl_obsolete = ref(false)
     const sort_slug = ref('')
     const upd_spec = ref(false);
 
@@ -199,29 +205,22 @@ export default {
 
     // Delete input box filter on advanced filter
     // Add documentation about basic vs. advanced filter
-    async function applyFilter(filter_str){
-        if (!filter_str){
-            filtered.value = false;
-            filter_slug.value = ""
-            getTableData(1)
-            return;
+    async function applyFilter(){
+        filter_slug.value = ""
+        Object.entries(filter.value).forEach(entry => {
+            const [key, value] = entry;
+            filter_slug.value += '&'+key+'='+value
+        })
+        if (incl_obsolete.value) {
+            filter_slug.value += '&incl_obsolete=true'
         }
-        filter_slug.value = filter_str
         getTableData(1)
-        filtered.value = true;
     }
 
     async function clearFilter(){
-        filter_select.value = null;
-        filter_val.value = null;
-        filter_slug.value = null;
-        getTableData(1)
+        filter.value = {}
+        applyFilter()
     }
-
-    async function clearFilters(){
-        filtered.value = false;
-        clearFilter()
-    }    
     
     async function setWatch(num) {        
         postData(`user/watch/${username.value}/${num}`, '{}', `Set watch on: ${num} successfully.`).then((res) => {
@@ -240,15 +239,15 @@ export default {
     }
 
     const columns = [
-            { name: 'num', align: 'left', label: 'Spec', field: 'num', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'title', align: 'left', label: 'Title', field: 'title', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'doc_type', align: 'left', label: 'Doc Type', field: 'doc_type', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'department', align: 'left', label: 'Department', field: 'department', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'keywords', align: 'left', label: 'Keywords', field: 'keywords', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'state', align: 'left', label: 'State', field: 'state', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'created_by', align: 'left', label: 'Created By', field: 'created_by', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'mod_ts', align: 'left', label: 'Last Modified', field: 'mod_ts', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'anon_access', align: 'left', label: 'Anonymous Access', field: 'anon_access', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'num', align: 'left', label: 'Spec', field: 'num', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
+            { name: 'title', align: 'left', label: 'Title', field: 'title', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
+            { name: 'doc_type', align: 'left', label: 'Doc Type', field: 'doc_type', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
+            { name: 'department', align: 'left', label: 'Department', field: 'department', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
+            { name: 'keywords', align: 'left', label: 'Keywords', field: 'keywords', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
+            { name: 'state', align: 'left', label: 'State', field: 'state', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
+            { name: 'created_by', align: 'left', label: 'Created By', field: 'created_by', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
+            { name: 'mod_ts', align: 'left', label: 'Last Modified', field: 'mod_ts', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
+            { name: 'anon_access', align: 'left', label: 'Anonymous Access', field: 'anon_access', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
         ]
 </script>
 
