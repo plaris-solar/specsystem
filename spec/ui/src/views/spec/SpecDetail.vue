@@ -1,13 +1,8 @@
 <template>
   <q-card class="dialog-window">
-        <q-card-section class="row">
-            <q-input v-model="ver" 
-                :prefix="props.num+' /'"
-                data-cy="spec-detail-num" dense :readonly="true" borderless 
-                class="text-h5 text-white"
-                label-color="white"/>
+        <q-card-section class="text-h5">
+            {{props.num+' /'+props.ver}}
         </q-card-section>
-
         <q-card-section class="q-pt-none row">
             <q-select
                 label="State"
@@ -184,7 +179,7 @@
                             </q-btn>
                         </q-td>
                         <q-td>
-                            <a :href="apiServerHost+'/spec/file/'+props.num+'/'+ver.value+'/'+tprops.row['filename']" data-cy="spec-detail-file-filename"
+                            <a :href="apiServerHost+'/spec/file/'+props.num+'/'+props.ver+'/'+tprops.row['filename']" data-cy="spec-detail-file-filename"
                                 target="_blank">
                                 {{tprops.row['filename']}}
                             </a>
@@ -203,7 +198,7 @@
                         :fieldName="(file) =>`file`"
                         :headers="[{name:'X-CSRFToken',value:getCookie('csrftoken') }]"
                         with-credentials
-                        :url="files=>`${apiServerHost}/spec/file/${props.num}/${ver.value}`"
+                        :url="files=>`${apiServerHost}/spec/file/${props.num}/${props.ver}`"
                         label="Select File to Upload"
                         @uploaded="refreshFileList"
                         data-cy="add_file-uploader"
@@ -303,7 +298,7 @@
     <q-dialog v-model="reject_spec">
         <reject-spec-dialog
             :num = "props.num"
-            :ver = "ver.value"
+            :ver = "props.ver"
             :sigRow = "sigRow"
             @updateSpec="loadSpec()"/>
     </q-dialog >
@@ -356,7 +351,6 @@ export default {
     const state = ref('')
     const state_loaded = ref('')
     const title = ref('')
-    const ver = ref('')
     const version_list = ref([])
 
     async function saveSpec(){
@@ -374,8 +368,8 @@ export default {
             anon_access:anon_access.value.value,
         }
 
-        let res = await putData(`spec/${props.num}/${ver.value}`, body, 
-            'Successfully updated spec ' + props.num + '/' + ver.value)
+        let res = await putData(`spec/${props.num}/${props.ver}`, body, 
+            'Successfully updated spec ' + props.num + '/' + props.ver)
         if (res.__resp_status < 300){
             edit.value = false
             loadForm(res)
@@ -383,7 +377,6 @@ export default {
     }
 
     onMounted(() => {
-        ver.value = props.ver
         loadSpec()
         loadOtherVersions()
         loadLists()
@@ -397,7 +390,7 @@ export default {
         if (!window.confirm(`Delete file: ${fileRow.filename}?`)) {
             return
         }
-        let res = await deleteData(`spec/file/${props.num}/${ver.value}/${fileRow.filename}`, {}, `Deleting file: ${fileRow.filename}`);
+        let res = await deleteData(`spec/file/${props.num}/${props.ver}/${fileRow.filename}`, {}, `Deleting file: ${fileRow.filename}`);
         fileRows.value.splice(fileRows.value.indexOf(fileRow), 1)
     }
 
@@ -410,11 +403,11 @@ export default {
     }
 
     async function deleteSpec(){
-        if (!window.confirm(`Delete spec: ${props.num}/${ver.value}?`)) {
+        if (!window.confirm(`Delete spec: ${props.num}/${props.ver}?`)) {
             return
         }
         
-        deleteData(`spec/${props.num}/${ver.value}`, '{}', `Deleted spec: ${props.num}/${ver.value} successfully.`).then((res) => {
+        deleteData(`spec/${props.num}/${props.ver}`, '{}', `Deleted spec: ${props.num}/${props.ver} successfully.`).then((res) => {
             if (res.__resp_status < 300){
                 router.push({name:"Spec"})
             }
@@ -425,7 +418,6 @@ export default {
         edit.value = false
         reject_spec.value = false
 
-        ver.value = res['ver']
         doc_type.value = res['doc_type']
         department.value = res['department']
         title.value = res['title']
@@ -449,7 +441,10 @@ export default {
     }
 
     async function loadSpec() {
-        let res = await retrieveData(`spec/${props.num}/${ver.value?ver.value:'*'}`);
+        let res = await retrieveData(`spec/${props.num}/${props.ver?props.ver:'*'}`);
+        if (!props.ver || props.ver === '*') {            
+            router.push({name:"Spec Detail", params:{num:res.num, ver:res.ver}})
+        }
         loadForm(res)
     }
 
@@ -470,7 +465,7 @@ export default {
     }
 
     async function refreshFileList() {
-        let res = await retrieveData(`spec/${props.num}/${ver.value}`);
+        let res = await retrieveData(`spec/${props.num}/${props.ver}`);
         fileRows.value = res['files']
     }
 
@@ -480,11 +475,11 @@ export default {
     }
 
     async function reviseSpec(){
-        if (!window.confirm(`Create new revision of spec: ${props.num}/${ver.value}?`)) {
+        if (!window.confirm(`Create new revision of spec: ${props.num}/${props.ver}?`)) {
             return
         }
         
-        let res = await postData(`spec/${props.num}/${ver.value}`, {}, null)
+        let res = await postData(`spec/${props.num}/${props.ver}`, {}, null)
         if (res.__resp_status < 300) {
             showNotif(`Spec created: ${res.num}/${res.ver}`, 'green')
             router.push({name:"Spec Detail", params:{num:res.num, ver:res.ver}})
@@ -492,7 +487,7 @@ export default {
     }
 
     async function signRole(sigRow){
-        let res = await postData(`spec/sign/${props.num}/${ver.value}`, {'role':sigRow['role'], 'signer':sigRow['signer']}, `Signed spec: ${props.num}/${ver.value} successfully.`).then((res) => {
+        let res = await postData(`spec/sign/${props.num}/${props.ver}`, {'role':sigRow['role'], 'signer':sigRow['signer']}, `Signed spec: ${props.num}/${props.ver} successfully.`).then((res) => {
             if (res.__resp_status < 300){
                 router.go()
             }
@@ -501,7 +496,7 @@ export default {
 
     async function submitSpec(){
         
-        postData(`spec/submit/${props.num}/${ver.value}`, {}, `Submitted spec: ${props.num}/${ver.value} for signatures successfully.`).then((res) => {
+        postData(`spec/submit/${props.num}/${props.ver}`, {}, `Submitted spec: ${props.num}/${props.ver} for signatures successfully.`).then((res) => {
             if (res.__resp_status < 300){
                 router.go()
             }
