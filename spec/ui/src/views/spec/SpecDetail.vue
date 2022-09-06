@@ -371,6 +371,7 @@ export default {
             files:fileRows.value,
             refs:refRows.value,
             comment:comment.value,
+            anon_access:anon_access.value.value,
         }
 
         let res = await putData(`spec/${props.num}/${ver.value}`, body, 
@@ -439,6 +440,7 @@ export default {
         fileRows.value = res['files']
         refRows.value = res['refs']
         histRows.value = res['hist']
+        anon_access.value = res['anon_access']
     }
 
     async function loadOtherVersions() {

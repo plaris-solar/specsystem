@@ -9,6 +9,10 @@ def specUpdate(request, spec, validated_data):
         if not validated_data['comment'] or len(validated_data['comment']) == 0:
             raise ValidationError({"errorCode":"SPEC-U52", "error": "State changes updates require a comment."})
         spec.state = validated_data['state']
+    
+    # Only superusers can set the anon_access.
+    if request.user.is_superuser:
+        spec.anon_access = validated_data['anon_access']
 
     spec.mod_ts = request._req_dt
 
