@@ -55,8 +55,11 @@ def genPdf(spec):
 
     finally:
         # Clean up the folder, no matter success or failure
-        if tempPdfPath.exists():
-            shutil.rmtree(tempPdfPath)
+        try:
+            if tempPdfPath.exists():
+                shutil.rmtree(tempPdfPath)
+        except BaseException as be:
+            pass
 
 def specSubmit(request, spec):
     if spec.state != 'Draft':
