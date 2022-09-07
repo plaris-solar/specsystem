@@ -33,7 +33,7 @@ def genPdf(spec):
         # Convert each file to pdf
         for file in files:
             shutil.copy(file.file.path, tempPdfPath/f'{file.seq}_{file.filename}')
-        p = run([settings.SOFFICE, '--headless', '--convert-to', 'pdf', '--outdir', str(tempPdfPath/'out'), str(tempPdfPath/'*')]
+        p = run([settings.SOFFICE, '--norestore', '--safe-mode', '--view', '--convert-to', 'pdf', '--outdir', str(tempPdfPath/'out'), str(tempPdfPath/'*')]
             , stdout=subprocess.PIPE)
         if p.returncode != 0: #pragma nocover
             raise ValidationError({"errorCode":"SPEC-R10", "error": f"Error converting file to PDF: {p.returncode} {p.stdout}"})
