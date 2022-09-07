@@ -227,6 +227,9 @@ LOGGING = {
                     },
                 },
             }
+            
+SOFFICE = None
+TEMP_PDF = os.path.join(MEDIA_ROOT, 'temp')
 
 # Override default settings
 try:

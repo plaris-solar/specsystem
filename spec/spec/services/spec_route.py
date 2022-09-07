@@ -1,6 +1,62 @@
+import os
+import shutil
+import subprocess
+from pathlib import Path
+from django.conf import settings
+from django.core.files.base import File
 from rest_framework.exceptions import ValidationError
-from spec.models import Spec, SpecHist
+from PyPDF2 import PdfFileMerger
+from spec.models import Spec, SpecFile, SpecHist
+from subprocess import run
+from utils.dev_utils import formatError
 
+def genPdf(spec):
+    # Remove any existing PDF file
+    spec.files.filter(seq=0).delete()
+
+    # Skip generation if setup is not defined.
+    if settings.SOFFICE is None:
+        return # pragma nocover
+    if shutil.which(settings.SOFFICE) is None: # pragma nocover
+        raise ValidationError({"errorCode":"SPEC-R12", "error": f"LibreOffice application not found at: {settings.SOFFICE}"})
+
+    tempPdfPath = Path(settings.TEMP_PDF) / str(spec.num)
+    if tempPdfPath.exists():
+        shutil.rmtree(tempPdfPath)
+    try:
+        pdfFileName=f"{spec.num}_{spec.ver}.pdf"
+        os.makedirs(tempPdfPath)
+        files = spec.files.filter(incl_pdf=True).all()
+        if len(files) == 0:
+            return
+
+        # Convert each file to pdf
+        for file in files:
+            shutil.copy(file.file.path, tempPdfPath/f'{file.seq}_{file.filename}')
+        p = run([settings.SOFFICE, '--headless', '--convert-to', 'pdf', '--outdir', str(tempPdfPath/'out'), str(tempPdfPath/'*')]
+            , stdout=subprocess.PIPE)
+        if p.returncode != 0: #pragma nocover
+            raise ValidationError({"errorCode":"SPEC-R10", "error": f"Error converting file to PDF: {p.returncode} {p.stdout}"})
+        
+        # Combine the file together
+        pdfs = sorted(os.listdir(tempPdfPath/'out'))
+        merger = PdfFileMerger()
+        for pdf in pdfs:
+            merger.append(tempPdfPath/'out'/pdf)
+        merger.write(tempPdfPath/pdfFileName)
+        merger.close()
+
+        # Save file to spec
+        specFile = SpecFile.objects.create(spec=spec, seq=0, filename=pdfFileName, incl_pdf=False)
+        with open(tempPdfPath/pdfFileName, mode='rb') as f:
+            specFile.file.save(pdfFileName, File(f))
+    except BaseException as be:
+        formatError(be, "SPEC-R11") #pragma nocover
+
+    finally:
+        # Clean up the folder, no matter success or failure
+        if tempPdfPath.exists():
+            shutil.rmtree(tempPdfPath)
 
 def specSubmit(request, spec):
     if spec.state != 'Draft':
@@ -39,6 +95,9 @@ def specSubmit(request, spec):
         change_type = 'Submit',
         comment = ''
     )
+
+    genPdf(spec)
+    # sendNotification(spec)
 
     return spec
 

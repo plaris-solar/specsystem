@@ -237,9 +237,15 @@
 
         <span v-show="state_loaded === 'Draft'">
             <q-card-actions v-show="!edit" class="bg-white text-teal" align="center">
-                <q-btn label="Edit" color="primary" size="lg" class="filter-btn" @click="edit=true" data-cy="spec-detail-update"/>
+                <q-btn label="Edit" color="primary" size="lg" class="filter-btn" 
+                    @click="edit=true"
+                    :disable="submitDisabled"
+                    data-cy="spec-detail-update"/>
                 <div class="spacer"/>
-                <q-btn label="Submit" color="primary" size="lg" class="filter-btn" @click="submitSpec()"  data-cy="spec-detail-cancel"/>
+                <q-btn label="Submit" color="primary" size="lg" class="filter-btn" 
+                    @click="submitSpec()"  
+                    :disable="submitDisabled"
+                    data-cy="spec-detail-cancel"/>
             </q-card-actions>
             <q-card-actions v-show="edit" class="bg-white text-teal" align="center">
                 <q-btn label="Save" color="primary" size="lg" class="filter-btn" @click="saveSpec()" data-cy="spec-detail-update"/>
@@ -350,6 +356,7 @@ export default {
     const sigRows = ref([])
     const state = ref('')
     const state_loaded = ref('')
+    const submitDisabled = ref(false)
     const title = ref('')
     const version_list = ref([])
 
@@ -495,12 +502,13 @@ export default {
     }
 
     async function submitSpec(){
-        
-        postData(`spec/submit/${props.num}/${props.ver}`, {}, `Submitted spec: ${props.num}/${props.ver} for signatures successfully.`).then((res) => {
+        submitDisabled.value = true
+        await postData(`spec/submit/${props.num}/${props.ver}`, {}, `Submitted spec: ${props.num}/${props.ver} for signatures successfully.`).then((res) => {
             if (res.__resp_status < 300){
                 router.go()
             }
-        })
+        })        
+        submitDisabled.value = false
     }
 
     async function loadLists() {

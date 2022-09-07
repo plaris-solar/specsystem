@@ -100,4 +100,11 @@ LOGGING_OVERRIDES = {
             }
 
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# PDF Conversion tools
+# Install LibreOffice from https://www.libreoffice.org/download/download-libreoffice/
+SOFFICE = "c:/Program Files/LibreOffice/program/soffice.exe"
+TEMP_PDF = os.path.join(MEDIA_ROOT, 'temp')
 

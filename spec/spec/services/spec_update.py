@@ -64,7 +64,7 @@ def specUpdate(request, spec, validated_data):
 
 def specFileUpload(request, spec, validated_data):
     validated_data['spec'] = spec
-    validated_data['seq'] = spec.files.count()
+    validated_data['seq'] = spec.files.count()+1
     validated_data['filename'] = validated_data['file'].name
     validated_data['incl_pdf'] = False
 
