@@ -255,6 +255,8 @@ class SpecFile(models.Model):
     def lookup(num, ver, fileName, user):
         try:
             spec = Spec.lookup(num, ver, user)
+            if fileName is None:
+                fileName = f'{spec.num}_{spec.ver}.pdf'
             specFile = SpecFile.objects.get(spec=spec, filename=fileName)
             return specFile
         except SpecFile.DoesNotExist:

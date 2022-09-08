@@ -1,8 +1,11 @@
+import os
+from django.conf import settings
 from django.core.files.base import ContentFile
+from django.core.mail import EmailMessage
 from rest_framework.exceptions import ValidationError
 from spec.services.revletter import get_next_version
 from user.models import User
-from ..models import ApprovalMatrix, Department, DocType, Role, Spec, SpecSig, SpecFile, SpecReference
+from ..models import ApprovalMatrix, Department, DocType, Role, Spec, SpecSig, SpecFile, SpecReference, UserWatch
 
 def specSigCreate(request, spec, role, signerName, from_am):
     if signerName:
@@ -100,5 +103,18 @@ def specRevise(request, spec):
         ref_data.id = None
         ref_data.spec=spec
         ref_data.save()
+
+    to = UserWatch.objects.filter(num=spec.num, user__email__isnull=False).values_list('user__email', flat=True)
+    if len(to) > 0 and settings.EMAIL_HOST is not None:
+        email = EmailMessage(
+            subject=f'{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} Spec {spec.num} "{spec.title}" you are watching is being revised by {spec.created_by.username}',
+            body=f'''{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} Spec {spec.num} "{spec.title}" you are watching is being revised by {spec.created_by.username}
+            {request.build_absolute_uri('/ui-spec/'+str(spec.num)+'/'+spec.ver)}
+            ''',
+            from_email=settings.EMAIL_HOST_USER,
+            to=to,
+            reply_to=[spec.created_by.email],
+        )
+        email.send(fail_silently=False)
 
     return spec

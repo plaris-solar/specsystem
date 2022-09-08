@@ -179,7 +179,7 @@
                             </q-btn>
                         </q-td>
                         <q-td>
-                            <a :href="apiServerHost+'/spec/file/'+props.num+'/'+props.ver+'/'+tprops.row['filename']" data-cy="spec-detail-file-filename"
+                            <a :href="apiServerHost+'/file/'+props.num+'/'+props.ver+'/'+tprops.row['filename']" data-cy="spec-detail-file-filename"
                                 target="_blank">
                                 {{tprops.row['filename']}}
                             </a>
@@ -198,7 +198,7 @@
                         :fieldName="(file) =>`file`"
                         :headers="[{name:'X-CSRFToken',value:getCookie('csrftoken') }]"
                         with-credentials
-                        :url="files=>`${apiServerHost}/spec/file/${props.num}/${props.ver}`"
+                        :url="files=>`${apiServerHost}/file/${props.num}/${props.ver}`"
                         label="Select File to Upload"
                         @uploaded="refreshFileList"
                         data-cy="add_file-uploader"
@@ -236,15 +236,19 @@
         </q-card-section>
 
         <span v-show="state_loaded === 'Draft'">
-            <q-card-actions v-show="!edit" class="bg-white text-teal" align="center">
+            <q-card-actions v-show="submitDisabled" class="bg-white text-teal" align="center">
+                Changing Spec state to Signoff<br/>
+                Generating PDF File<br/>
+                Notifying Signers<br/>
+                DO NOT Refresh page
+            </q-card-actions>
+            <q-card-actions v-show="!edit && !submitDisabled" class="bg-white text-teal" align="center">
                 <q-btn label="Edit" color="primary" size="lg" class="filter-btn" 
                     @click="edit=true"
-                    :disable="submitDisabled"
                     data-cy="spec-detail-update"/>
                 <div class="spacer"/>
                 <q-btn label="Submit" color="primary" size="lg" class="filter-btn" 
-                    @click="submitSpec()"  
-                    :disable="submitDisabled"
+                    @click="submitSpec()"
                     data-cy="spec-detail-cancel"/>
             </q-card-actions>
             <q-card-actions v-show="edit" class="bg-white text-teal" align="center">
@@ -397,7 +401,7 @@ export default {
         if (!window.confirm(`Delete file: ${fileRow.filename}?`)) {
             return
         }
-        let res = await deleteData(`spec/file/${props.num}/${props.ver}/${fileRow.filename}`, {}, `Deleting file: ${fileRow.filename}`);
+        let res = await deleteData(`file/${props.num}/${props.ver}/${fileRow.filename}`, {}, `Deleting file: ${fileRow.filename}`);
         fileRows.value.splice(fileRows.value.indexOf(fileRow), 1)
     }
 

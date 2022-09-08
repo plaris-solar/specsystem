@@ -4,9 +4,10 @@ import subprocess
 from pathlib import Path
 from django.conf import settings
 from django.core.files.base import File
+from django.core.mail import EmailMessage
 from rest_framework.exceptions import ValidationError
 from PyPDF2 import PdfFileMerger
-from spec.models import Spec, SpecFile, SpecHist
+from spec.models import Spec, SpecFile, SpecHist, UserWatch
 from subprocess import run
 from utils.dev_utils import formatError
 
@@ -99,8 +100,20 @@ def specSubmit(request, spec):
         comment = ''
     )
 
-    genPdf(spec)
-    # sendNotification(spec)
+    genPdf(spec)    
+
+    to = spec.sigs.filter(signer__isnull=False,signer__email__isnull=False).values_list('signer__email', flat=True)
+    if len(to) > 0 and settings.EMAIL_HOST is not None:
+        email = EmailMessage(
+            subject=f'{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} Spec {spec.num} "{spec.title}" needs our review',
+            body=f'''{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} Spec {spec.num}/{spec.ver} "{spec.title}" needs your review
+            {request.build_absolute_uri('/ui-spec/'+str(spec.num)+'/'+spec.ver)}
+            ''',
+            from_email=settings.EMAIL_HOST_USER,
+            to=to,
+            reply_to=[spec.created_by.email],
+        )
+        email.send(fail_silently=False)
 
     return spec
 
@@ -160,6 +173,19 @@ def specSign(request, spec, validated_data):
         change_type = 'Activate',
         comment = f''
     )
+
+    to = UserWatch.objects.filter(num=spec.num, user__email__isnull=False).values_list('user__email', flat=True)
+    if len(to) > 0 and settings.EMAIL_HOST is not None:
+        email = EmailMessage(
+            subject=f'{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} A new version of Spec {spec.num} "{spec.title}" you are watching has been activated.',
+            body=f'''{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} A new version of Spec {spec.num} "{spec.title}" you are watching has been activated.
+            {request.build_absolute_uri('/ui-spec/'+str(spec.num)+'/'+spec.ver)}
+            ''',
+            from_email=settings.EMAIL_HOST_USER,
+            to=to,
+            reply_to=[spec.created_by.email],
+        )
+        email.send(fail_silently=False)
 
     return spec
 

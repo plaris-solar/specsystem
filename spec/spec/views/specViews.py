@@ -107,7 +107,7 @@ class SpecDetail(APIView):
 
     def get(self, request, num, ver, format=None):
         try:
-            spec = Spec.lookup(num, ver, request.user)
+            spec = Spec.lookup(int(num), ver, request.user)
             serializer = SpecSerializer(spec, context={'user':request.user})
             return Response(serializer.data)
         except BaseException as be: # pragma: no cover
@@ -150,11 +150,11 @@ class SpecDetail(APIView):
 class SpecFileDetail(APIView):
     """
     get:
-    spec/file/<num>/<ver>/<fileName>
+    file/<num>/<ver>/<fileName>
     Return details of specific file
 
     post:
-    spec/<num>/<ver>
+    file/<num>/<ver>
     Uploads a file to spec
 
     {
@@ -165,16 +165,16 @@ class SpecFileDetail(APIView):
     }
 
     delete:
-    spec/<num>/<ver>/<fileName>
+    file/<num>/<ver>/<fileName>
     Delete file from spec 
     """
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    def get(self, request, num, ver, fileName, format=None):
+    def get(self, request, num, ver="*", fileName=None, format=None):
         try:
             specFile = SpecFile.lookup(num, ver, fileName, request.user)
             osFileName = specFile.file.path
-            response = FileResponse(open(osFileName, 'rb'))
+            response = FileResponse(open(osFileName, 'rb'), filename=specFile.filename)
             return response
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-V21")
