@@ -54,8 +54,8 @@ class SpecSerializer(serializers.ModelSerializer):
         hist = value.hist.order_by('-mod_ts', ).all()
         data['hist'] = SpecHistSerializer(hist, many=True, context=self.context).data
 
-        user = self.context.get("user")
         try:
+            user = self.context.get("user")
             data['watched'] = user.watches.filter(num=value.num).first() != None
         except:  # AnonymousUser does not have the watches attribute
             data['watched'] = False

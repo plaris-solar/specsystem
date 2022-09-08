@@ -1,23 +1,36 @@
 import re
+from spec.serializers.specSerializers import SpecSerializer
 from user.models import User
 from rest_framework import serializers
 
-from ..models import Role, RoleUser, UserDelegate
+from ..models import Spec, UserDelegate
 
 class UserSerializer(serializers.ModelSerializer):
-    delegates = serializers.StringRelatedField(many=True)
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'is_superuser', 'is_staff', 'is_active', 'email', 'delegates', )
+        fields = ('id', 'username', 'first_name', 'last_name', 'is_superuser', 'is_staff', 'is_active', 'email', )
 
     def to_representation(self, value):
         data = super(UserSerializer, self).to_representation(value)
-        data['delegates'] = ', '.join(sorted(data['delegates']))
-        data['watches'] = list(value.watches.order_by('num').values_list('num', flat=True))
-        watches_str = []
-        for watch in data['watches']:
-            watches_str.append(str(watch))
-        data['watches_str'] = ', '.join(sorted(watches_str))
+        data['delegates'] = ', '.join(sorted(list(value.delegates.values_list('delegate__username', flat=True))))
+        data['delegates_for'] = sorted(list(value.delegates_for.values_list('user__username', flat=True)))
+        data['watches'] = sorted(list(value.watches.values_list('num', flat=True)))
+        
+        # Lookup any specs waiting for a signature from this user
+        # Directly assigned
+        req_sig = Spec.objects.filter(state='Signoff', sigs__signed_dt__isnull=True, sigs__signer=value)
+        data['req_sig'] = SpecSerializer(req_sig, many=True, context=self.context).data
+        # Assigned to someone user is a delegate for
+        req_sig_delegate = Spec.objects.filter(state='Signoff', sigs__signed_dt__isnull=True, sigs__signer__delegates__delegate=value)
+        data['req_sig_delegate'] = SpecSerializer(req_sig_delegate, many=True, context=self.context).data
+        # Assigned to a role generally for which user is signer
+        req_sig_role = Spec.objects.filter(state='Signoff', sigs__signed_dt__isnull=True, sigs__signer__isnull=True, sigs__role__users__user=value)
+        data['req_sig_role'] = SpecSerializer(req_sig_role, many=True, context=self.context).data
+
+        # Inprocess specs user created
+        in_process = Spec.objects.filter(state__in=['Draft', 'Signoff'], created_by=value)
+        data['in_process'] = SpecSerializer(in_process, many=True, context=self.context).data
+
         return data
 
 class UserUpdateSerializer(serializers.Serializer):

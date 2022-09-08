@@ -6,7 +6,7 @@ from rest_framework.exceptions import ValidationError
 
 class UserDelegate(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='delegates')
-    delegate = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
+    delegate = models.ForeignKey(User, on_delete=models.CASCADE, related_name='delegates_for')
 
     class Meta:
         managed = True

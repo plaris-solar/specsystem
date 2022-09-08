@@ -278,7 +278,7 @@
                 :rows-per-page-options="[0]"
                 data-cy="spec-table">
                 <template v-slot:header="props">
-                    <q-th v-for="col in columns" 
+                    <q-th v-for="col in props.cols" 
                           :key="col.name" 
                           :props="props" >
                             {{col.label}}
@@ -523,15 +523,15 @@ export default {
     }
 
     const spec_columns = [
-            { name: 'num', align: 'left', label: 'Spec', field: 'num', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'title', align: 'left', label: 'Title', field: 'title', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'doc_type', align: 'left', label: 'Doc Type', field: 'doc_type', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'department', align: 'left', label: 'Department', field: 'department', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'keywords', align: 'left', label: 'Keywords', field: 'keywords', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'state', align: 'left', label: 'State', field: 'state', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'created_by', align: 'left', label: 'Created By', field: 'created_by', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'mod_ts', align: 'left', label: 'Last Modified', field: 'mod_ts', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
-            { name: 'anon_access', align: 'left', label: 'Anonymous Access', field: 'anon_access', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'num', align: 'left', label: 'Spec', field: 'num', },
+            { name: 'title', align: 'left', label: 'Title', field: 'title', },
+            { name: 'doc_type', align: 'left', label: 'Doc Type', field: 'doc_type', },
+            { name: 'department', align: 'left', label: 'Department', field: 'department', },
+            { name: 'keywords', align: 'left', label: 'Keywords', field: 'keywords', },
+            { name: 'state', align: 'left', label: 'State', field: 'state', },
+            { name: 'created_by', align: 'left', label: 'Created By', field: 'created_by', },
+            { name: 'mod_ts', align: 'left', label: 'Last Modified', field: 'mod_ts', },
+            { name: 'anon_access', align: 'left', label: 'Anonymous Access', field: 'anon_access', },
         ]
 </script>
 
