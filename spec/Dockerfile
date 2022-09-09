@@ -12,6 +12,7 @@ RUN apt-get update \
     nginx \
     python-dev \
     libldap2-dev \
+    libreoffice \
     unixodbc-dev \
     unixodbc \
     vim
