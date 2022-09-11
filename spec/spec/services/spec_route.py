@@ -21,9 +21,10 @@ def genPdf(spec):
     if shutil.which(settings.SOFFICE) is None: # pragma nocover
         raise ValidationError({"errorCode":"SPEC-R12", "error": f"LibreOffice application not found at: {settings.SOFFICE}"})
 
-    tempPdfPath = Path(settings.TEMP_PDF) / str(spec.num)
-    if tempPdfPath.exists():
-        shutil.rmtree(tempPdfPath)
+    tempFilePath = Path(settings.TEMP_PDF) / str(spec.num)
+    tempPdfPath = tempFilePath / 'out'
+    if tempFilePath.exists():
+        shutil.rmtree(tempFilePath)
     try:
         pdfFileName=f"{spec.num}_{spec.ver}.pdf"
         os.makedirs(tempPdfPath)
@@ -33,23 +34,23 @@ def genPdf(spec):
 
         # Convert each file to pdf
         for file in files:
-            shutil.copy(file.file.path, tempPdfPath/f'{file.seq}_{file.filename}')
-        p = run([settings.SOFFICE, '--norestore', '--safe-mode', '--view', '--convert-to', 'pdf', '--outdir', str(tempPdfPath/'out'), str(tempPdfPath/'*')]
+            shutil.copy(file.file.path, tempFilePath/f'{file.seq}_{file.file.name}')
+        p = run([settings.SOFFICE, '--norestore', '--safe-mode', '--view', '--convert-to', 'pdf', '--outdir', str(tempPdfPath), str(tempFilePath/'*')]
             , stdout=subprocess.PIPE)
         if p.returncode != 0: #pragma nocover
             raise ValidationError({"errorCode":"SPEC-R10", "error": f"Error converting file to PDF: {p.returncode} {p.stdout}"})
         
         # Combine the file together
-        pdfs = sorted(os.listdir(tempPdfPath/'out'))
+        pdfs = sorted(os.listdir(tempPdfPath))
         merger = PdfFileMerger()
         for pdf in pdfs:
-            merger.append(tempPdfPath/'out'/pdf)
-        merger.write(tempPdfPath/pdfFileName)
+            merger.append(tempPdfPath/pdf)
+        merger.write(tempFilePath/pdfFileName)
         merger.close()
 
         # Save file to spec
         specFile = SpecFile.objects.create(spec=spec, seq=0, filename=pdfFileName, incl_pdf=False)
-        with open(tempPdfPath/pdfFileName, mode='rb') as f:
+        with open(tempFilePath/pdfFileName, mode='rb') as f:
             specFile.file.save(pdfFileName, File(f))
     except BaseException as be:
         formatError(be, "SPEC-R11") #pragma nocover
@@ -57,8 +58,8 @@ def genPdf(spec):
     finally:
         # Clean up the folder, no matter success or failure
         try:
-            if tempPdfPath.exists():
-                shutil.rmtree(tempPdfPath)
+            if tempFilePath.exists():
+                shutil.rmtree(tempFilePath)
         except BaseException as be:
             pass
 

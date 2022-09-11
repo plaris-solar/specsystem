@@ -35,14 +35,12 @@ export default {
     const emit = defineEmits(['updateSpec'])
 
     async function rejectRole(){
-        postData(`spec/reject/${props.num}/${props.ver}`, 
+        let res = await postData(`spec/reject/${props.num}/${props.ver}`, 
             {'role':props.sigRow['role'], 'signer':props.sigRow['signer'], 'comment':this.comment}, 
-            `Rejected spec: ${props.num}/${props.ver} successfully.`).then((res) => {
-            
-            if (res.__resp_status < 300){
-                emit('updateSpec')
-            }
-        })
+            `Rejected spec: ${props.num}/${props.ver} successfully.`)
+        if (res.__resp_status < 300){
+            emit('updateSpec')
+        }
     }
 
     onMounted(() => {
