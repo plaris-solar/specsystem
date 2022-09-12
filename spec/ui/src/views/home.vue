@@ -11,36 +11,15 @@
                 </h3>
             </span>
             <h4 class="flex center">
-                Pages
+                Home
             </h4>
-            <div class="col-md-auto scroll-box" style="background: rgba(0, 0, 0, 0.05);text-align: center;">
-                <q-scroll-area class="scroll-box">
-                    <div class="column inline page-select-col">
-                        <li v-for="(item, key) in docs.slice(0, docs.length/3)" :key="key" class="page-select">
-                            <q-btn size="xl" @click="router.push('/ui-data/' + item)" :data-cy="item">{{item}}</q-btn>
-                        </li>
-                    </div>
-                    <div class="column inline page-select-col" >
-                        <li v-for="(item, key) in docs.slice(docs.length/3, 2*(docs.length/3))" :key="key" class="page-select">
-                            <q-btn size="xl" @click="router.push('/ui-data/' + item)" :data-cy="item">{{item}}</q-btn>
-                        </li>
-                    </div>
-                    <div class="column inline page-select-col" >
-                        <li v-for="(item, key) in docs.slice(2*(docs.length/3), docs.length)" :key="key" class="page-select">
-                            <q-btn size="xl" @click="router.push('/ui-data/' + item)" :data-cy="item">{{item}}</q-btn>
-                        </li>
-                    </div>
-                </q-scroll-area>
-            </div>
-            
         </div>
     </q-page>
 </template>
 
 <script>
 
-import { useRouter } from 'vue-router';
-import {ref, computed} from 'vue'
+import { computed} from 'vue'
 import { useStore } from 'vuex'
 import LoginPage from '@/components/Login.vue'
 
@@ -57,7 +36,6 @@ export default {
 </script>
 
 <script setup>
-    const router = ref(useRouter())
     const store = useStore()
 
     const authenticated = computed(() => store.getters.authenticated)

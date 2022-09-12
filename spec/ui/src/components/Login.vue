@@ -8,13 +8,13 @@
           data-cy="login-username-input"/>
         <div class="spacer-large"/>
         <q-input v-model="password" :type="is_pwd ? 'password' : 'text'" label="password" data-cy="login-password-input">
-        <template v-slot:append>
-          <q-icon
-            :name="is_pwd ? 'visibility_off' : 'visibility'"
-            class="cursor-pointer"
-            @click="is_pwd = !is_pwd"
-          />
-        </template>
+          <template v-slot:append>
+            <q-icon
+              :name="is_pwd ? 'visibility_off' : 'visibility'"
+              class="cursor-pointer"
+              @click="is_pwd = !is_pwd"
+            />
+          </template>
         </q-input>
         <div class="text-center spacer"/>
         <div class="text-center">
@@ -60,7 +60,7 @@ export default {
       window.addEventListener('keypress', handleKeyPress);
     })
 
-    watch(authenticated.value, (newVal, oldVal) => {
+    watch(authenticated, (newVal, oldVal) => {
       if (newVal) {
         window.removeEventListener('keypress', handleKeyPress);
         store.dispatch("getPermission");
