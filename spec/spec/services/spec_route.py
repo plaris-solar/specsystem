@@ -28,23 +28,23 @@ def genPdf(spec):
     try:
         pdfFileName=f"{spec.num}_{spec.ver}.pdf"
         os.makedirs(tempPdfPath)
-        files = spec.files.filter(incl_pdf=True).all()
+        files = spec.files.filter(incl_pdf=True).all().order_by('seq')
         if len(files) == 0:
             return
 
         # Convert each file to pdf
-        for file in files:
-            shutil.copy(file.file.path, tempFilePath/f'{file.seq}_{file.file.name}')
-        p = run([settings.SOFFICE, '--norestore', '--safe-mode', '--view', '--convert-to', 'pdf', '--outdir', str(tempPdfPath), str(tempFilePath/'*.*')]
-            , stdout=subprocess.PIPE)
-        if p.returncode != 0: #pragma nocover
-            raise ValidationError({"errorCode":"SPEC-R10", "error": f"Error converting file to PDF: {p.returncode} {p.stdout}"})
-        
         # Combine the file together
-        pdfs = sorted(os.listdir(tempPdfPath))
-        merger = PdfFileMerger()
-        for pdf in pdfs:
-            merger.append(tempPdfPath/pdf)
+        merger = PdfFileMerger()       
+        for file in files:
+            p = run([settings.SOFFICE, '--norestore', '--safe-mode', '--view', '--convert-to', 'pdf', '--outdir', str(tempPdfPath), file.file.path]
+                , stdout=subprocess.PIPE)
+            if p.returncode != 0: #pragma nocover
+                raise ValidationError({"errorCode":"SPEC-R10", "error": f"Error converting file ({file.file.path}) to PDF: {p.returncode} {p.stdout}"})
+            try:
+                fileName = os.path.splitext(tempPdfPath/file.file.name)[0]+'.pdf'
+                merger.append(fileName)
+            except BaseException as be:
+                raise ValidationError({"errorCode":"SPEC-R13", "error": f"Error appending pdf file to merged pdf ({file.file.name}) to PDF: {be}"})
         merger.write(tempFilePath/pdfFileName)
         merger.close()
 
@@ -55,13 +55,17 @@ def genPdf(spec):
     except BaseException as be:
         formatError(be, "SPEC-R11") #pragma nocover
 
-    # finally:
-    #     # Clean up the folder, no matter success or failure
-    #     try:
-    #         if tempFilePath.exists():
-    #             shutil.rmtree(tempFilePath)
-    #     except BaseException as be:
-    #         pass
+    finally:
+        try:
+            merger.close()
+        except:
+            pass
+        # Clean up the folder, no matter success or failure
+        # try:
+        #     if tempFilePath.exists():
+        #         shutil.rmtree(tempFilePath)
+        # except BaseException as be:
+        #     pass
 
 def specSubmit(request, spec):
     if spec.state != 'Draft':
