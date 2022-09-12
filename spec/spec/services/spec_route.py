@@ -55,13 +55,13 @@ def genPdf(spec):
     except BaseException as be:
         formatError(be, "SPEC-R11") #pragma nocover
 
-    finally:
-        # Clean up the folder, no matter success or failure
-        try:
-            if tempFilePath.exists():
-                shutil.rmtree(tempFilePath)
-        except BaseException as be:
-            pass
+    # finally:
+    #     # Clean up the folder, no matter success or failure
+    #     try:
+    #         if tempFilePath.exists():
+    #             shutil.rmtree(tempFilePath)
+    #     except BaseException as be:
+    #         pass
 
 def specSubmit(request, spec):
     if spec.state != 'Draft':
