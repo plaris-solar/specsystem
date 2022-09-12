@@ -12,8 +12,9 @@ from subprocess import run
 from utils.dev_utils import formatError
 
 def genPdf(spec):
+    pdfFileName=f"{spec.num}_{spec.ver}.pdf"
     # Remove any existing PDF file
-    spec.files.filter(seq=0).delete()
+    spec.files.filter(filename=pdfFileName).delete()
 
     # Skip generation if setup is not defined.
     if settings.SOFFICE is None:
@@ -26,7 +27,6 @@ def genPdf(spec):
     if tempFilePath.exists():
         shutil.rmtree(tempFilePath)
     try:
-        pdfFileName=f"{spec.num}_{spec.ver}.pdf"
         os.makedirs(tempPdfPath)
         files = spec.files.filter(incl_pdf=True).all().order_by('seq')
         if len(files) == 0:
@@ -61,11 +61,11 @@ def genPdf(spec):
         except:
             pass
         # Clean up the folder, no matter success or failure
-        # try:
-        #     if tempFilePath.exists():
-        #         shutil.rmtree(tempFilePath)
-        # except BaseException as be:
-        #     pass
+        try:
+            if tempFilePath.exists():
+                shutil.rmtree(tempFilePath)
+        except BaseException as be:
+            pass
 
 def specSubmit(request, spec):
     if spec.state != 'Draft':
