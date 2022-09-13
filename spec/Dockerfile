@@ -13,6 +13,7 @@ RUN apt-get update \
     python-dev \
     libldap2-dev \
     libreoffice \
+    openssl \
     unixodbc-dev \
     unixodbc \
     vim

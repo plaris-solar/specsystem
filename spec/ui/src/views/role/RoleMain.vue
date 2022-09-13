@@ -1,6 +1,6 @@
 <template>
-    <q-page class="flex flex-center">
-        <div class="q-pa-md window-width">
+    <q-page>
+        <div class="q-pa-md row">
             <q-table
                 title="Roles"
                 :rows="rows"

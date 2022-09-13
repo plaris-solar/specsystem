@@ -1,4 +1,5 @@
 import os
+from re import A
 import shutil
 import subprocess
 from pathlib import Path
@@ -36,15 +37,18 @@ def genPdf(spec):
         # Combine the file together
         merger = PdfFileMerger()       
         for file in files:
-            p = run([settings.SOFFICE, '--norestore', '--safe-mode', '--view', '--convert-to', 'pdf', '--outdir', str(tempPdfPath), file.file.path]
-                , stdout=subprocess.PIPE)
-            if p.returncode != 0: #pragma nocover
-                raise ValidationError({"errorCode":"SPEC-R10", "error": f"Error converting file ({file.file.path}) to PDF: {p.returncode} {p.stdout}"})
-            try:
-                fileName = os.path.splitext(tempPdfPath/file.file.name)[0]+'.pdf'
-                merger.append(fileName)
-            except BaseException as be:
-                raise ValidationError({"errorCode":"SPEC-R13", "error": f"Error appending pdf file to merged pdf ({file.file.name}) to PDF: {be}"})
+            if os.path.splitext(file.file.path)[1] == '.pdf':
+                merger.append(file.file.path)
+            else:
+                p = run([settings.SOFFICE, '--norestore', '--safe-mode', '--view', '--convert-to', 'pdf', '--outdir', str(tempPdfPath), file.file.path]
+                    , stdout=subprocess.PIPE)
+                if p.returncode != 0: #pragma nocover
+                    raise ValidationError({"errorCode":"SPEC-R10", "error": f"Error converting file ({file.file.path}) to PDF: {p.returncode} {p.stdout}"})
+                try:
+                    fileName = os.path.splitext(tempPdfPath/file.file.name)[0]+'.pdf'
+                    merger.append(fileName)
+                except BaseException as be:
+                    raise ValidationError({"errorCode":"SPEC-R13", "error": f"Error appending pdf file to merged pdf ({file.file.name}) to PDF: {be}"})
         merger.write(tempFilePath/pdfFileName)
         merger.close()
 

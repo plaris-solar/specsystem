@@ -1,6 +1,6 @@
 <template>
-    <q-page class="flex">
-        <div class="q-pa-md window-width">
+    <q-page>
+        <div class="q-pa-md row">
         
             <div class="row manage-tools">
                 <div class="text-right upload-btn">  
