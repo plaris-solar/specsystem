@@ -1,3 +1,4 @@
+from django.conf import settings
 from rest_framework import serializers
 
 from ..models import Spec, SpecFile, SpecHist, SpecReference, SpecSig
@@ -59,6 +60,10 @@ class SpecSerializer(serializers.ModelSerializer):
             data['watched'] = user.watches.filter(num=value.num).first() != None
         except:  # AnonymousUser does not have the watches attribute
             data['watched'] = False
+
+        if value.jira is not None and len(value.jira) > 0 \
+            and settings.JIRA_URI is not None and len(settings.JIRA_URI) > 0:
+            data['jira_url'] = f'{settings.JIRA_URI}/browse/{value.jira}'
 
         return data
         

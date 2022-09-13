@@ -6,9 +6,10 @@ from rest_framework.decorators import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
-from spec.services.spec_create import specCreate, specRevise
+from ..services import jira
 from ..services.spec_route import specReject, specSign, specSubmit
-from spec.services.spec_update import specFileUpload, specUpdate
+from ..services.spec_create import specCreate, specRevise
+from ..services.spec_update import specFileUpload, specUpdate
 from utils.dev_utils import formatError
 
 from ..models import Spec, SpecFile
@@ -141,6 +142,7 @@ class SpecDetail(APIView):
             with transaction.atomic():
                 spec = Spec.lookup(num, ver, request.user)
                 spec.checkEditable(request.user)
+                jira.delete(spec)
                 spec.delete()
             return Response(status=status.HTTP_204_NO_CONTENT) 
         except BaseException as be: # pragma: no cover

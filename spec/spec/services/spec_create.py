@@ -6,6 +6,7 @@ from rest_framework.exceptions import ValidationError
 from spec.services.revletter import get_next_version
 from user.models import User
 from ..models import ApprovalMatrix, Department, DocType, Role, Spec, SpecSig, SpecFile, SpecReference, UserWatch
+from . import jira
 
 def specSigCreate(request, spec, role, signerName, from_am):
     if signerName:
@@ -63,6 +64,8 @@ def specCreate(request, validated_data):
         ref_data['spec'] = spec
         SpecReference.objects.create(**ref_data)
 
+    jira.create(spec)
+
     return spec
 
 def specRevise(request, spec):
@@ -82,14 +85,16 @@ def specRevise(request, spec):
     spec.created_by = request.user
     spec.create_dt = request._req_dt
     spec.mod_ts = request._req_dt
+    spec.jira = None
     
     spec.save()
     
     specSetReqSigs(request, spec)
        
-    for specFile in orig_spec.files.all():      
-        if specFile.seq == 0: # Skip the rendered PDF
-            continue  
+    for specFile in orig_spec.files.all():    
+        if specFile.filename == f"{orig_spec.num}_{orig_spec.ver}.pdf": # Skip the rendered PDF
+            continue
+        
         specFile.id = None
         specFile.spec=spec
         # Create a copy of the file, so it is independent
@@ -103,6 +108,8 @@ def specRevise(request, spec):
         ref_data.id = None
         ref_data.spec=spec
         ref_data.save()
+
+    jira.create(spec)
 
     to = UserWatch.objects.filter(num=spec.num, user__email__isnull=False).values_list('user__email', flat=True)
     if len(to) > 0 and settings.EMAIL_HOST is not None:

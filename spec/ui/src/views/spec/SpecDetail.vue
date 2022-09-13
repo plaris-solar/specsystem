@@ -38,7 +38,7 @@
             <q-input label="Keywords" v-model.trim="keywords" data-cy="spec-detail-keywords" dense :readonly="!edit"/>
 
             <span v-show="String(jira).length > 0">
-                Jira: <a :href="jira" target="_blank" rel="noopener noreferrer">{{String(jira).substring(String(jira).lastIndexOf('/')+1)}}</a>
+                Jira: <a :href="jira_url" target="_blank" rel="noopener noreferrer">{{jira}}</a>
             </span>
             <q-input v-show="edit && isAdmin" label="Jira" v-model.trim="jira" data-cy="spec-detail-jira" dense :readonly="!edit"/>
 
@@ -364,6 +364,7 @@ export default {
     const fileRows = ref([])
     const histRows = ref([])
     const jira = ref('')
+    const jira_url = ref('')
     const mod_ts = ref('')
     const refRows = ref([])
     const reject_spec = ref(false)
@@ -473,6 +474,7 @@ export default {
         create_dt.value = res['create_dt']
         mod_ts.value = res['mod_ts']
         jira.value = res['jira']
+        jira_url.value = res['jira_url']
         sigRows.value = res['sigs']
         fileRows.value = res['files']
         refRows.value = res['refs']

@@ -59,7 +59,12 @@
                             </q-btn>
                         </q-td>
                         <q-td v-for="col in props.cols" :key="col.name" :props="props" class='text-center'>
-                            {{props.row[col.name]}}
+                            <a  v-if="col.name === 'jira_temp'"
+                                :href="props.row['jira_temp_url']"
+                                target="_blank">
+                                {{props.row[col.name]}}
+                            </a>
+                            <span v-else>{{props.row[col.name]}}</span>
                         </q-td>
                     </q-tr>
                 </template>

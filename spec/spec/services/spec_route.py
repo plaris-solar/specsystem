@@ -1,5 +1,4 @@
 import os
-from re import A
 import shutil
 import subprocess
 from pathlib import Path
@@ -11,6 +10,7 @@ from PyPDF2 import PdfFileMerger
 from spec.models import Spec, SpecFile, SpecHist, UserWatch
 from subprocess import run
 from utils.dev_utils import formatError
+from . import jira
 
 def genPdf(spec):
     pdfFileName=f"{spec.num}_{spec.ver}.pdf"
@@ -110,6 +110,7 @@ def specSubmit(request, spec):
     )
 
     genPdf(spec)    
+    jira.submit(spec)
 
     to = spec.sigs.filter(signer__isnull=False,signer__email__isnull=False).values_list('signer__email', flat=True)
     if len(to) > 0 and settings.EMAIL_HOST is not None:
@@ -183,6 +184,8 @@ def specSign(request, spec, validated_data):
         comment = f''
     )
 
+    jira.active(spec)
+
     to = UserWatch.objects.filter(num=spec.num, user__email__isnull=False).values_list('user__email', flat=True)
     if len(to) > 0 and settings.EMAIL_HOST is not None:
         email = EmailMessage(
@@ -216,6 +219,8 @@ def specReject(request, spec, validated_data):
         change_type = 'Reject',
         comment = validated_data['comment']
     )
+
+    jira.reject(spec)
 
     return spec
 
