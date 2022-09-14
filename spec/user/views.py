@@ -1,4 +1,3 @@
-from django_auth_ldap.backend import LDAPBackend
 from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -9,7 +8,7 @@ from rest_framework.response import Response
 from utils.dev_utils import formatError, IsSuperUser
 from user.authentication import token_expire_handler
 from user.serializers import TokenSerializer
-
+from proj.util import MyLDAPBackend
 
 class UserToken(APIView):
     """
@@ -50,7 +49,7 @@ class AdminToken(APIView):
 
     def post(self, request, username, format=None):
         try:
-            user = LDAPBackend().populate_user(username)
+            user = MyLDAPBackend().populate_user(username)
             if user is None:
                 raise ValidationError(
                     {"errorCode": "TOKEN-004", "error": f"Specified user: {username} does not exist."})

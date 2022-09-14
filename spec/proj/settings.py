@@ -113,7 +113,7 @@ DATABASES = {
     }
 }
 AUTHENTICATION_BACKENDS = [
-    "django_auth_ldap.backend.LDAPBackend",
+    'proj.util.MyLDAPBackend',
     "django.contrib.auth.backends.ModelBackend",
 ]
 
