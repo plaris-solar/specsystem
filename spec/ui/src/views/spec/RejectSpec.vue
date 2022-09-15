@@ -13,6 +13,17 @@
           <div class="spacer"/>
           <q-btn label="Cancel" color="red" size="lg" class="filter-btn" v-close-popup data-cy="spec-create-cancel"/>
         </q-card-actions>
+
+        <q-dialog v-model="rejectDisabled" no-esc-dismiss no-backdrop-dismiss>
+            <q-card>
+                <q-card-section align="center">
+                    <h4>Rejecting spec. Please wait</h4>
+                    <p>This may take a minute while the Spec and Jira stories are updated.</p>
+                    <br/>
+                    <p>Do not refresh the page.</p>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
     </q-card>
 </template>
 
@@ -33,14 +44,17 @@ export default {
     })
     const comment = ref('')
     const emit = defineEmits(['updateSpec'])
+    const rejectDisabled = ref(false)
 
     async function rejectRole(){
+        rejectDisabled.value = true
         let res = await postData(`spec/reject/${props.num}/${props.ver}`, 
             {'role':props.sigRow['role'], 'signer':props.sigRow['signer'], 'comment':comment.value}, 
             `Rejected spec: ${props.num}/${props.ver} successfully.`)
         if (res.__resp_status < 300){
             emit('updateSpec')
         }
+        rejectDisabled.value = false
     }
 
     onMounted(() => {

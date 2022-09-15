@@ -249,13 +249,7 @@
         </q-card-section>
 
         <span v-show="state_loaded === 'Draft'">
-            <q-card-actions v-show="submitDisabled" class="bg-white text-teal" align="center">
-                Changing Spec state to Signoff<br/>
-                Generating PDF File<br/>
-                Notifying Signers<br/>
-                DO NOT Refresh page
-            </q-card-actions>
-            <q-card-actions v-show="!edit && !submitDisabled" class="bg-white text-teal" align="center">
+            <q-card-actions v-show="!edit" class="bg-white text-teal" align="center">
                 <q-btn label="Edit" color="primary" size="lg" class="filter-btn" 
                     @click="edit=true"
                     data-cy="spec-detail-update"/>
@@ -317,6 +311,47 @@
             </q-table>
         </div>
 
+        <q-dialog v-model="submitDisabled" no-esc-dismiss no-backdrop-dismiss>
+            <q-card>
+                <q-card-section align="center">
+                    <h4>Changing Spec state to Signoff. Please wait</h4>
+                    <p>This may take a minute while:</p>
+                    <list>
+                        <li>PDF file is generated</li>
+                        <li>Jira stories are updated</li>
+                        <li>Signers are notified</li>
+                    </list>
+                    <br/>
+                    <p>Do not refresh the page.</p>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
+
+        <q-dialog v-model="reviseDisabled" no-esc-dismiss no-backdrop-dismiss>
+            <q-card>
+                <q-card-section align="center">
+                    <h4>Creating new spec. Please wait</h4>
+                    <p>This may take a minute while the Spec and Jira stories are created.</p>
+                    <br/>
+                    <p>Do not refresh the page.</p>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
+
+        <q-dialog v-model="signoffDisabled" no-esc-dismiss no-backdrop-dismiss>
+            <q-card>
+                <q-card-section align="center">
+                    <h4>Recording Signoff on spec. Please wait</h4>
+                    <p>This may take a minute on last signature while:</p>
+                    <list>
+                        <li>Jira stories are updated</li>
+                        <li>Watchers are notified</li>
+                    </list>
+                    <br/>
+                    <p>Do not refresh the page.</p>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
     </q-card>
     <q-dialog v-model="reject_spec">
         <reject-spec-dialog
@@ -368,10 +403,12 @@ export default {
     const mod_ts = ref('')
     const refRows = ref([])
     const reject_spec = ref(false)
+    const reviseDisabled = ref(false)
     const roleList = ref([])
     const router=useRouter();
     const sigRow = ref({})
     const sigRows = ref([])
+    const signoffDisabled = ref(false)
     const state = ref('')
     const state_loaded = ref('')
     const submitDisabled = ref(false)
@@ -525,20 +562,24 @@ export default {
         if (!window.confirm(`Create new revision of spec: ${props.num}/${props.ver}?`)) {
             return
         }
-        
+
+        reviseDisabled.value = true
         let res = await postData(`spec/${props.num}/${props.ver}`, {}, null)
         if (res.__resp_status < 300) {
             showNotif(`Spec created: ${res.num}/${res.ver}`, 'green')
             router.push({name:"Spec Detail", params:{num:res.num, ver:res.ver}})
         }
+        reviseDisabled.value = false
     }
 
     async function signRole(sigRow){
+        signoffDisabled.value = true
         let res = await postData(`spec/sign/${props.num}/${props.ver}`, {'role':sigRow['role'], 'signer':sigRow['signer']}, `Signed spec: ${props.num}/${props.ver} successfully.`).then((res) => {
             if (res.__resp_status < 300){
                 router.go()
             }
         })
+        signoffDisabled.value = false
     }
 
     async function submitSpec(){

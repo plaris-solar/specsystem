@@ -36,38 +36,49 @@
                 <template v-slot:header="props">
                     <q-th v-for="col in columns" 
                           :key="col.name" 
-                          :props="props" >
-                            {{col.label}}
-                            <br/>
-                            <span>
-                                <q-icon name="filter_alt"/>
-                                <q-input 
-                                    v-model.trim="filter[col.name]" 
-                                    data-cy="spec-detail-ref-num" 
-                                    dense 
-                                    @keydown.enter="applyFilter()"
-                                    @blur="applyFilter()" 
-                                    class="inline-block" />
-                            </span>                                    
+                          :props="props" 
+                          style="vertical-align:top">
+                        {{col.label}}
+                        <br/>
+                        <span v-show="['num','title','keywords','state','created_by'].includes(col.name)">
+                            <q-icon name="filter_alt"/>
+                            <q-input 
+                                v-model.trim="filter[col.name]" 
+                                data-cy="spec-detail-ref-num" 
+                                dense 
+                                @keydown.enter="applyFilter()"
+                                @blur="applyFilter()" 
+                                class="inline-block" />
+                        </span>                                    
                     </q-th>
                 </template>
                 <template v-slot:body="props">
                     <q-tr :props="props" @click="props.row._new_row && !props.selected ? props.selected=true : false">
                         <q-td v-for="col in props.cols" :key="col.name" :props="props" class='text-center'>
                             <span v-if="col.name === 'num'">
-                                <router-link :to="'/ui-spec/'+props.row['num']+'/'+props.row['ver']">
-                                    {{props.row['num']}}/{{props.row['ver']}}
-                                    </router-link>
-                                &nbsp;
                                 <q-btn v-if="!props.row['watched']" round color="primary" 
                                         @click="setWatch(props.row['num'].toString())"
                                         icon="visibility_off" size="xs"
                                         data-cy="set-watch">
+                                    <q-tooltip>Toggle Watch</q-tooltip>
                                 </q-btn>
                                 <q-btn v-if="props.row['watched']" round color="primary" 
                                         @click="clearWatch(props.row['num'].toString())"
                                         icon="visibility" size="xs"
                                         data-cy="clear-watch">
+                                    <q-tooltip>Toggle Watch</q-tooltip>
+                                </q-btn>
+                                &nbsp;
+                                <router-link :to="'/ui-spec/'+props.row['num']+'/'+props.row['ver']">
+                                    {{props.row['num']}}/{{props.row['ver']}}
+                                </router-link>
+                                &nbsp;
+                                <q-btn v-if="props.row['state']!=='Draft'" round color="primary" 
+                                        :href="apiServerHost+'/file/'+props.row['num']+'/'+props.row['ver']"
+                                        target="_blank"
+                                        icon="description" size="xs"
+                                        data-cy="open-file">
+                                    <q-tooltip>View first file</q-tooltip>
                                 </q-btn>
                             </span>
                             <span v-else-if="col.name === 'mod_ts'">{{dispDate(props.row[col.name])}}</span>
@@ -102,7 +113,7 @@
 </template>
 
 <script>
-import { deleteData, dispDate, postData, retrieveData, } from '@/utils.js';
+import { apiServerHost, deleteData, dispDate, postData, retrieveData, } from '@/utils.js';
 
 import { ref, onMounted, computed, defineProps, watch} from 'vue';
 import { useStore } from 'vuex'

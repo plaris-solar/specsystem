@@ -152,7 +152,7 @@ class SpecDetail(APIView):
 class SpecFileDetail(APIView):
     """
     get:
-    file/<num>/<ver>/<fileName>
+    file/<num>/<?ver>/<?fileName>
     Return details of specific file
 
     post:

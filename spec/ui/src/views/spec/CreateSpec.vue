@@ -27,6 +27,17 @@
           <div class="spacer"/>
           <q-btn label="Cancel" color="red" size="lg" class="filter-btn" v-close-popup data-cy="spec-create-cancel"/>
         </q-card-actions>
+
+        <q-dialog v-model="waiting" no-esc-dismiss no-backdrop-dismiss>
+            <q-card>
+                <q-card-section align="center">
+                    <h4>Creating new spec. Please wait</h4>
+                    <p>This may take a minute while the Spec and Jira stories are created.</p>
+                    <br/>
+                    <p>Do not refresh the page.</p>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
     </q-card>
 </template>
 
@@ -46,9 +57,11 @@ export default {
     const doc_type = ref('')
     const doc_typeList = ref([])
     const router=useRouter();
+    const waiting = ref(false)
     const title = ref('')
 
     async function saveSpec(){
+        waiting.value = true
         const body = {
             state: 'Draft',
             title: title.value,
@@ -65,9 +78,12 @@ export default {
             showNotif(`Spec created: ${res.num}/${res.ver}`, 'green')
             router.push({name:"Spec Detail", params:{num:res.num, ver:res.ver}})
         }
+        
+        waiting.value = false
     }
 
     onMounted(() => {
+        waiting.value = false
         loadLists()
     })
 

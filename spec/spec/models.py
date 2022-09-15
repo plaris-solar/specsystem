@@ -200,20 +200,23 @@ class Spec(models.Model):
 
     @staticmethod
     def lookup(num, ver, user):
-        try:
-            if ver != "*":
+        if ver != "*":
+            try:
                 spec = Spec.objects.get(num=num, ver=ver)
-            else:
+            except Spec.DoesNotExist:
+                raise ValidationError({"errorCode":"SPEC-M04", "error": f"Spec ({num}/{ver}) does not exist."})
+        else:
+            try:
                 spec = Spec.objects.get(num=num, state="Active")
-            if not spec.anon_access and not user.is_authenticated:
-                raise ValidationError({"errorCode":"SPEC-M08", "error": f"spec {spec.num}-{spec.ver} cannot read without logging in."})
-            if spec.doc_type.confidential:
-                if not spec.department.isReader(user):
-                    if spec.state != "Draft" or user != spec.created_by:
-                        raise ValidationError({"errorCode":"SPEC-M05", "error": f"User {user} cannot read confiential specs in department {spec.department}."})
-            return spec
-        except Spec.DoesNotExist:
-            raise ValidationError({"errorCode":"SPEC-M06", "error": f"Spec ({num}/{ver}) does not exist."})
+            except Spec.DoesNotExist:
+                raise ValidationError({"errorCode":"SPEC-M06", "error": f"No actve version of Spec ({num})."})           
+        if not spec.anon_access and not user.is_authenticated:
+            raise ValidationError({"errorCode":"SPEC-M08", "error": f"spec {spec.num}-{spec.ver} cannot read without logging in."})
+        if spec.doc_type.confidential:
+            if not spec.department.isReader(user):
+                if spec.state != "Draft" or user != spec.created_by:
+                    raise ValidationError({"errorCode":"SPEC-M05", "error": f"User {user} cannot read confiential specs in department {spec.department}."})
+        return spec
 
 class SpecSig(models.Model):
     spec = models.ForeignKey(Spec, on_delete=models.CASCADE, related_name='sigs')
@@ -256,11 +259,15 @@ class SpecFile(models.Model):
         try:
             spec = Spec.lookup(num, ver, user)
             if fileName is None:
-                fileName = f'{spec.num}_{spec.ver}.pdf'
-            specFile = SpecFile.objects.get(spec=spec, filename=fileName)
-            return specFile
+                fileName = "*"
+                specFile = spec.files.order_by('seq').first()
+            else:
+                specFile = spec.files.filter(filename=fileName).first()
+            if specFile is not None:
+                return specFile
+            raise SpecFile.DoesNotExist()
         except SpecFile.DoesNotExist:
-            raise ValidationError({"errorCode":"SPEC-M09", "error": f"File {fileName} is not attached ot spec ({num}/{ver})."})
+            raise ValidationError({"errorCode":"SPEC-M09", "error": f"File {fileName} is not attached to spec ({num}/{ver})."})
 
 class SpecReference(models.Model):
     spec = models.ForeignKey(Spec, on_delete=models.CASCADE, related_name='refs')
