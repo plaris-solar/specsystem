@@ -1,37 +1,45 @@
 <template>
     <q-page>
         <div class="q-pa-md row">
-        
-            <div class="row manage-tools">
-                <div class="text-right upload-btn">  
-                    <q-btn color="green" size='large' :disable="!isAdmin" @click="new_tok = true" data-cy="token-create-btn">
-                        <div class="text-center">
-                            New Token
-                        </div>
-                    </q-btn>
-                </div>
-
-                <div class="text-right upload-btn">  
-                    <q-btn color="negative" size='large' @click="deleteToken()" :disable="!isAdmin" data-cy="token-delete-btn">
-                        <div class="text-center">
-                            Delete Token
-                        </div>
-                    </q-btn>
-                </div>
-            </div>
             <q-table
-            title="Token Management"
-            :rows="rows"
-            :columns="columns"
-            selection="single"
-            row-key="user"
-            :separator="'cell'"
-            v-model:selected="selected"
-            data-cy="token-table">
+                title="Token Management"
+                :rows="rows"
+                :columns="columns"
+                selection="single"
+                row-key="user"
+                separator="cell"
+                v-model:selected="selected"
+                :rows-per-page-options="[0]"
+                data-cy="token-table">
+                <template v-slot:top-right>
+                    <q-btn color="primary" 
+                        v-show="isAdmin"
+                        @click="new_tok = true"
+                        label="Add Token"
+                        icon-right="add"
+                        no-caps
+                        data-cy="token-create-btn">
+                    </q-btn>
+                </template>
             <template v-slot:body="props">
                 <q-tr :props="props">
                     <q-td class="text-center">
-                        <q-checkbox v-model="props.selected" color="primary" />
+                        <q-btn v-show="!props.selected" round color="primary" 
+                                @click="props.selected = !props.selected"
+                                icon="visibility" size="xs"
+                                data-cy="set-show">
+                        </q-btn>
+                        <q-btn v-show="props.selected" round color="primary" 
+                                @click="props.selected = !props.selected"
+                                icon="visibility_off" size="xs"
+                                data-cy="clear-show">
+                        </q-btn>
+                        &nbsp;
+                        <q-btn round color="negative" 
+                                @click="deleteToken(props.row['user'])"
+                                icon="delete" size="xs"
+                                data-cy="data-delete-btn">
+                        </q-btn>                        
                     </q-td>
                     <q-td
                         v-for="col in props.cols"
@@ -44,7 +52,7 @@
                 </q-tr>
                 <q-tr v-show="props.selected" :props="props">
                     <q-td colspan="100%">
-                        <div class="text-left">Token Value: {{ tok_vals[props.row.user] }}.</div>
+                        <q-input label="Token Value" v-model.trim="tok_vals[props.row.user]" data-cy="tok-role" readonly borderless/>
                     </q-td>
                 </q-tr>
             </template>
@@ -59,7 +67,6 @@
 <script>
     import {
         retrieveData,
-        showNotif,
         deleteData,
         postData
     } from '@/utils.js';
@@ -86,15 +93,20 @@
 </script>
 
 <script setup>
+    import { useRouter } from 'vue-router'
 
     const store = useStore();
     const isAdmin = ref(computed(() => store.getters.isAdmin))
-    const rows = ref([])
+    
     const new_tok = ref(false)
+    const router = useRouter()
+    const rows = ref([])
     const selected = ref([])
     const tok_vals = ref({})
 
     onMounted(() => {
+        if (!isAdmin.value)
+            router.push('/')
         getTokenList();
     })
 
@@ -120,12 +132,11 @@
         }
     }
 
-    async function deleteToken(){
-        if (selected.value.length < 1) {
-            showNotif('No selected rows to delete.', 'grey')
+    async function deleteToken(user){
+        if (!window.confirm(`Delete token for user: ${user}?`)) {
             return
         }
-        let user = selected.value[0]['user']
+
         await deleteData(`auth/token/${user}`, {}, `Successfully deleted token for ${user}`)
         getTokenList()
     }

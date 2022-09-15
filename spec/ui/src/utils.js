@@ -1,8 +1,3 @@
-// convert to 4 spaces
-// Watch indentation
-// move button inline on data page
-// Get rid of empty spaces between header and rest of page
-// Reduce homepage button size
 
 import { Notify } from 'quasar'
 

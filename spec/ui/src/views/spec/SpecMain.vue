@@ -1,6 +1,6 @@
 <template>
     <q-page>
-        <div class="q-pa-md row">
+        <div>
             <q-table
                 :rows="rows"
                 :columns="columns"
@@ -11,7 +11,8 @@
                         <q-btn round color="primary" 
                             @click="applyFilter()"
                             icon="filter_alt"
-                            data-cy="data-filter-btn"/>     
+                            data-cy="data-filter-btn"/>    
+                        &nbsp; 
                         <q-btn round color="primary" 
                             @click="clearFilter()"
                             icon="filter_alt_off"
@@ -37,12 +38,17 @@
                           :key="col.name" 
                           :props="props" >
                             {{col.label}}
-                            <q-input 
-                                v-model.trim="filter[col.name]" 
-                                data-cy="spec-detail-ref-num" 
-                                dense 
-                                @keydown.enter="applyFilter()"
-                                @blur="applyFilter()"/>
+                            <br/>
+                            <span>
+                                <q-icon name="filter_alt"/>
+                                <q-input 
+                                    v-model.trim="filter[col.name]" 
+                                    data-cy="spec-detail-ref-num" 
+                                    dense 
+                                    @keydown.enter="applyFilter()"
+                                    @blur="applyFilter()" 
+                                    class="inline-block" />
+                            </span>                                    
                     </q-th>
                 </template>
                 <template v-slot:body="props">

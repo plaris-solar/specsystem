@@ -2,91 +2,62 @@
   <q-layout view="lHh lpr lff">
     <q-header elevated :class="env_color">
       <q-toolbar>
-        <div class="col-md-auto">
-        <q-toolbar-title class="text-center">
+        <q-btn-dropdown flat round dense icon="menu" class="q-mr-sm">
+          <q-list>
+            <q-item clickable data-cy="app-role-btn">
+              <q-item-selection @click="router.push('/ui-role/')">Roles</q-item-selection>
+            </q-item>
+            <q-item clickable data-cy="app-dept-btn">
+              <q-item-selection @click="router.push('/ui-dept/')">Departments</q-item-selection>
+            </q-item>
+            <q-item clickable data-cy="app-apvl-mt-btn">
+              <q-item-selection @click="router.push('/ui-apvl-mt/')">Approval Matrix</q-item-selection>
+            </q-item>
+            <q-item clickable data-cy="app-doctype-btn">
+              <q-item-selection @click="router.push('/ui-doctype/')">Document Types</q-item-selection>
+            </q-item>
+            <q-item clickable v-show="isAdmin" data-cy="app-token-btn">
+              <q-item-selection @click="router.push('/ui-token/')">API Tokens</q-item-selection>
+            </q-item>            
+          </q-list>
+        </q-btn-dropdown>
+        <q-separator dark vertical inset />
+        <q-toolbar-title>
           <q-btn no-caps @click="router.push('/')">
             <header class="page-header" data-cy="app-title">
-              {{ route.name }}
+              {{env_title_prefix}}{{ route.name }}
             </header>
-          </q-btn>
-          
+          </q-btn>          
         </q-toolbar-title>
 
-          <div class="q-pa-md inline" v-show="!authenticated">
-            <q-btn color="positive" 
-                    :disable="authenticated"
-                    label="Login"
-                    size="1vw"
-                    @click="login = true"
-                    data-cy="app-login-btn">
-            </q-btn>
-          </div>
-          <div class="q-pa-md inline" v-show="authenticated">
-            <q-btn color="negative" 
-                    :disable="!authenticated"
-                    label="Logout"
-                    size="1vw"
-                    @click="logout()"
-                    data-cy="app-logout-btn">
-            </q-btn>
-          </div>
-          <div class="q-pa-md inline" v-show="isAdmin">
-            <q-btn color="secondary"
-                    :disable="!authenticated"
-                    label="API Tokens"
-                    size="1vw"
-                    @click="router.push('/ui-token/')"
-                    data-cy="app-admin-btn">
-            </q-btn>
-          </div>
-          <div class="q-pa-md inline">
-            <q-btn color="secondary"
-                    label="Document Types"
-                    size="1vw"
-                    @click="router.push('/ui-doctype/')"
-                    data-cy="app-doctype-btn">
-            </q-btn>
-          </div>
-          <div class="q-pa-md inline">
-            <q-btn color="secondary"
-                    label="Roles"
-                    size="1vw"
-                    @click="router.push('/ui-role/')"
-                    data-cy="app-role-btn">
-            </q-btn>
-          </div>
-          <div class="q-pa-md inline">
-            <q-btn color="secondary"
-                    label="Departments"
-                    size="1vw"
-                    @click="router.push('/ui-dept/')"
-                    data-cy="app-dept-btn">
-            </q-btn>
-          </div>
-          <div class="q-pa-md inline">
-            <q-btn color="secondary"
-                    label="Approval Matrix"
-                    size="1vw"
-                    @click="router.push('/ui-apvl-mt/')"
-                    data-cy="app-apvl-mt-btn">
-            </q-btn>
-          </div>
-          <div class="q-pa-md inline">
-            <q-btn color="primary"
-                    label="Specs"
-                    size="1vw"
-                    @click="router.push('/ui-spec/')"
-                    data-cy="app-spec-btn">
-            </q-btn>
-          </div>
-          <div class="q-pa-md inline" v-show="username !== null">
-            <q-btn color="primary"
-                    label="User"
-                    size="1vw"
-                    @click="router.push('/ui-user/'+username)"
-                    data-cy="app-user-btn">
-            </q-btn>
-          </div>
+
+        <div>
+          <q-btn  label="Specs"
+                  @click="router.push('/ui-spec/')"
+                  flat icon="description"
+                  data-cy="app-spec-btn">
+          </q-btn>
+        </div>
+        <div v-show="username !== null">
+          <q-btn  label="User"
+                  @click="router.push('/ui-user/'+username)"
+                  flat icon="account_box"
+                  data-cy="app-user-btn">
+          </q-btn>
+        </div>
+        <div v-show="!authenticated">
+          <q-btn  label="Login"
+                  @click="login = true"
+                  flat icon="login"
+                  data-cy="app-login-btn">
+          </q-btn>
+        </div>
+        <div v-show="authenticated">
+          <q-btn  label="Logout"
+                  @click="logout()"
+                  flat icon="logout"
+                  data-cy="app-logout-btn">
+          </q-btn>
         </div>
       </q-toolbar>
     </q-header>
@@ -99,7 +70,7 @@
     </q-page-container>
 
     <q-dialog v-model="login">
-      <login-popup-page @close="login=false"/>
+      <login-popup-page @close="login=false;router.push('/ui-spec/')"/>
     </q-dialog >
   </q-layout>
 </template>
@@ -134,6 +105,7 @@ export default {
   const data_page = ref()
 
   const env_color = ref()
+  const env_title_prefix = ref('')
 
   const authenticated = ref(computed(() => store.getters.authenticated))
   const isAdmin = ref(computed(() => store.getters.isAdmin))
@@ -166,11 +138,13 @@ export default {
   async function set_app_color(){
     let resp = await retrieveData('env/')
     env_color.value = resp === 'Test' ? 'glossy bg-purple' : 'glossy bg-primary'
+    env_title_prefix.value = resp === 'Test' ? 'Test Environment: ' : ''
   }
 
   async function logout(){
     logout.value = false;
     store.dispatch('logout');
+    router.push('/ui-spec/');
   }
 </script>
 

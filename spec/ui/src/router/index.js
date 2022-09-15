@@ -1,5 +1,4 @@
 import { createWebHistory, createRouter } from "vue-router";
-import HomePage from "@/views/home.vue";
 import ApprovalMatrixPage from "@/views/approvalMatrix/ApprovalMatrixMain.vue"
 import DepartmentPage from "@/views/department/DepartmentMain.vue"
 import DocTypePage from "@/views/doctype/DocTypeMain.vue"
@@ -12,8 +11,7 @@ import UserDetailPage from "@/views/user/UserDetail.vue"
 const routes = [
   {
     path: "/",
-    name: "Home",
-    component: HomePage,
+    redirect: { name: 'Spec' },
   },
   {
     path: '/ui-apvl-mt',
