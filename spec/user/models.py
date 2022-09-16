@@ -11,4 +11,6 @@ class User(DjangoUser):
             user = MyLDAPBackend().populate_user(username)
         if not user:
             raise ValidationError({"errorCode":"USER-M01", "error": f"User: {username} does not exist."})
+        if not user.is_active:
+            raise ValidationError({"errorCode":"USER-M02", "error": f"User: {username} is not an active account."})
         return user

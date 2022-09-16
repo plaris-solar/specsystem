@@ -1,293 +1,59 @@
 <template>
   <q-card>
-        <q-card-section class="text-h5">
-            {{props.num+' /'+props.ver}}
-        </q-card-section>
-        <q-card-section class="q-pt-none row">
-            <q-select
-                label="State"
-                v-model="state"
-                :options="[{label:'Draft',value:'Draft'},{label:'Signoff',value:'Signoff'},{label:'Active',value:'Active'},{label:'Obsolete',value:'Obsolete'},]"
-                emit-value
-                dense :readonly="!edit || !isAdmin"
-                data-cy="spec-detail-state"
-            />
-            <q-select label="Anonymous Access" v-model="anon_access" 
-                :options="[{label:'True',value:true}, {label:'False',value:false}]"
-                data-cy="spec-detail-anon_access" dense :readonly="!edit || !isAdmin"/>
-            <q-select
-                label="Document Type"
-                v-model="doc_type"
-                :options="doc_typeList"
-                emit-value
-                dense :readonly="!edit"
-                data-cy="spec-detail-doc_type"
-            />
-            <q-select
-                label="Department"
-                v-model="department"
-                :options="deptList"
-                emit-value
-                dense :readonly="!edit"
-                data-cy="spec-detail-department"
-            />
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-            <q-input label="Title" v-model.trim="title" data-cy="spec-detail-title" dense :readonly="!edit"/>
-            <q-input label="Keywords" v-model.trim="keywords" data-cy="spec-detail-keywords" dense :readonly="!edit"/>
-
-            <span v-show="String(jira).length > 0">
-                Jira: <a :href="jira_url" target="_blank" rel="noopener noreferrer">{{jira}}</a>
+        <q-card-section class="row">
+            <q-card-actions class="text-h4">{{props.num+' / '+props.ver}}</q-card-actions>
+            <q-card-actions>
+                <q-btn label="Show Revisions" color="primary" icon="storage"
+                            @click="showRevs=!showRevs"
+                            data-cy="spec-detail-update"/>
+            </q-card-actions>
+            <q-space/>
+            <span v-show="state_loaded === 'Draft'">
+                <q-card-actions v-show="!edit">
+                    <q-btn label="Edit" color="primary" icon="edit"
+                        @click="edit=true"
+                        data-cy="spec-detail-update"/>
+                    <div class="spacer"/>
+                    <q-btn label="Submit" color="primary" icon="done_all" 
+                        @click="submitSpec()"
+                        data-cy="spec-detail-cancel"/>
+                </q-card-actions>
+                <q-card-actions v-show="edit" class="bg-white text-teal" align="center">
+                    <q-btn label="Save" color="primary" icon="save" @click="saveSpec()" data-cy="spec-detail-update"/>
+                    <div class="spacer"/>
+                    <q-btn label="Delete" color="red" icon="delete" @click="deleteSpec()"  data-cy="spec-detail-cancel"/>
+                    <div class="spacer"/>
+                    <q-btn label="Cancel" color="red" icon="cancel" @click="cancel()"  data-cy="spec-detail-cancel"/>
+                </q-card-actions>
             </span>
-            <q-input v-show="edit && isAdmin" label="Jira" v-model.trim="jira" data-cy="spec-detail-jira" dense :readonly="!edit"/>
-
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-            <span class="text-h6">Signatures:</span>
-            <span class="row">
-                <q-table
-                    :rows="sigRows"
-                    hide-bottom
-                    data-cy="spec-detail-sigs">
-                    <template v-slot:header>
-                        <q-th v-show="edit"/>
-                        <q-th>Role</q-th>
-                        <q-th>Signer</q-th>
-                        <q-th>Signed</q-th>
-                        <q-th>By</q-th>
-                    </template>
-                    <template v-slot:body="tprops">
-                        <q-tr>
-                            <q-td v-show="edit">
-                                <q-btn round color="negative" 
-                                        @click="deleteSig(tprops.row)"
-                                        icon="delete" size="xs" dense
-                                        data-cy="data-delete-btn"
-                                        v-show="!tprops.row['from_am']">
-                                </q-btn>
-                            </q-td>
-                            <q-td v-if="!tprops.row['_new']" style="white-space: nowrap;">
-                                {{tprops.row["role"]}}
-                                <span  v-show="tprops.row['spec_one']">*</span></q-td>
-                            <q-td v-else>   
-                                <q-select
-                                    v-model="tprops.row['role']"
-                                    :options="roleList"
-                                    emit-value
-                                    dense :readonly="!edit"
-                                />                     
-                            </q-td>
-                            <q-td>   
-                                <q-input
-                                    v-model="tprops.row['signer']" 
-                                    :data-cy="genCy(`signer`, tprops.row['signer'])"
-                                    dense borderless :readonly="!edit"/>                        
-                            </q-td>
-                            <q-td>
-                                {{dispDate(tprops.row["signed_dt"])}}
-                                <q-btn 
-                                    v-if="state_loaded === 'Signoff' && tprops.row['signed_dt'] === null" 
-                                    label="Sign" @click="signRole(tprops.row)"  data-cy="spec-detail-sign"/>
-                                <q-btn 
-                                    v-if="state_loaded === 'Signoff' && tprops.row['signed_dt'] === null" 
-                                    label="Reject" @click="rejectRole(tprops.row)"  data-cy="spec-detail-reject"/>
-                            </q-td>
-                            <q-td>{{tprops.row["delegate"]}}</q-td>
-                        </q-tr>
-                    </template>
-                    <template v-slot:bottom-row v-if="edit">
-                        <q-btn color="primary" dense
-                            @click="sigRows.push({_new:true})"
-                            icon-right="add" size="xs"
-                            no-caps
-                            data-cy="add_sig-btn"
-                            v-show="edit">
-                        </q-btn>
-                    </template>
-            </q-table>
-           </span>
-        </q-card-section>
-        
-        <q-card-section class="q-pt-none">
-            <span class="text-h6">References:</span>
-            <span class="row">
-                <q-table
-                    :rows="refRows"
-                    hide-bottom
-                    data-cy="spec-detail-refs">
-                    <template v-slot:header>
-                        <q-th v-show="edit"/>
-                        <q-th>Num</q-th>
-                        <q-th>Ver (optional)</q-th>
-                    </template>
-                    <template v-slot:body="tprops">
-                        <q-tr>
-                            <q-td v-show="edit">
-                                <q-btn round color="negative" 
-                                        @click="deleteRef(tprops.row)"
-                                        icon="delete" size="xs" dense
-                                        data-cy="ref-delete-btn">
-                                </q-btn>
-                            </q-td>
-                            <q-td>
-                                <q-input v-model.trim="tprops.row['num']" type="number" data-cy="spec-detail-ref-num" dense borderless :readonly="!edit"/>
-                            </q-td>                        
-                            <q-td>
-                                <q-input v-model.trim="tprops.row['ver']" data-cy="spec-detail-ref-ver" dense borderless :readonly="!edit"/>
-                            </q-td>
-                        </q-tr>
-                    </template>
-                    <template v-slot:bottom-row v-if="edit">
-                        <q-btn color="primary" dense
-                            @click="refRows.push({_new:true})"
-                            icon-right="add" size="xs"
-                            no-caps
-                            data-cy="add_ref-btn"
-                            v-show="edit">
-                        </q-btn>
-                    </template>
-                </q-table>
+            <span v-show="state_loaded === 'Active' || state_loaded === 'Obsolete'">
+                <q-card-actions>
+                    <q-btn label="Create New Revision" color="primary" @click="reviseSpec()"  data-cy="spec-detail-update"/>
+                </q-card-actions>
+            </span>
+            <span v-show="state_loaded !== 'Draft' && isAdmin">
+                <q-card-actions v-show="!edit">
+                    <q-btn label="Admin Edit" icon="edit" color="red" @click="edit=true" data-cy="spec-detail-update"/>
+                </q-card-actions>
+                <q-card-actions v-show="edit">
+                    <q-btn label="Admin Save" color="primary" icon="save" @click="saveSpec()" data-cy="spec-detail-update"/>
+                    <div class="spacer"/>
+                    <q-btn label="Cancel" color="red" icon="cancel" @click="cancel()"  data-cy="spec-detail-cancel"/>
+                </q-card-actions>
             </span>
         </q-card-section>
-        
-        <q-card-section class="q-pt-none">
-            <span class="text-h6">Files:</span>            
-            <span class="row">
-                <q-table
-                    :rows="fileRows"
-                    hide-bottom
-                    data-cy="spec-detail-files">
-                    <template v-slot:header>
-                        <q-th v-show="edit"/>
-                        <q-th>File Name</q-th>
-                        <q-th>Add to PDF</q-th>
-                    </template>
-                    <template v-slot:body="tprops">
-                        <q-tr>
-                            <q-td v-show="edit">
-                                <q-btn round color="negative" 
-                                        @click="deleteFile(tprops.row)"
-                                        icon="delete" size="xs" dense
-                                        data-cy="file-delete-btn">
-                                </q-btn>
-                                <q-btn round  
-                                        @click="moveFileRowUp(tprops.row)"
-                                        icon="arrow_upward" size="xs" dense
-                                        data-cy="file-move-up-btn">
-                                </q-btn>
-                                <q-btn round 
-                                        @click="moveFileRowDown(tprops.row)"
-                                        icon="arrow_downward" size="xs" dense
-                                        data-cy="file-move-down-btn">
-                                </q-btn>
-                            </q-td>
-                            <q-td>
-                                <a :href="apiServerHost+'/file/'+props.num+'/'+props.ver+'/'+tprops.row['filename']" data-cy="spec-detail-file-filename"
-                                    target="_blank">
-                                    {{tprops.row['filename']}}
-                                </a>
-                            </q-td>                        
-                            <q-td>
-                                <q-checkbox v-if="disp_incl_pdf(tprops.row)"
-                                    v-model="tprops.row['incl_pdf']" 
-                                    dense  
-                                    :disable="!edit"
-                                    data-cy="spec-detail-ref-ver" 
-                                    />
-                            </q-td>                      
-                            <q-td>
-
-                            </q-td>
-                        </q-tr>
-                    </template>
-                    <template v-slot:bottom-row v-if="edit">
-                        <q-uploader
-                            class="my-card"
-                            :fieldName="(file) =>`file`"
-                            :headers="[{name:'X-CSRFToken',value:getCookie('csrftoken') }]"
-                            with-credentials
-                            :url="files=>`${apiServerHost}/file/${props.num}/${props.ver}`"
-                            label="Select File to Upload"
-                            @uploaded="refreshFileList"
-                            data-cy="add_file-uploader"
-                            multiple
-                        />
-                    </template>
-                </q-table>
-            </span>
-        </q-card-section>
-        
-        <q-card-section class="q-pt-none">
-            <span class="text-h6">History:</span>            
-            <span class="row">
-                <q-table
-                    :rows="histRows"
-                    hide-bottom
-                    data-cy="spec-detail-files">
-                    <template v-slot:header>
-                        <q-th>Who</q-th>
-                        <q-th>When</q-th>
-                        <q-th>Operation</q-th>
-                        <q-th>Comment</q-th>
-                    </template>
-                    <template v-slot:body="tprops">
-                        <q-tr>
-                            <q-td>{{tprops.row['upd_by']}}</q-td>  
-                            <q-td>{{dispDate(tprops.row['mod_ts'])}}</q-td>  
-                            <q-td>{{tprops.row['change_type']}}</q-td>  
-                            <q-td>{{tprops.row['comment']}}</q-td>    
-                        </q-tr>
-                    </template>
-                </q-table>
-            </span>
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-            <q-input label="Comment" v-model.trim="comment" data-cy="spec-detail-comment" type="textarea" v-show="edit"/>
-        </q-card-section>
-
-        <span v-show="state_loaded === 'Draft'">
-            <q-card-actions v-show="!edit" class="bg-white text-teal" align="center">
-                <q-btn label="Edit" color="primary" size="lg" class="filter-btn" 
-                    @click="edit=true"
-                    data-cy="spec-detail-update"/>
-                <div class="spacer"/>
-                <q-btn label="Submit" color="primary" size="lg" class="filter-btn" 
-                    @click="submitSpec()"
-                    data-cy="spec-detail-cancel"/>
-            </q-card-actions>
-            <q-card-actions v-show="edit" class="bg-white text-teal" align="center">
-                <q-btn label="Save" color="primary" size="lg" class="filter-btn" @click="saveSpec()" data-cy="spec-detail-update"/>
-                <div class="spacer"/>
-                <q-btn label="Delete" color="red" size="lg" class="filter-btn" @click="deleteSpec()"  data-cy="spec-detail-cancel"/>
-                <div class="spacer"/>
-                <q-btn label="Cancel" color="red" size="lg" class="filter-btn" @click="cancel()"  data-cy="spec-detail-cancel"/>
-            </q-card-actions>
-        </span>
-        <span v-show="state_loaded === 'Active' || state_loaded === 'Obsolete'">
-            <q-card-actions class="bg-white text-teal" align="center">
-                <q-btn label="Revise" color="primary" size="lg" class="filter-btn" @click="reviseSpec()"  data-cy="spec-detail-update"/>
-            </q-card-actions>
-        </span>
-        <span v-show="state_loaded !== 'Draft' && isAdmin">
-            <q-card-actions v-show="!edit" class="bg-white text-teal" align="center">
-                <q-btn label="Admin Edit" color="red" size="lg" class="filter-btn" @click="edit=true" data-cy="spec-detail-update"/>
-            </q-card-actions>
-            <q-card-actions v-show="edit" class="bg-white text-teal" align="center">
-                <q-btn label="Admin Save" color="primary" size="lg" class="filter-btn" @click="saveSpec()" data-cy="spec-detail-update"/>
-                <div class="spacer"/>
-                <q-btn label="Cancel" color="red" size="lg" class="filter-btn" @click="cancel()"  data-cy="spec-detail-cancel"/>
-            </q-card-actions>
-        </span>
-
-        <div class="q-pt-none row">
+ 
+        <q-card-section v-show="showRevs" class="q-pt-none row">
             <q-table
+                label="All versions of this spec"
                 :rows="version_list"
                 :columns="spec_columns"
                 :rows-per-page-options="[0]"
+                hide-bottom
                 data-cy="spec-table">
+                <template v-slot:top-left>
+                    <span class="text-h6">Other version of this spec:</span>
+                </template>
                 <template v-slot:header="props">
                     <q-th v-for="col in props.cols" 
                           :key="col.name" 
@@ -309,7 +75,261 @@
                     </q-tr>
                 </template>
             </q-table>
-        </div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none row">
+            <table class="paddingBetweenCols">
+                <tr><th align="left">
+                State
+                </th><th align="left">
+                Anonymous Access
+                </th><th align="left">
+                Document Type
+                </th><th align="left">
+                Department
+                </th><th align="left"  v-show="(String(jira).length > 0) || (edit && isAdmin)">
+                Jira
+                </th></tr>
+                <tr><td>
+                    <q-select
+                        v-model="state"
+                        :options="[{label:'Draft',value:'Draft'},{label:'Signoff',value:'Signoff'},{label:'Active',value:'Active'},{label:'Obsolete',value:'Obsolete'},]"
+                        emit-value
+                        dense :readonly="!edit || !isAdmin"
+                        data-cy="spec-detail-state"
+                    />
+                </td><td>
+                    <q-select v-model="anon_access" 
+                        :options="[{label:'True',value:true}, {label:'False',value:false}]"
+                        data-cy="spec-detail-anon_access" dense :readonly="!edit || !isAdmin"/>
+                </td><td>
+                    <q-select
+                        v-model="doc_type"
+                        :options="doc_typeList"
+                        emit-value
+                        dense :readonly="!edit"
+                        data-cy="spec-detail-doc_type"
+                    />
+                </td><td>
+                    <q-select
+                        v-model="department"
+                        :options="deptList"
+                        emit-value
+                        dense :readonly="!edit"
+                        data-cy="spec-detail-department"
+                        ref="select" 
+                        width = "100px" 
+                        :style="`width: ${width}px; word-break: break-all;`" 
+                    />
+                </td><td v-show="(String(jira).length > 0) || (edit && isAdmin)">
+                    <q-input v-show="edit && isAdmin" label="Jira" v-model.trim="jira" data-cy="spec-detail-jira" dense />
+                    <a  v-show="!edit || !isAdmin" :href="jira_url" target="_blank" rel="noopener noreferrer">{{jira}}</a>
+                </td></tr>
+            </table>
+            <q-space/>
+            <q-input label="Comment" v-model.trim="comment" data-cy="spec-detail-comment" type="textarea" class="comment-field" v-show="edit"/>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+            <q-input label="Title" v-model.trim="title" data-cy="spec-detail-title" dense :readonly="!edit"/>
+            <q-input label="Keywords" v-model.trim="keywords" data-cy="spec-detail-keywords" dense :readonly="!edit"/>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none row">
+            <q-table
+                :rows="sigRows"
+                hide-bottom
+                data-cy="spec-detail-sigs">
+                <template v-slot:header>
+                    <q-th v-show="edit"/>
+                    <q-th align="left">Role</q-th>
+                    <q-th align="left">Signer</q-th>
+                    <q-th align="left">Signed</q-th>
+                    <q-th align="left">By</q-th>
+                </template>
+                <template v-slot:top-left>
+                    <span class="text-h6">Signatures:</span>
+                </template>
+                <template v-slot:body="tprops">
+                    <q-tr>
+                        <q-td v-show="edit">
+                            <q-btn round color="negative" 
+                                    @click="deleteSig(tprops.row)"
+                                    icon="delete" size="xs" dense
+                                    data-cy="data-delete-btn"
+                                    v-show="!tprops.row['from_am']">
+                            </q-btn>
+                        </q-td>
+                        <q-td v-if="!tprops.row['_new']" style="white-space: nowrap;">
+                            {{tprops.row["role"]}}
+                            <span  v-show="tprops.row['spec_one']">*</span></q-td>
+                        <q-td v-else>   
+                            <q-select
+                                v-model="tprops.row['role']"
+                                :options="roleList"
+                                emit-value
+                                dense :readonly="!edit"
+                            />                     
+                        </q-td>
+                        <q-td>   
+                            <q-input
+                                v-model="tprops.row['signer']" 
+                                :data-cy="genCy(`signer`, tprops.row['signer'])"
+                                dense borderless :readonly="!edit"/>                        
+                        </q-td>
+                        <q-td>
+                            {{dispDate(tprops.row["signed_dt"])}}
+                            <q-btn 
+                                v-if="state_loaded === 'Signoff' && tprops.row['signed_dt'] === null" 
+                                label="Sign" @click="signRole(tprops.row)"  data-cy="spec-detail-sign"/>
+                            <q-btn 
+                                v-if="state_loaded === 'Signoff' && tprops.row['signed_dt'] === null" 
+                                label="Reject" @click="rejectRole(tprops.row)"  data-cy="spec-detail-reject"/>
+                        </q-td>
+                        <q-td>{{tprops.row["delegate"]}}</q-td>
+                    </q-tr>
+                </template>
+                <template v-slot:bottom-row v-if="edit">
+                    <q-btn color="primary" dense
+                        @click="sigRows.push({_new:true})"
+                        icon-right="add" size="xs"
+                        no-caps
+                        data-cy="add_sig-btn"
+                        v-show="edit">
+                    </q-btn>
+                </template>
+            </q-table>
+            <q-space/>
+            <q-table
+                :rows="refRows"
+                hide-bottom
+                data-cy="spec-detail-refs">
+                <template v-slot:top-left>
+                    <span class="text-h6">References:</span>
+                </template>
+                <template v-slot:header>
+                    <q-th v-show="edit"/>
+                    <q-th align="left">Spec Number</q-th>
+                    <q-th align="left">Version (optional)</q-th>
+                </template>
+                <template v-slot:body="tprops">
+                    <q-tr>
+                        <q-td v-show="edit">
+                            <q-btn round color="negative" 
+                                    @click="deleteRef(tprops.row)"
+                                    icon="delete" size="xs" dense
+                                    data-cy="ref-delete-btn">
+                            </q-btn>
+                        </q-td>
+                        <q-td>
+                            <q-input v-model.trim="tprops.row['num']" type="number" data-cy="spec-detail-ref-num" dense borderless :readonly="!edit"/>
+                        </q-td>                        
+                        <q-td>
+                            <q-input v-model.trim="tprops.row['ver']" data-cy="spec-detail-ref-ver" dense borderless :readonly="!edit"/>
+                        </q-td>
+                    </q-tr>
+                </template>
+                <template v-slot:bottom-row v-if="edit">
+                    <q-btn color="primary" dense
+                        @click="refRows.push({_new:true})"
+                        icon-right="add" size="xs"
+                        no-caps
+                        data-cy="add_ref-btn"
+                        v-show="edit">
+                    </q-btn>
+                </template>
+            </q-table>
+            <q-space/>
+            <q-table
+                :rows="fileRows"
+                hide-bottom
+                data-cy="spec-detail-files">
+                <template v-slot:top-left>
+                    <span class="text-h6">Files:</span>
+                </template>
+                <template v-slot:header>
+                    <q-th v-show="edit"/>
+                    <q-th align="left">File Name</q-th>
+                    <q-th align="left">Add to PDF</q-th>
+                </template>
+                <template v-slot:body="tprops">
+                    <q-tr>
+                        <q-td v-show="edit">
+                            <q-btn round color="negative" 
+                                    @click="deleteFile(tprops.row)"
+                                    icon="delete" size="xs" dense
+                                    data-cy="file-delete-btn">
+                            </q-btn>
+                            <q-btn round  
+                                    @click="moveFileRowUp(tprops.row)"
+                                    icon="arrow_upward" size="xs" dense
+                                    data-cy="file-move-up-btn">
+                            </q-btn>
+                            <q-btn round 
+                                    @click="moveFileRowDown(tprops.row)"
+                                    icon="arrow_downward" size="xs" dense
+                                    data-cy="file-move-down-btn">
+                            </q-btn>
+                        </q-td>
+                        <q-td>
+                            <a :href="apiServerHost+'/file/'+props.num+'/'+props.ver+'/'+tprops.row['filename']" data-cy="spec-detail-file-filename"
+                                target="_blank">
+                                {{tprops.row['filename']}}
+                            </a>
+                        </q-td>                        
+                        <q-td>
+                            <q-checkbox v-if="disp_incl_pdf(tprops.row)"
+                                v-model="tprops.row['incl_pdf']" 
+                                dense  
+                                :disable="!edit"
+                                data-cy="spec-detail-ref-ver" 
+                                />
+                        </q-td>                      
+                        <q-td>
+
+                        </q-td>
+                    </q-tr>
+                </template>
+                <template v-slot:bottom-row v-if="edit">
+                    <q-uploader
+                        class="my-card"
+                        :fieldName="(file) =>`file`"
+                        :headers="[{name:'X-CSRFToken',value:getCookie('csrftoken') }]"
+                        with-credentials
+                        :url="files=>`${apiServerHost}/file/${props.num}/${props.ver}`"
+                        label="Select File to Upload"
+                        @uploaded="refreshFileList"
+                        data-cy="add_file-uploader"
+                        multiple
+                    />
+                </template>
+            </q-table>
+        </q-card-section>
+        
+        <q-card-section class="q-pt-none">
+            <span class="text-h6">History:</span>            
+            <span class="row">
+                <q-table
+                    :rows="histRows"
+                    hide-bottom
+                    data-cy="spec-detail-files">
+                    <template v-slot:header>
+                        <q-th align="left">Who</q-th>
+                        <q-th align="left">When</q-th>
+                        <q-th align="left">Operation</q-th>
+                        <q-th align="left">Comment</q-th>
+                    </template>
+                    <template v-slot:body="tprops">
+                        <q-tr>
+                            <q-td>{{tprops.row['upd_by']}}</q-td>  
+                            <q-td>{{dispDate(tprops.row['mod_ts'])}}</q-td>  
+                            <q-td>{{tprops.row['change_type']}}</q-td>  
+                            <q-td>{{tprops.row['comment']}}</q-td>    
+                        </q-tr>
+                    </template>
+                </q-table>
+            </span>
+        </q-card-section>
 
         <q-dialog v-model="submitDisabled" no-esc-dismiss no-backdrop-dismiss>
             <q-card>
@@ -406,6 +426,7 @@ export default {
     const reviseDisabled = ref(false)
     const roleList = ref([])
     const router=useRouter();
+    const showRevs = ref(false)
     const sigRow = ref({})
     const sigRows = ref([])
     const signoffDisabled = ref(false)
@@ -621,12 +642,18 @@ export default {
     width: 5em;
     margin-bottom: 2vh;
 }
-
+.comment-field {
+  width: 50%
+}
 .dialog_window{
     max-width: 50vw;
     width: 50vw;
 }
-
+.paddingBetweenCols th {
+  padding: 0 20px 0 0;
+} td {
+  padding: 0 20px 0 0;
+}
 .spacer{
     width: 2vw;
 }

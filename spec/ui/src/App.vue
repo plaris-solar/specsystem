@@ -137,8 +137,8 @@ export default {
 
   async function set_app_color(){
     let resp = await retrieveData('env/')
-    env_color.value = resp === 'Test' ? 'glossy bg-purple' : 'glossy bg-primary'
-    env_title_prefix.value = resp === 'Test' ? 'Test Environment: ' : ''
+    env_color.value = resp === 'Testx' ? 'glossy bg-purple' : 'glossy bg-primary'
+    env_title_prefix.value = resp === 'Testx' ? 'Test Environment: ' : ''
   }
 
   async function logout(){

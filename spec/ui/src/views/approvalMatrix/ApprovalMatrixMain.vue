@@ -11,17 +11,21 @@
                 data-cy="ApprovalMatrix-table">
                 <template v-slot:top-left>
                     <div class="row">
-                        <q-input 
-                            v-model="filter_val"
-                            @keydown.enter.prevent="applyFilter(`&search=${filter_val}`)"                             
-                            label="filter value"
-                            data-cy="data-filter-input"/>
-                        <q-btn round color="primary" 
-                            @click="clearFilters()"
-                            icon="clear"
-                            no-caps
-                            data-cy="data-clear-filter-btn">                       
-                        </q-btn>
+                        <q-card-action>
+                            <q-input 
+                                v-model="filter_val"
+                                @keydown.enter.prevent="applyFilter(`&search=${filter_val}`)"                             
+                                label="filter value"
+                                data-cy="data-filter-input"/>
+                        </q-card-action>
+                        <q-card-action>
+                            <q-btn round color="primary" 
+                                @click="clearFilters()"
+                                icon="clear"
+                                size="sm"
+                                data-cy="data-clear-filter-btn">                       
+                            </q-btn>
+                        </q-card-action>
                     </div>
                 </template>
                 <template v-slot:top-right>
