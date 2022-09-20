@@ -63,10 +63,6 @@ export default {
 </script>
 
 <style scoped>
-.filter-btn {
-    width: 5em;
-    margin-bottom: 2vh;
-}
 
 .dialog_window{
     max-width: 50vw;

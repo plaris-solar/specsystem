@@ -9,9 +9,9 @@
         </q-card-section>
 
         <q-card-actions class="bg-white text-teal" align="center">
-          <q-btn label="Reject" color="primary" size="lg" class="filter-btn" @click="rejectRole()" data-cy="spec-create-create"/>
+          <q-btn label="Reject" color="primary" icon="thumb_down" @click="rejectRole()" data-cy="spec-create-create"/>
           <div class="spacer"/>
-          <q-btn label="Cancel" color="red" size="lg" class="filter-btn" v-close-popup data-cy="spec-create-cancel"/>
+          <q-btn label="Cancel" color="red" icon="cancel" v-close-popup data-cy="spec-create-cancel"/>
         </q-card-actions>
 
         <q-dialog v-model="rejectDisabled" no-esc-dismiss no-backdrop-dismiss>
@@ -63,11 +63,6 @@ export default {
 </script>
 
 <style scoped>
-.filter-btn {
-    width: 5em;
-    margin-bottom: 2vh;
-}
-
 .dialog_window{
     max-width: 50vw;
     width: 50vw;

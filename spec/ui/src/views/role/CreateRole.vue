@@ -14,9 +14,9 @@
         </q-card-section>
 
         <q-card-actions class="bg-white text-teal" align="center">
-          <q-btn label="Save" color="primary" size="lg" class="filter-btn" @click="saveRole()" data-cy="token-create-create"/>
+          <q-btn label="Save" color="primary" icon="save" @click="saveRole()" data-cy="token-create-create"/>
           <div class="spacer"/>
-          <q-btn label="Cancel" color="red" size="lg" class="filter-btn" v-close-popup data-cy="token-create-cancel"/>
+          <q-btn label="Cancel" color="red" icon="cancel" v-close-popup data-cy="token-create-cancel"/>
         </q-card-actions>
     </q-card>
 </template>
@@ -76,10 +76,6 @@ export default {
 </script>
 
 <style scoped>
-.filter-btn {
-    width: 5em;
-    margin-bottom: 2vh;
-}
 
 .dialog_window{
     max-width: 50vw;

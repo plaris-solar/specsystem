@@ -182,10 +182,10 @@
                             {{dispDate(tprops.row["signed_dt"])}}
                             <q-btn 
                                 v-if="state_loaded === 'Signoff' && tprops.row['signed_dt'] === null" 
-                                label="Sign" @click="signRole(tprops.row)"  data-cy="spec-detail-sign"/>
+                                label="Sign" icon="thumb_up" @click="signRole(tprops.row)"  data-cy="spec-detail-sign"/>
                             <q-btn 
                                 v-if="state_loaded === 'Signoff' && tprops.row['signed_dt'] === null" 
-                                label="Reject" @click="rejectRole(tprops.row)"  data-cy="spec-detail-reject"/>
+                                label="Reject" icon="thumb_down" @click="rejectRole(tprops.row)"  data-cy="spec-detail-reject"/>
                         </q-td>
                         <q-td>{{tprops.row["delegate"]}}</q-td>
                     </q-tr>
@@ -630,10 +630,6 @@ export default {
 </script>
 
 <style scoped>
-.filter-btn {
-    width: 5em;
-    margin-bottom: 2vh;
-}
 .comment-field {
   width: 50%
 }

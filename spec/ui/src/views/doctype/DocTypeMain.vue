@@ -298,10 +298,6 @@ export default {
     margin-top: 1vh
 }
 
-.spacer{
-    width: 2vh
-}
-
 .col-row-width{
     min-width: 100%
 }
