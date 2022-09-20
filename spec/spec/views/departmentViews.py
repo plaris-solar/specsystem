@@ -37,21 +37,21 @@ class DepartmentList(GenericAPIView):
             serializer = DepartmentSerializer(queryset, many=True)
             return self.get_paginated_response(serializer.data)
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-DPV1")
+            formatError(be, "SPEC-DV01")
 
     def post(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
                 if re.search(r'[^-a-zA-Z0-9_:]+',request.data["name"]):
-                    raise ValidationError({"errorCode":"SPEC-V17", "error": "Department names cannot contain special characters, including: space, comma, tab, semicolon and slash"})
+                    raise ValidationError({"errorCode":"SPEC-DV02", "error": "Department names cannot contain special characters, including: space, comma, tab, semicolon and slash"})
                 serializer = DepartmentPostSerializer(data=request.data)
                 if not serializer.is_valid():
-                    raise ValidationError({"errorCode":"SPEC-DPV2", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                    raise ValidationError({"errorCode":"SPEC-DV03", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 department = serializer.save()
             serializer = DepartmentSerializer(department)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-DPV3")
+            formatError(be, "SPEC-DV04")
 
 
 class DepartmentDetail(APIView):
@@ -77,7 +77,7 @@ class DepartmentDetail(APIView):
         try:
             return Department.objects.get(name=dept)
         except Department.DoesNotExist:
-            raise ValidationError({"errorCode":"SPEC-DPV4", "error": f"Department ({dept}) does not exist."})
+            raise ValidationError({"errorCode":"SPEC-DV05", "error": f"Department ({dept}) does not exist."})
 
     def get(self, request, dept, format=None):
         try:
@@ -85,7 +85,7 @@ class DepartmentDetail(APIView):
             serializer = DepartmentSerializer(department)
             return Response(serializer.data)
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-DPV5")
+            formatError(be, "SPEC-DV06")
 
     def put(self, request, dept, format=None):
         try:
@@ -93,12 +93,12 @@ class DepartmentDetail(APIView):
                 department = self.get_object(dept)
                 serializer = DepartmentUpdateSerializer(department, data=request.data)
                 if not serializer.is_valid():
-                    raise ValidationError({"errorCode":"SPEC-DPV6", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                    raise ValidationError({"errorCode":"SPEC-DV07", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 serializer.save()    
             serializer = DepartmentSerializer(department)
             return Response(serializer.data)
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-DPV7")
+            formatError(be, "SPEC-DV08")
 
     def delete(self, request, dept, format=None):
         try:
@@ -107,4 +107,4 @@ class DepartmentDetail(APIView):
                 department.delete()
             return Response(status=status.HTTP_204_NO_CONTENT) 
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-DPV8")
+            formatError(be, "SPEC-DV09")

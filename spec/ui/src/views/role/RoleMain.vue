@@ -11,21 +11,21 @@
                 data-cy="role-table">
                 <template v-slot:top-left>
                     <div class="row">
-                    <q-card-action>
-                        <q-input 
-                            v-model="filter_val"
-                            @keydown.enter.prevent="applyFilter(`&search=${filter_val}`)"                             
-                            label="filter value"
-                            data-cy="data-filter-input"/>
-                    </q-card-action>
-                    <q-card-action>
-                        <q-btn round color="primary" 
-                            @click="clearFilters()"
-                            size="sm"
-                            icon="clear"
-                            data-cy="data-clear-filter-btn">                       
-                        </q-btn>
-                    </q-card-action>
+                        <q-card-action>
+                            <q-input 
+                                v-model="filter_val"
+                                @keydown.enter.prevent="applyFilter(`&search=${filter_val}`)"                             
+                                label="filter value"
+                                data-cy="data-filter-input"/>
+                        </q-card-action>
+                        <q-card-action>
+                            <q-btn round color="primary" 
+                                @click="clearFilters()"
+                                size="sm"
+                                icon="clear"
+                                data-cy="data-clear-filter-btn">                       
+                            </q-btn>
+                        </q-card-action>
                     </div>
                 </template>
                 <template v-slot:top-right>

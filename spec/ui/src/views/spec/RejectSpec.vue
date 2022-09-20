@@ -48,7 +48,7 @@ export default {
 
     async function rejectRole(){
         rejectDisabled.value = true
-        let res = await postData(`spec/reject/${props.num}/${props.ver}`, 
+        let res = await postData(`reject/${props.num}/${props.ver}`, 
             {'role':props.sigRow['role'], 'signer':props.sigRow['signer'], 'comment':comment.value}, 
             `Rejected spec: ${props.num}/${props.ver} successfully.`)
         if (res.__resp_status < 300){

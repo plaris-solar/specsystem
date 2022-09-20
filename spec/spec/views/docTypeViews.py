@@ -45,7 +45,7 @@ class DocTypeList(GenericAPIView):
         try:
             with transaction.atomic():
                 if re.search(r'[^-a-zA-Z0-9_:]+',request.data["name"]):
-                    raise ValidationError({"errorCode":"SPEC-V17", "error": "Document Type names cannot contain special characters, including: space, comma, tab, semicolon and slash"})
+                    raise ValidationError({"errorCode":"SPEC-DTV02", "error": "Document Type names cannot contain special characters, including: space, comma, tab, semicolon and slash"})
                 serializer = DocTypeSerializer(data=request.data)
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-DTV03", "error": "Invalid message format", "schemaErrors":serializer.errors})

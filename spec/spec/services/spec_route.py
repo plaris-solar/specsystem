@@ -13,15 +13,15 @@ from utils.dev_utils import formatError
 from . import jira
 
 def genPdf(spec):
-    pdfFileName=f"{spec.num}_{spec.ver}.pdf"
-    # Remove any existing PDF file
-    spec.files.filter(filename=pdfFileName).delete()
-
     # Skip generation if setup is not defined.
     if settings.SOFFICE is None:
         return # pragma nocover
     if shutil.which(settings.SOFFICE) is None: # pragma nocover
         raise ValidationError({"errorCode":"SPEC-R12", "error": f"LibreOffice application not found at: {settings.SOFFICE}"})
+
+    pdfFileName=f"{spec.num}_{spec.ver}.pdf"
+    # Remove any existing PDF file
+    spec.files.filter(filename=pdfFileName).delete()
 
     tempFilePath = Path(settings.TEMP_PDF) / str(spec.num)
     tempPdfPath = tempFilePath / 'out'
@@ -113,7 +113,7 @@ def specSubmit(request, spec):
     jira.submit(spec)
 
     to = spec.sigs.filter(signer__isnull=False,signer__email__isnull=False).values_list('signer__email', flat=True)
-    if len(to) > 0 and settings.EMAIL_HOST is not None:
+    if len(to) > 0 and settings.EMAIL_HOST is not None and len(settings.EMAIL_HOST) > 0:
         email = EmailMessage(
             subject=f'{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} Spec {spec.num} "{spec.title}" needs our review',
             body=f'''{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} Spec {spec.num}/{spec.ver} "{spec.title}" needs your review
@@ -187,7 +187,7 @@ def specSign(request, spec, validated_data):
     jira.active(spec)
 
     to = UserWatch.objects.filter(num=spec.num, user__email__isnull=False).values_list('user__email', flat=True)
-    if len(to) > 0 and settings.EMAIL_HOST is not None:
+    if len(to) > 0 and settings.EMAIL_HOST is not None and len(settings.EMAIL_HOST) > 0:
         email = EmailMessage(
             subject=f'{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} A new version of Spec {spec.num} "{spec.title}" you are watching has been activated.',
             body=f'''{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} A new version of Spec {spec.num} "{spec.title}" you are watching has been activated.

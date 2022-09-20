@@ -26,7 +26,7 @@
                     <q-btn label="Cancel" color="red" icon="cancel" @click="cancel()"  data-cy="spec-detail-cancel"/>
                 </q-card-actions>
             </span>
-            <span v-show="state_loaded === 'Active' || state_loaded === 'Obsolete'">
+            <span v-show="(state_loaded === 'Active' || state_loaded === 'Obsolete') && isAuthenticated">
                 <q-card-actions>
                     <q-btn label="Create New Revision" color="primary" @click="reviseSpec()"  data-cy="spec-detail-update"/>
                 </q-card-actions>
@@ -133,6 +133,7 @@
         <q-card-section class="q-pt-none">
             <q-input label="Title" v-model.trim="title" data-cy="spec-detail-title" dense :readonly="!edit"/>
             <q-input label="Keywords" v-model.trim="keywords" data-cy="spec-detail-keywords" dense :readonly="!edit"/>
+            <q-input label="Reason for Change" v-model.trim="reason" type="textarea" data-cy="spec-detail-reason" dense :readonly="!edit"/>
         </q-card-section>
 
         <q-card-section class="q-pt-none row">
@@ -347,17 +348,6 @@
             </q-card>
         </q-dialog>
 
-        <q-dialog v-model="reviseDisabled" no-esc-dismiss no-backdrop-dismiss>
-            <q-card>
-                <q-card-section align="center">
-                    <h4>Creating new spec. Please wait</h4>
-                    <p>This may take a minute while the Spec and Jira stories are created.</p>
-                    <br/>
-                    <p>Do not refresh the page.</p>
-                </q-card-section>
-            </q-card>
-        </q-dialog>
-
         <q-dialog v-model="signoffDisabled" no-esc-dismiss no-backdrop-dismiss>
             <q-card>
                 <q-card-section align="center">
@@ -380,20 +370,28 @@
             :sigRow = "sigRow"
             @updateSpec="loadSpec()"/>
     </q-dialog >
+    <q-dialog v-model="revise_spec">
+        <revise-spec-dialog
+            :num = "props.num"
+            :ver = "props.ver"
+            @updateSpec="loadSpec()"/>
+    </q-dialog >
 </template>
 
 <script>
 import { apiServerHost, defineProps, deleteData, dispDate, genCy, getCookie, postData, putData, retrieveData, 
-        showNotif, } from '@/utils.js'
+    } from '@/utils.js'
 import { computed, onMounted, ref, } from 'vue'
 import { useRouter, } from 'vue-router'
 import { useStore } from 'vuex'
 import RejectSpecDialog from '@/views/spec/RejectSpec.vue'
+import ReviseSpecDialog from '@/views/spec/ReviseSpec.vue'
 
 export default {
     name: 'SpecDetailPage',
     components: {
         RejectSpecDialog,
+        ReviseSpecDialog,
     },
 }
 </script>
@@ -415,15 +413,17 @@ export default {
     const doc_typeList = ref([])
     const edit = ref(false)
     const isAdmin = ref(computed(() => store.getters.isAdmin))
+    const isAuthenticated = ref(computed(() => store.getters.authenticated))
     const keywords = ref('')
     const fileRows = ref([])
     const histRows = ref([])
     const jira = ref('')
     const jira_url = ref('')
     const mod_ts = ref('')
+    const reason = ref('')
     const refRows = ref([])
     const reject_spec = ref(false)
-    const reviseDisabled = ref(false)
+    const revise_spec = ref(false)
     const roleList = ref([])
     const router=useRouter();
     const showRevs = ref(false)
@@ -443,6 +443,7 @@ export default {
             department: department.value,
             title: title.value,
             keywords: keywords.value,
+            reason: reason.value,
             jira: jira.value,
             sigs:sigRows.value,
             files:fileRows.value,
@@ -521,11 +522,13 @@ export default {
     function loadForm(res) {        
         edit.value = false
         reject_spec.value = false
+        revise_spec.value = false
 
         doc_type.value = res['doc_type']
         department.value = res['department']
         title.value = res['title']
         keywords.value = res['keywords']
+        reason.value = res['reason']
         state.value = res['state']
         state_loaded.value = res['state']
         created_by.value = res['created_by']
@@ -580,22 +583,12 @@ export default {
     }
 
     async function reviseSpec(){
-        if (!window.confirm(`Create new revision of spec: ${props.num}/${props.ver}?`)) {
-            return
-        }
-
-        reviseDisabled.value = true
-        let res = await postData(`spec/${props.num}/${props.ver}`, {}, null)
-        if (res.__resp_status < 300) {
-            showNotif(`Spec created: ${res.num}/${res.ver}`, 'green')
-            router.push({name:"Spec Detail", params:{num:res.num, ver:res.ver}})
-        }
-        reviseDisabled.value = false
+        revise_spec.value = true
     }
 
     async function signRole(sigRow){
         signoffDisabled.value = true
-        let res = await postData(`spec/sign/${props.num}/${props.ver}`, {'role':sigRow['role'], 'signer':sigRow['signer']}, `Signed spec: ${props.num}/${props.ver} successfully.`).then((res) => {
+        let res = await postData(`sign/${props.num}/${props.ver}`, {'role':sigRow['role'], 'signer':sigRow['signer']}, `Signed spec: ${props.num}/${props.ver} successfully.`).then((res) => {
             if (res.__resp_status < 300){
                 router.go()
             }
@@ -605,7 +598,7 @@ export default {
 
     async function submitSpec(){
         submitDisabled.value = true
-        await postData(`spec/submit/${props.num}/${props.ver}`, {}, `Submitted spec: ${props.num}/${props.ver} for signatures successfully.`).then((res) => {
+        await postData(`submit/${props.num}/${props.ver}`, {}, `Submitted spec: ${props.num}/${props.ver} for signatures successfully.`).then((res) => {
             if (res.__resp_status < 300){
                 router.go()
             }
@@ -633,7 +626,6 @@ export default {
             { name: 'state', align: 'left', label: 'State', field: 'state', },
             { name: 'created_by', align: 'left', label: 'Created By', field: 'created_by', },
             { name: 'mod_ts', align: 'left', label: 'Last Modified', field: 'mod_ts', },
-            { name: 'anon_access', align: 'left', label: 'Anonymous Access', field: 'anon_access', },
         ]
 </script>
 

@@ -28,6 +28,8 @@ def specUpdate(request, spec, validated_data):
     spec.jira = validated_data.pop("jira")
     spec.save()
 
+    # TODO: Check that user can't save when not in draft state
+    # TODO; verify admins can change files without clearing signatures
     # If spec is not in draft state, don't touch the signatures for an admin edit.
     if spec.state == 'Draft':
         # Clear previous sig entries, preload required sigs

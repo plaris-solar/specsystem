@@ -28,8 +28,6 @@ from django.views.generic.base import TemplateView
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    # path('cat/', ApprovalMatrixList.as_view()),
-    # path('cat/<ApprovalMatrix>', ApprovalMatrixDetail.as_view()),
     path('approvalmatrix/', ApprovalMatrixList.as_view()),
     path('approvalmatrix/<id>', ApprovalMatrixDetail.as_view()),
     path('doctype/', DocTypeList.as_view()),
@@ -44,9 +42,9 @@ urlpatterns = [
     path('file/<num>', SpecFileDetail.as_view()),
     path('file/<num>/<ver>', SpecFileDetail.as_view()),
     path('file/<num>/<ver>/<fileName>', SpecFileDetail.as_view()),
-    path('spec/submit/<num>/<ver>', SpecSubmit.as_view()),
-    path('spec/sign/<num>/<ver>', SpecSign.as_view()),
-    path('spec/reject/<num>/<ver>', SpecReject.as_view()),
+    path('submit/<num>/<ver>', SpecSubmit.as_view()),
+    path('sign/<num>/<ver>', SpecSign.as_view()),
+    path('reject/<num>/<ver>', SpecReject.as_view()),
 
     path('db/qa/delete/', views.QaDbReset.as_view()),
     path('auth/info', GetUser.as_view()),

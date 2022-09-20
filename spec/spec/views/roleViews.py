@@ -40,21 +40,21 @@ class RoleList(GenericAPIView):
             serializer = RoleSerializer(queryset, many=True)
             return self.get_paginated_response(serializer.data)
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-V01")
+            formatError(be, "SPEC-RV01")
 
     def post(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
                 if re.search(r'[^-a-zA-Z0-9_:]+',request.data["role"]):
-                    raise ValidationError({"errorCode":"SPEC-V17", "error": "Role names cannot contain special characters, including: space, comma, tab, semicolon and colon"})
+                    raise ValidationError({"errorCode":"SPEC-RV02", "error": "Role names cannot contain special characters, including: space, comma, tab, semicolon and colon"})
                 serializer = RolePostSerializer(data=request.data)
                 if not serializer.is_valid():
-                    raise ValidationError({"errorCode":"SPEC-V02", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                    raise ValidationError({"errorCode":"SPEC-RV03", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 role = serializer.save()
             serializer = RoleSerializer(role)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-V03")
+            formatError(be, "SPEC-RV04")
 
 
 class RoleDetail(APIView):
@@ -82,7 +82,7 @@ class RoleDetail(APIView):
         try:
             return Role.objects.get(role=role)
         except Role.DoesNotExist:
-            raise ValidationError({"errorCode":"SPEC-V04", "error": f"Role ({role}) does not exist."})
+            raise ValidationError({"errorCode":"SPEC-RV05", "error": f"Role ({role}) does not exist."})
 
     def get(self, request, role, format=None):
         try:
@@ -90,7 +90,7 @@ class RoleDetail(APIView):
             serializer = RoleSerializer(role)
             return Response(serializer.data)
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-V05")
+            formatError(be, "SPEC-RV06")
 
     def put(self, request, role, format=None):
         try:
@@ -98,12 +98,12 @@ class RoleDetail(APIView):
                 role = self.get_object(role)
                 serializer = RoleUpdateSerializer(role, data=request.data)
                 if not serializer.is_valid():
-                    raise ValidationError({"errorCode":"SPEC-V06", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                    raise ValidationError({"errorCode":"SPEC-RV07", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 serializer.save()
             serializer = RoleSerializer(role)
             return Response(serializer.data)
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-V07")
+            formatError(be, "SPEC-RV08")
 
     def delete(self, request, role, format=None):
         try:
@@ -112,4 +112,4 @@ class RoleDetail(APIView):
                 role.delete()
             return Response(status=status.HTTP_204_NO_CONTENT) 
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-V08")
+            formatError(be, "SPEC-RV09")

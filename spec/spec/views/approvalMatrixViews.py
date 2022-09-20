@@ -39,19 +39,19 @@ class ApprovalMatrixList(GenericAPIView):
             serializer = ApprovalMatrixSerializer(queryset, many=True)
             return self.get_paginated_response(serializer.data)
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-V09")
+            formatError(be, "SPEC-AV01")
 
     def post(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
                 serializer = ApprovalMatrixPostSerializer(data=request.data)
                 if not serializer.is_valid():
-                    raise ValidationError({"errorCode":"SPEC-V10", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                    raise ValidationError({"errorCode":"SPEC-AV02", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 ApprovalMatrix = serializer.save()
             serializer = ApprovalMatrixSerializer(ApprovalMatrix)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-V11")
+            formatError(be, "SPEC-AV03")
 
 
 class ApprovalMatrixDetail(APIView):
@@ -79,7 +79,7 @@ class ApprovalMatrixDetail(APIView):
         try:
             return ApprovalMatrix.objects.get(id=id)
         except ApprovalMatrix.DoesNotExist:
-            raise ValidationError({"errorCode":"SPEC-V12", "error": f"ApprovalMatrix ({id}) does not exist."})
+            raise ValidationError({"errorCode":"SPEC-AV04", "error": f"ApprovalMatrix ({id}) does not exist."})
 
     def get(self, request, id, format=None):
         try:
@@ -87,7 +87,7 @@ class ApprovalMatrixDetail(APIView):
             serializer = ApprovalMatrixSerializer(apvl_mt)
             return Response(serializer.data)
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-V13")
+            formatError(be, "SPEC-AV05")
 
     def put(self, request, id, format=None):
         try:
@@ -95,12 +95,12 @@ class ApprovalMatrixDetail(APIView):
                 apvl_mt = self.get_object(id)
                 serializer = ApprovalMatrixUpdateSerializer(apvl_mt, data=request.data)
                 if not serializer.is_valid():
-                    raise ValidationError({"errorCode":"SPEC-V14", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                    raise ValidationError({"errorCode":"SPEC-AV06", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 apvl_mt = serializer.save()
             serializer = ApprovalMatrixSerializer(apvl_mt)
             return Response(serializer.data)
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-V15")
+            formatError(be, "SPEC-AV07")
 
     def delete(self, request, id, format=None):
         try:

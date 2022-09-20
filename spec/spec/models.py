@@ -180,8 +180,9 @@ class Spec(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='+')
     create_dt = models.DateTimeField()
     mod_ts = models.DateTimeField()
-    jira = models.CharField(max_length=4000, blank=True, null=True)
+    jira = models.CharField(max_length=50, blank=True, null=True)
     anon_access = models.BooleanField(default=False)
+    reason = models.CharField(max_length=4000, blank=True, null=True)
 
     class Meta:
         managed = True

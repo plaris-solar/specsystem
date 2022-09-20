@@ -50,6 +50,7 @@ def specCreate(request, validated_data):
     validated_data['created_by'] = request.user
     validated_data['create_dt'] = request._req_dt
     validated_data['mod_ts'] = request._req_dt
+    validated_data['reason'] = 'Initial Version'
 
     spec = Spec.objects.create(**validated_data)
 
@@ -68,7 +69,7 @@ def specCreate(request, validated_data):
 
     return spec
 
-def specRevise(request, spec):
+def specRevise(request, spec, validated_data):
     # Grab a copy of the spec being copied for related items below.
     orig_spec = Spec.objects.get(id=spec.id)
 
@@ -86,6 +87,7 @@ def specRevise(request, spec):
     spec.create_dt = request._req_dt
     spec.mod_ts = request._req_dt
     spec.jira = None
+    spec.reason = validated_data['reason']
     
     spec.save()
     
@@ -112,11 +114,14 @@ def specRevise(request, spec):
     jira.create(spec)
 
     to = UserWatch.objects.filter(num=spec.num, user__email__isnull=False).values_list('user__email', flat=True)
-    if len(to) > 0 and settings.EMAIL_HOST is not None:
+    if len(to) > 0 and settings.EMAIL_HOST is not None and len(settings.EMAIL_HOST) > 0:
         email = EmailMessage(
             subject=f'{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} Spec {spec.num} "{spec.title}" you are watching is being revised by {spec.created_by.username}',
             body=f'''{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} Spec {spec.num} "{spec.title}" you are watching is being revised by {spec.created_by.username}
             {request.build_absolute_uri('/ui-spec/'+str(spec.num)+'/'+spec.ver)}
+
+            Reason for change:
+            {spec.reason}
             ''',
             from_email=settings.EMAIL_HOST_USER,
             to=to,
