@@ -178,12 +178,11 @@ export default {
             return
         }
         
-        deleteData(`dept/${encodeURIComponent(department)}`, '{}', `Deleted department: ${department} successfully.`).then((res) => {
-            if (res.__resp_status < 300){
-                clearSelected()
-                getTableData(1)
-            }
-        })
+        let res = await deleteData(`dept/${encodeURIComponent(department)}`, '{}', `Deleted department: ${department} successfully.`)
+        if (res.__resp_status < 300){
+            clearSelected()
+            getTableData(1)
+        }
     }
 
     async function clearSelected(){

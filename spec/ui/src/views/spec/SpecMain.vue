@@ -240,19 +240,17 @@ export default {
     }
     
     async function setWatch(num) {        
-        postData(`user/watch/${username.value}/${num}`, '{}', `Set watch on: ${num} successfully.`).then((res) => {
-            if (res.__resp_status < 300){
-                getTableData(page_num.value)
-            }
-        })
+        let res = await postData(`user/watch/${username.value}/${num}`, '{}', `Set watch on: ${num} successfully.`)
+        if (res.__resp_status < 300){
+            getTableData(page_num.value)
+        }
     }   
     
     async function clearWatch(num) {        
-        deleteData(`user/watch/${username.value}/${num}`, '{}', `Deleted watch on: ${num} successfully.`).then((res) => {
-            if (res.__resp_status < 300){
-                getTableData(page_num.value)
-            }
-        })
+        let res = await deleteData(`user/watch/${username.value}/${num}`, '{}', `Deleted watch on: ${num} successfully.`)
+        if (res.__resp_status < 300){
+            getTableData(page_num.value)
+        }
     }
 
     const columns = [

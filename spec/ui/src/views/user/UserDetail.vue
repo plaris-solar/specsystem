@@ -283,11 +283,10 @@ export default {
     })  
     
     async function clearWatch(num) {        
-        deleteData(`user/watch/${props.username}/${num}`, '{}', `Deleted watch on: ${num} successfully.`).then((res) => {
-            if (res.__resp_status < 300){
-                loadData()
-            }
-        })
+        let res = await deleteData(`user/watch/${props.username}/${num}`, '{}', `Deleted watch on: ${num} successfully.`)
+        if (res.__resp_status < 300){
+            loadData()
+        }
     }
     const spec_columns = [
             { name: 'num', align: 'left', label: 'Spec', field: 'num', },

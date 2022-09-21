@@ -1,5 +1,5 @@
 <template>
-  <q-card>
+    <q-card>
         <q-card-section class="row">
             <q-card-actions class="text-h4">{{props.num+' / '+props.ver}}</q-card-actions>
             <q-card-actions>
@@ -348,6 +348,22 @@
             </q-card>
         </q-dialog>
 
+        <q-dialog v-model="deleteDisabled" no-esc-dismiss no-backdrop-dismiss>
+            <q-card>
+                <q-card-section align="center">
+                    <h4>Deleting Spec. Please wait</h4>
+                    <p>This may take a minute while:</p>
+                    <list>
+                        <li>Spec is removed</li>
+                        <li>Jira stories are deleted</li>
+                        <li>Files are removed</li>
+                    </list>
+                    <br/>
+                    <p>Do not refresh the page.</p>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
+
         <q-dialog v-model="signoffDisabled" no-esc-dismiss no-backdrop-dismiss>
             <q-card>
                 <q-card-section align="center">
@@ -407,6 +423,7 @@ export default {
     const comment = ref('')
     const created_by = ref('')
     const create_dt = ref('')
+    const deleteDisabled = ref(false)
     const department = ref('')
     const deptList = ref([])
     const doc_type = ref('')
@@ -491,11 +508,12 @@ export default {
             return
         }
         
-        deleteData(`spec/${props.num}/${props.ver}`, '{}', `Deleted spec: ${props.num}/${props.ver} successfully.`).then((res) => {
-            if (res.__resp_status < 300){
-                router.push({name:"Spec"})
-            }
-        })
+        deleteDisabled.value = true
+        let res = await deleteData(`spec/${props.num}/${props.ver}`, '{}', `Deleted spec: ${props.num}/${props.ver} successfully.`)
+        if (res.__resp_status < 300){
+            router.push({name:"Spec"})
+        }
+        deleteDisabled.value = false
     }
 
     //check if string ends with any of array suffixes

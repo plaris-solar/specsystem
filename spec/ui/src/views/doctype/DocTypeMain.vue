@@ -183,12 +183,11 @@ export default {
             return
         }
         
-        deleteData(`doctype/${doctype}`, '{}', `Deleted doctype: ${doctype} successfully.`).then((res) => {
-            if (res.__resp_status < 300){
-                clearSelected()
-                getTableData(1)
-            }
-        })
+        let res = await deleteData(`doctype/${doctype}`, '{}', `Deleted doctype: ${doctype} successfully.`)
+        if (res.__resp_status < 300){
+            clearSelected()
+            getTableData(1)
+        }
     }
 
     async function clearSelected(){

@@ -257,18 +257,15 @@ class SpecFile(models.Model):
 
     @staticmethod
     def lookup(num, ver, fileName, user):
-        try:
-            spec = Spec.lookup(num, ver, user)
-            if fileName is None:
-                fileName = "*"
-                specFile = spec.files.order_by('seq').first()
-            else:
-                specFile = spec.files.filter(filename=fileName).first()
-            if specFile is not None:
-                return specFile
-            raise SpecFile.DoesNotExist()
-        except SpecFile.DoesNotExist:
-            raise ValidationError({"errorCode":"SPEC-M09", "error": f"File {fileName} is not attached to spec ({num}/{ver})."})
+        spec = Spec.lookup(num, ver, user)
+        if fileName is None:
+            fileName = "*"
+            specFile = spec.files.order_by('seq').first()
+        else:
+            specFile = spec.files.filter(filename=fileName).first()
+        if specFile is not None:
+            return specFile
+        raise ValidationError({"errorCode":"SPEC-M09", "error": f"File {fileName} is not attached to spec ({num}/{ver})."})
 
 class SpecReference(models.Model):
     spec = models.ForeignKey(Spec, on_delete=models.CASCADE, related_name='refs')

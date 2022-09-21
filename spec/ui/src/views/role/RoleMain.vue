@@ -178,12 +178,11 @@ export default {
             return
         }
         
-        deleteData(`role/${role}`, '{}', `Deleted role: ${role} successfully.`).then((res) => {
-            if (res.__resp_status < 300){
-                clearSelected()
-                getTableData(1)
-            }
-        })
+        let res = await deleteData(`role/${role}`, '{}', `Deleted role: ${role} successfully.`)
+        if (res.__resp_status < 300){
+            clearSelected()
+            getTableData(1)
+        }
     }
 
     async function clearSelected(){
