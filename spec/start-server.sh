@@ -4,12 +4,12 @@ if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ] ; 
     python manage.py createsuperuser --no-input
 fi
 
-if [ -f /app/ext/static/config/nginx.conf ]; then
-    cp /app/ext/static/config/nginx.conf /etc/nginx
+if [ -f /app/ext/config/nginx.conf ]; then
+    cp /app/ext/config/nginx.conf /etc/nginx
 fi
 
-if [ -f /app/ext/static/config/settings_local.py ]; then
-    cp /app/ext/static/config/settings_local.py /app/proj/
+if [ -f /app/ext/config/settings_local.py ]; then
+    cp /app/ext/config/settings_local.py /app/proj/
 fi
 
 gunicorn proj.wsgi --bind 0.0.0.0:8010 --workers 3 &
