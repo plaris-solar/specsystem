@@ -28,7 +28,7 @@
             </span>
             <span v-show="(state_loaded === 'Active' || state_loaded === 'Obsolete') && isAuthenticated">
                 <q-card-actions>
-                    <q-btn label="Create New Revision" color="primary" @click="reviseSpec()"  data-cy="spec-detail-update"/>
+                    <q-btn label="Create New Revision" color="primary" icon="add" @click="reviseSpec()"  data-cy="spec-detail-update"/>
                 </q-card-actions>
             </span>
             <span v-show="state_loaded !== 'Draft' && isAdmin">

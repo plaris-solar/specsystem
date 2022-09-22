@@ -18,9 +18,7 @@
         </q-input>
         <div class="text-center spacer"/>
         <div class="text-center">
-        <q-btn @click="login" size="lg" color="primary" data-cy="login-login-btn">
-          login
-        </q-btn>
+        <q-btn label="Login" @click="login" color="primary" icon="login" data-cy="login-login-btn"/>
         <div class="spacer-xl"/>
         </div>
     </div>
