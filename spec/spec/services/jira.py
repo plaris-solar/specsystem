@@ -57,20 +57,31 @@ def submit(spec):
 
     try:
         jira_issue = jira.issue(spec.jira)
+        substasks = []
+        errors = []
+
         if jira_issue.fields.status.name != 'Signoff': 
             if jira_issue.fields.status.name != 'Draft':
-                raise Exception(f"Error: Jira issue {jira_issue.key} is in status {jira_issue.fields.status.name}, not Draft.")
-            jira.transition_issue(jira_issue, transition='Submit')
-
+                errors.append(f"Jira issue {jira_issue.key} is in status {jira_issue.fields.status.name}, not Draft.")
+   
         for iss in jira_issue.fields.subtasks:
-            st = jira.issue(iss.key)
+            st = jira.issue(iss.key)            
             if st.fields.status.name == 'N/A':
                 continue
+            if st.fields.assignee is None:
+                errors.append(f"Jira issue {st.key} does not have an assignee.")
             if st.fields.status.name == 'Signoff':
                 continue
             if st.fields.status.name != 'Draft':
-                raise Exception(f"Error: Jira issue {st.key} is in status {st.fields.status.name}, not Draft.")
+                errors.append(f"Jira issue {st.key} is in status {st.fields.status.name}, not Draft.")
+            substasks.append(st)
+        
+        if len(errors) > 0:
+            raise Exception(f"Error(s): {'; '.join(errors)}")
+
+        for st in substasks:
             jira.transition_issue(st, transition='Submit')
+        jira.transition_issue(jira_issue, transition='Submit')
 
     except BaseException as be:
         raise ValidationError({"errorCode":"SPEC-J03", "error": f"Error transitioning Jira issue {spec.jira} to Submit, Error: {be}"})
