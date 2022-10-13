@@ -2,10 +2,9 @@ import copy
 import json
 from django.conf import settings
 from utils.test_utils import SpecTestCase
-from utils import test_utils
-from . import test_resources as tr
+from . import conf_resources as tr
 
-class SpecTest(SpecTestCase):
+class ConfTest(SpecTestCase):
 
     def test_role(self):
         response = self.post_request('/role/', tr.role_post_1, auth_lvl='USER')

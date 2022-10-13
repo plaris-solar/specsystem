@@ -51,7 +51,7 @@ dept_post_2 = {
 }
 
 dept_post_3 = {
-    'name':'Ops_Line1',
+    'name':'Ops:Line1',
     'readRoles':role_post_3['role']
 }
 
@@ -75,14 +75,14 @@ doctype_post_1 = {
     'name':'SOP',
     'descr':'Standard Operating Procedure - Op',
     'confidential':False,
-    'jira_temp':'SPEC-1'
+    'jira_temp':''
 }
 
 doctype_post_2 = {
     'name':'WI',
     'descr':'Work Instruction - Op',
     'confidential':False,
-    'jira_temp':'SPEC-1'
+    'jira_temp':''
 }
 
 doctype_post_3 = {

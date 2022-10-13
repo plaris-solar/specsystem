@@ -20,7 +20,6 @@ def specUpdate(request, spec, validated_data):
     refs_data = validated_data.pop("refs")
     files_data = validated_data.pop("files")
 
-    spec.created_by = request.user
     spec.doc_type = DocType.lookup(validated_data.pop("doc_type"))
     spec.department = Department.lookup(validated_data.pop("department"))
     spec.title = validated_data.pop("title")
