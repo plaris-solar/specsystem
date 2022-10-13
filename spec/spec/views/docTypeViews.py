@@ -29,7 +29,7 @@ class DocTypeList(GenericAPIView):
     permission_classes = [IsSuperUserOrReadOnly]
     queryset = DocType.objects.all()
     serializer_class = DocTypeSerializer
-    search_fields = ('name','descr')
+    search_fields = ('name', 'descr', )
 
     def get(self, request, format=None):
         try:
@@ -44,11 +44,11 @@ class DocTypeList(GenericAPIView):
     def post(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                if re.search(r'[^-a-zA-Z0-9_:]+',request.data["name"]):
-                    raise ValidationError({"errorCode":"SPEC-DTV02", "error": "Document Type names cannot contain special characters, including: space, comma, tab, semicolon and slash"})
                 serializer = DocTypeSerializer(data=request.data)
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-DTV03", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                if re.search(r'[^-a-zA-Z0-9_:]+',serializer.validated_data["name"]):
+                    raise ValidationError({"errorCode":"SPEC-DTV02", "error": "Document Type names cannot contain special characters, including: space, comma, tab, semicolon and slash"})
                 doctype = serializer.save()
             serializer = DocTypeSerializer(doctype)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

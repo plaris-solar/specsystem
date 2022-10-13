@@ -1,8 +1,7 @@
-import os
-from utils.test_utils import SpecTestCase
-import json
-import user.tests.test_resources as tr
+import json, os
 from django.conf import settings
+from utils.test_utils import SpecTestCase
+from . import test_resources as tr
 
 TEST_FILE_DIR = 'data/tests/test_files/'
 
@@ -41,9 +40,8 @@ class UserTest(SpecTestCase):
         self.assertEqual(resp[0]['expired'], False)
 
         # Verify token auth
-        response = self.client.post('/doc/', tr.doc_post_1, content_type='application/json',
-                                    HTTP_AUTHORIZATION=f'token {admin_tok}')
-        self.assertEqual(response.status_code, 201)
+        response = self.client.get('/auth/token', HTTP_AUTHORIZATION=f'token {admin_tok}')
+        self.assertEqual(response.status_code, 200)
 
         # Delete operator token
         response = self.delete_request(f'/auth/token/{os.environ["ADMIN_USER"]}', auth_lvl='USER')
@@ -62,8 +60,7 @@ class UserTest(SpecTestCase):
         self.assertEqual(response.status_code, 204)
 
         # Verify token deletion
-        response = self.client.post('/doc/', tr.doc_post_1, content_type='application/json',
-                                    HTTP_AUTHORIZATION=f'token {admin_tok}')
+        response = self.client.get('/auth/token', HTTP_AUTHORIZATION=f'token {admin_tok}')
         self.assert_auth_error(response, 'BAD_TOK')
 
     def test_permissions(self):

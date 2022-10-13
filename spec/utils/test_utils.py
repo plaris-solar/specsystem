@@ -53,10 +53,8 @@ class SpecTestCase(TransactionTestCase):
         return self.client.delete(url, body, content_type='application/json',
                                   HTTP_AUTHORIZATION=self.get_auth_str(auth_lvl))
 
-    def delete_list_attribs(self, item_list, attrib_list, meta_key=True):
+    def delete_list_attribs(self, item_list, attrib_list):
         for i, item in enumerate(item_list):
-            if meta_key:
-                item_list[i]['data'] = self.delete_attribs(item['data'], attrib_list)
             item_list[i] = self.delete_attribs(item, attrib_list)
         return item_list
 
@@ -133,3 +131,42 @@ class SpecTestCase(TransactionTestCase):
         resp = json.loads(response.content)
         self.assertEqual(resp['detail'], exp_response['msg'])
 
+    def paginate_results(self, res_list):
+        page = {}
+        page['count'] = len(res_list)
+        page['results'] = res_list
+        page['next'] = None
+        page['previous'] = None
+        return page
+
+    def add_list_attribs(self, item_list, attribs):
+        for i, item in enumerate(item_list):
+            item.update(attribs)
+        return item_list
+
+    def diff_keys(self, d1, d2):
+        comm_keys = list(set(d1.keys() & set(d2.keys())))
+        only_d1 = list(set(comm_keys) ^ set(d1.keys()))
+        only_d2 = list(set(comm_keys) ^ set(d2.keys()))
+        return sorted(only_d1), sorted(only_d2)
+
+    def diff_dicts(self, d1, d2):
+        only_d1, only_d2 = self.diff_keys(d1, d2)
+        if len(only_d1) > 0:
+            print('only in d1: ' + str(only_d1))
+        if len(only_d2) > 0:
+            print('only in d2: ' + str(only_d2))
+        comm_keys = list(set(d1.keys() & set(d2.keys())))
+        for key in comm_keys:
+            if d1[key] != d2[key]:
+                print('Different value for ' + key + ":")
+                print("d1 value: " + str(d1[key]))
+                print("d2 value: " + str(d2[key]))
+
+    def dictfetchall(self, cursor):
+        "Return all rows from a cursor as a dict"
+        columns = [col[0] for col in cursor.description]
+        return [
+            dict(zip(columns, row))
+            for row in cursor.fetchall()
+        ]

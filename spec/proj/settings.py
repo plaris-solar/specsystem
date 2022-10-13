@@ -234,14 +234,14 @@ TEMP_PDF = os.path.join(MEDIA_ROOT, 'temp')
 # Override default settings
 try:
     from .settings_local import *
-except ImportError:
+except ImportError: #pragma nocover
     pass
-from deepmerge import always_merger
 
+from deepmerge import always_merger
 try:
     if LOGGING_OVERRIDES:
         always_merger.merge(LOGGING, LOGGING_OVERRIDES)
-except:
+except: #pragma nocover
     pass
 
 request_logger.log_all_requests()

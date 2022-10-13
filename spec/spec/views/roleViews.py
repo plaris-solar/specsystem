@@ -30,7 +30,7 @@ class RoleList(GenericAPIView):
     permission_classes = [IsSuperUserOrReadOnly]
     queryset = Role.objects.all()
     serializer_class = RoleSerializer
-    search_fields = ('role','descr')
+    search_fields = ('role', 'descr', )
 
     def get(self, request, format=None):
         try:
@@ -45,11 +45,11 @@ class RoleList(GenericAPIView):
     def post(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                if re.search(r'[^-a-zA-Z0-9_:]+',request.data["role"]):
-                    raise ValidationError({"errorCode":"SPEC-RV02", "error": "Role names cannot contain special characters, including: space, comma, tab, semicolon and colon"})
                 serializer = RolePostSerializer(data=request.data)
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-RV03", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                if re.search(r'[^-a-zA-Z0-9_:]+',serializer.validated_data["role"]):
+                    raise ValidationError({"errorCode":"SPEC-RV02", "error": "Role names cannot contain special characters, including: space, comma, tab, semicolon and colon"})
                 role = serializer.save()
             serializer = RoleSerializer(role)
             return Response(serializer.data, status=status.HTTP_201_CREATED)

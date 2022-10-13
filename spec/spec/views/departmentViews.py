@@ -27,7 +27,7 @@ class DepartmentList(GenericAPIView):
     permission_classes = [IsSuperUserOrReadOnly]
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
-    search_fields = ('name')
+    search_fields = ('name', )
 
     def get(self, request, format=None):
         try:
@@ -42,11 +42,11 @@ class DepartmentList(GenericAPIView):
     def post(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                if re.search(r'[^-a-zA-Z0-9_:]+',request.data["name"]):
-                    raise ValidationError({"errorCode":"SPEC-DV02", "error": "Department names cannot contain special characters, including: space, comma, tab, semicolon and slash"})
                 serializer = DepartmentPostSerializer(data=request.data)
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-DV03", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                if re.search(r'[^-a-zA-Z0-9_:]+',serializer.validated_data["name"]):
+                    raise ValidationError({"errorCode":"SPEC-DV02", "error": "Department names cannot contain special characters, including: space, comma, tab, semicolon and slash"})
                 department = serializer.save()
             serializer = DepartmentSerializer(department)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
