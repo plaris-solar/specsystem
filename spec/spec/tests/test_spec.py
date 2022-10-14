@@ -1,4 +1,5 @@
 import copy, json, os
+from django.conf import settings
 from utils.test_utils import SpecTestCase
 from . import conf_resources as conf
 from . import spec_resources as tr
@@ -27,10 +28,8 @@ class SpecTest(SpecTestCase):
         self.assertEqual(response.status_code, 201)        
         response = self.post_request('/doctype/', conf.doctype_post_3, auth_lvl='ADMIN')
         self.assertEqual(response.status_code, 201)
-        # Load needed Approval Maconficies
+        # Load needed Approval Matricies
         response = self.post_request('/approvalmatrix/', conf.approvalmatrix_post_1, auth_lvl='ADMIN')
-        self.assertEqual(response.status_code, 201)
-        response = self.post_request('/approvalmatrix/', conf.approvalmatrix_post_2, auth_lvl='ADMIN')
         self.assertEqual(response.status_code, 201)
         response = self.post_request('/approvalmatrix/', conf.approvalmatrix_post_3, auth_lvl='ADMIN')
         self.assertEqual(response.status_code, 201)
@@ -68,8 +67,7 @@ class SpecTest(SpecTestCase):
         post_1['ver'] = 'A'
         post_1['reason'] = 'Initial Version'
         post_1['sigs'] = [
-            {'role': 'Op', 'signed_dt': None, 'from_am': True, 'spec_one': True, 'signer': None, 'delegate': None}, 
-            {'role': 'Op_Line1', 'signed_dt': None, 'from_am': True, 'spec_one': True, 'signer': None, 'delegate': None}, 
+            {'role': 'Op_Line1', 'signed_dt': None, 'from_am': True, 'spec_one': True, 'signer': None, 'delegate': None},
             {'role': 'Qual', 'signed_dt': None, 'from_am': True, 'spec_one': False, 'signer': None, 'delegate': None}
         ]
         self.assertEqual(resp, self.paginate_results([post_1]))
@@ -132,19 +130,30 @@ class SpecTest(SpecTestCase):
         self.assertEqual(response.status_code, 400)
         self.assert_schema_err(response.content, 'title')
 
+        # Add a valid reference to the put body
+        tr.spec_put_1['refs'] = [{'num':spec_ids[1], 'ver':'A'}]
+
         # Error: Update spec - change state w/o admin
         response = self.put_request(f'/spec/{spec_ids[0]}/A', tr.spec_put_1, auth_lvl='USER')
         self.assertEqual(response.status_code, 400)
         resp = json.loads(response.content)
         self.assertEqual(resp['error'], 'State changes via update can only be done by an administrator.')
 
-        # Error: Update spec - change state w/o admin
+        # Error: Update spec - change state w/o comment
         response = self.put_request(f'/spec/{spec_ids[0]}/A', tr.spec_put_err_2, auth_lvl='ADMIN')
         self.assertEqual(response.status_code, 400)
         resp = json.loads(response.content)
         self.assertEqual(resp['error'], 'State changes updates require a comment.')
 
-        # Update spec - change state 
+        # Add two files for reposition on update
+        with open('spec/tests/test_files/Text1.docx', 'rb') as fp:
+            response = self.post_binary_request(f'/file/{spec_ids[0]}/A', {'file':(fp, 'Text1.docx')},  auth_lvl='USER')
+        self.assertEqual(response.status_code, 200)
+        with open('spec/tests/test_files/torch.jpg', 'rb') as fp:
+            response = self.post_binary_request(f'/file/{spec_ids[0]}/A', {'file':(fp, 'torch.jpg')},  auth_lvl='USER')
+        self.assertEqual(response.status_code, 200)
+
+        # Update spec - change state to Active
         response = self.put_request(f'/spec/{spec_ids[0]}/A', tr.spec_put_1, auth_lvl='ADMIN')
         self.assertEqual(response.status_code, 200)
         resp = json.loads(response.content)
@@ -156,6 +165,46 @@ class SpecTest(SpecTestCase):
         self.assertEqual(resp['hist'][0]['upd_by'], os.getenv("ADMIN_USER"))
         self.assertEqual(resp['hist'][0]['change_type'], 'Update')
         self.assertEqual(resp['hist'][0]['comment'], tr.spec_put_1['comment'])
+        self.assertEqual(len(resp['files']), 2)
+        self.assertEqual(resp['files'][0]['seq'], 1)
+        self.assertEqual(resp['files'][0]['filename'], 'torch.jpg')
+        self.assertEqual(resp['files'][0]['incl_pdf'], False)
+        self.assertEqual(resp['files'][1]['seq'], 2)
+        self.assertEqual(resp['files'][1]['filename'], 'Text1.docx')
+        self.assertEqual(resp['files'][1]['incl_pdf'], True)
+        self.assertEqual(resp['refs'], [{'num': 300001, 'ver': 'A'}])
+
+        # Update spec - change state back to Draft to catch signer changes
+        response = self.put_request(f'/spec/{spec_ids[0]}/A', tr.spec_put_2, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 200)
+        resp = json.loads(response.content)
+        self.assertEqual(resp['state'], 'Draft')
+        self.assertEqual(len(resp['hist']), 2)
+        self.assertEqual(resp['hist'][0]['upd_by'], os.getenv("ADMIN_USER"))
+        self.assertEqual(resp['hist'][0]['change_type'], 'Update')
+        self.assertEqual(resp['hist'][0]['comment'], tr.spec_put_2['comment'])
+        self.assertEqual(resp['hist'][1]['upd_by'], os.getenv("ADMIN_USER"))
+        self.assertEqual(resp['hist'][1]['change_type'], 'Update')
+        self.assertEqual(resp['hist'][1]['comment'], tr.spec_put_1['comment'])
+        self.assertEqual(len(resp['files']), 2)
+        self.assertEqual(resp['refs'], [])
+        self.assertEqual(resp['sigs'], 
+            [{'role': conf.role_post_3['role'], 'signed_dt': None, 'from_am': True, 'spec_one': True, 'signer': None, 'delegate': None}, 
+            {'role': conf.role_post_1['role'], 'signed_dt': None, 'from_am': True, 'spec_one': False, 'signer': os.getenv("USER_USER"), 'delegate': None},
+            {'role': conf.role_post_2['role'], 'signed_dt': None, 'from_am': False, 'spec_one': True, 'signer': os.getenv("ADMIN_USER"), 'delegate': None}]
+        )
+        self.assertEqual(resp['jira'], "TEST-1")
+        self.assertEqual(resp['jira_url'], f'{settings.JIRA_URI}/browse/TEST-1')
+
+        # Update spec - change state to Active
+        response = self.put_request(f'/spec/{spec_ids[0]}/A', tr.spec_put_1, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 200)
+
+        # Error: Update spec - change state w/o admin
+        response = self.put_request(f'/spec/{spec_ids[0]}/A', tr.spec_put_1, auth_lvl='USER')
+        self.assertEqual(response.status_code, 400)
+        resp = json.loads(response.content)
+        self.assertEqual(resp['error'], 'Spec is not in Draft state. Cannot update.')
 
         # Error: permissions
         response = self.delete_request(f'/spec/{spec_ids[0]}/A')
@@ -189,3 +238,111 @@ class SpecTest(SpecTestCase):
         self.assertEqual(response.status_code, 400)
         resp = json.loads(response.content)
         self.assertEqual(resp['error'], f'Spec ({spec_ids[0]}/B) does not exist.')
+
+    def test_file(self):
+        # Load needed roles
+        response = self.post_request('/role/', conf.role_post_1, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)        
+        response = self.post_request('/role/', conf.role_post_2, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)        
+        response = self.post_request('/role/', conf.role_post_3, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)
+        # Load needed Departments
+        response = self.post_request('/dept/', conf.dept_post_0, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)        
+        response = self.post_request('/dept/', conf.dept_post_2, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)        
+        response = self.post_request('/dept/', conf.dept_post_3, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)
+        # Load needed Doc Types
+        response = self.post_request('/doctype/', conf.doctype_post_1, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)        
+        response = self.post_request('/doctype/', conf.doctype_post_2, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)        
+        response = self.post_request('/doctype/', conf.doctype_post_3, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)
+        #Create Specs
+        spec_ids = []
+        response = self.post_request('/spec/', tr.spec_post_1, auth_lvl='USER')
+        self.assertEqual(response.status_code, 201)
+        resp = json.loads(response.content)
+        resp_post_1 = resp
+        spec_ids.append(resp['num'])        
+        response = self.post_request('/spec/', tr.spec_post_2, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)
+        resp = json.loads(response.content)
+        spec_ids.append(resp['num'])
+
+        # Error: Not logged in
+        response = self.post_request(f'/file/{spec_ids[0]}/A', {})
+        self.assert_auth_error(response, 'NO_AUTH')
+
+        # Error: Missing file
+        response = self.post_request(f'/file/{spec_ids[0]}/A', {},auth_lvl='USER')
+        self.assertEqual(response.status_code, 400)
+        self.assert_schema_err(response.content, 'file')
+
+        # Upload Word file
+        with open('spec/tests/test_files/Text1.docx', 'rb') as fp:
+            response = self.post_binary_request(f'/file/{spec_ids[0]}/A', {'file':(fp, 'Text1.docx')},  auth_lvl='USER')
+        self.assertEqual(response.status_code, 200)
+        resp = json.loads(response.content)
+        self.assertEqual(len(resp['files']), 1)
+        self.assertEqual(resp['files'][0]['seq'], 1)
+        self.assertEqual(resp['files'][0]['filename'], 'Text1.docx')
+        self.assertEqual(resp['files'][0]['incl_pdf'], False)
+
+        # Upload jpg file
+        with open('spec/tests/test_files/torch.jpg', 'rb') as fp:
+            response = self.post_binary_request(f'/file/{spec_ids[0]}/A', {'file':(fp, 'torch.jpg')},  auth_lvl='USER')
+        self.assertEqual(response.status_code, 200)
+        resp = json.loads(response.content)
+        self.assertEqual(len(resp['files']), 2)
+        self.assertEqual(resp['files'][0]['seq'], 1)
+        self.assertEqual(resp['files'][0]['filename'], 'Text1.docx')
+        self.assertEqual(resp['files'][0]['incl_pdf'], False)
+        self.assertEqual(resp['files'][1]['seq'], 2)
+        self.assertEqual(resp['files'][1]['filename'], 'torch.jpg')
+        self.assertEqual(resp['files'][1]['incl_pdf'], False)
+
+        # Upload txt file
+        with open('spec/tests/test_files/file_one.txt', 'rb') as fp:
+            response = self.post_binary_request(f'/file/{spec_ids[0]}/A', {'file':(fp, 'file_one.txt')},  auth_lvl='USER')
+        self.assertEqual(response.status_code, 200)
+        resp = json.loads(response.content)
+        self.assertEqual(len(resp['files']), 3)
+        self.assertEqual(resp['files'][0]['seq'], 1)
+        self.assertEqual(resp['files'][0]['filename'], 'Text1.docx')
+        self.assertEqual(resp['files'][0]['incl_pdf'], False)
+        self.assertEqual(resp['files'][1]['seq'], 2)
+        self.assertEqual(resp['files'][1]['filename'], 'torch.jpg')
+        self.assertEqual(resp['files'][1]['incl_pdf'], False)
+        self.assertEqual(resp['files'][2]['seq'], 3)
+        self.assertEqual(resp['files'][2]['filename'], 'file_one.txt')
+        self.assertEqual(resp['files'][2]['incl_pdf'], False)
+
+        # Delete file
+        response = self.delete_request(f'/file/{spec_ids[0]}/A/torch.jpg', auth_lvl='USER')
+        self.assertEqual(response.status_code, 204)
+
+        # Error: get deleted file
+        response = self.get_request(f'/file/{spec_ids[0]}/A/torch.jpg', auth_lvl='USER')
+        self.assertEqual(response.status_code, 400)
+        resp = json.loads(response.content)
+        self.assertEqual(resp['error'],  f"File torch.jpg is not attached to spec ({spec_ids[0]}/A).")
+
+        # Get first file on spec
+        response = self.get_request(f'/file/{spec_ids[0]}/A', auth_lvl='USER')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.filename,  'Text1.docx')
+
+        # Get file by name
+        with open('spec/tests/test_files/file_one.txt', 'rb') as fp:
+            file_content = fp.read()
+        response = self.get_request(f'/file/{spec_ids[0]}/A/file_one.txt', auth_lvl='USER')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.filename,  'file_one.txt')
+        stream = b''.join(response.streaming_content)
+        self.assertEqual(stream,  file_content)
+
+

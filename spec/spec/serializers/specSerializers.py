@@ -92,7 +92,7 @@ class SpecPostSerializer(serializers.Serializer):
     comment = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
         
 class FilePostSerializer(serializers.Serializer):
-    file = serializers.FileField(required=False, default=None, allow_null=True)
+    file = serializers.FileField()
 
 class SpecSignSerializer(serializers.Serializer):
     role = serializers.CharField()

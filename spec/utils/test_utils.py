@@ -36,11 +36,10 @@ class SpecTestCase(TransactionTestCase):
             return f'token {self.level_tokens[auth_lvl]}'
         return ''
 
-    def post_request(self, url, body=None, file=None, auth_lvl=''):
-        if file:
-            fp = open(file, 'rb')
-            body['FILE'] = fp
-            return self.client.post(url, body, HTTP_AUTHORIZATION=self.get_auth_str(auth_lvl))
+    def post_binary_request(self, url, body=None, auth_lvl=''):
+        return self.client.post(url, body,HTTP_AUTHORIZATION=self.get_auth_str(auth_lvl))
+
+    def post_request(self, url, body=None, auth_lvl=''):
         return self.client.post(url, body, 'application/json', HTTP_AUTHORIZATION=self.get_auth_str(auth_lvl))
 
     def put_request(self, url, body, auth_lvl='ADMIN'):

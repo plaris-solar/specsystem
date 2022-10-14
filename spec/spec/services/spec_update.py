@@ -3,11 +3,15 @@ from .spec_create import specSetReqSigs, specSigCreate
 from ..models import Department, DocType, Role, SpecFile, SpecHist, SpecReference
 
 def specUpdate(request, spec, validated_data):
+    # Check that user can't save when not in draft state
+    if spec.state != "Draft" and not request.user.is_superuser:
+        raise ValidationError({"errorCode":"SPEC-U51", "error": "Spec is not in Draft state. Cannot update."})
+
     if spec.state != validated_data['state']:
         if not request.user.is_superuser:
-            raise ValidationError({"errorCode":"SPEC-U51", "error": "State changes via update can only be done by an administrator."})
+            raise ValidationError({"errorCode":"SPEC-U52", "error": "State changes via update can only be done by an administrator."})
         if not validated_data['comment'] or len(validated_data['comment']) == 0:
-            raise ValidationError({"errorCode":"SPEC-U52", "error": "State changes updates require a comment."})
+            raise ValidationError({"errorCode":"SPEC-U53", "error": "State changes updates require a comment."})
         spec.state = validated_data['state']
     
     # Only superusers can set the anon_access.
@@ -27,8 +31,6 @@ def specUpdate(request, spec, validated_data):
     spec.jira = validated_data.pop("jira")
     spec.save()
 
-    # TODO: Check that user can't save when not in draft state
-    # TODO; verify admins can change files without clearing signatures
     # If spec is not in draft state, don't touch the signatures for an admin edit.
     if spec.state == 'Draft':
         # Clear previous sig entries, preload required sigs
