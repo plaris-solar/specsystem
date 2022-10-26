@@ -88,6 +88,8 @@ def specRevise(request, spec, validated_data):
     spec.mod_ts = request._req_dt
     spec.jira = None
     spec.reason = validated_data['reason']
+    spec.approved_dt = None
+    spec.sunset_extended_dt = None
     
     spec.save()
     

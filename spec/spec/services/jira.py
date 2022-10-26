@@ -2,7 +2,10 @@ from jira import JIRA
 from django.conf import settings
 from rest_framework.exceptions import ValidationError
 
-def conn():
+# There is no unit testing of this module, because JIRA is an external system. 
+# And the setup requires access and an existing ticket configured
+
+def conn(): # pragma nocover
     if settings.JIRA_URI is None or len(settings.JIRA_URI) == 0:
         return None
     try:
@@ -10,7 +13,7 @@ def conn():
     except BaseException as be:
         raise ValidationError({"errorCode":"SPEC-J01", "error": f"Error connecting to Jira. URL:{settings.JIRA_URI}, User: {settings.JIRA_USER}, Error: {be}"})
 
-def create(spec):
+def create(spec): # pragma nocover
     """If Document Type has a Jira issue listed, clone that issue and its children for this spec"""
     jira = conn()
     if jira is None:
@@ -46,7 +49,7 @@ def create(spec):
         raise ValidationError({"errorCode":"SPEC-J02", "error": f"Error creating Jira issue from {spec.doc_type.jira_temp}, Error: {be}"})
     
 
-def submit(spec):
+def submit(spec): # pragma nocover
     """Update the state of related Jira Tasks to Signoff"""
     jira = conn()
     if jira is None:
@@ -86,7 +89,7 @@ def submit(spec):
     except BaseException as be:
         raise ValidationError({"errorCode":"SPEC-J03", "error": f"Error transitioning Jira issue {spec.jira} to Submit, Error: {be}"})
 
-def reject(spec):
+def reject(spec): # pragma nocover
     """Update the state of related Jira Tasks to Draft"""
     jira = conn()
     if jira is None:
@@ -115,7 +118,7 @@ def reject(spec):
     except BaseException as be:
         raise ValidationError({"errorCode":"SPEC-J03", "error": f"Error transitioning Jira issue {spec.jira} to Draft, Error: {be}"})
 
-def active(spec):
+def active(spec): # pragma nocover
     """Update the state of related Jira Tasks to In Progress"""
     jira = conn()
     if jira is None:
@@ -144,7 +147,7 @@ def active(spec):
     except BaseException as be:
         raise ValidationError({"errorCode":"SPEC-J03", "error": f"Error transitioning Jira issue {spec.jira} to Draft, Error: {be}"})
 
-def delete(spec):
+def delete(spec): # pragma nocover
     """Delete the Jira Tasks"""
     jira = conn()
     if jira is None:

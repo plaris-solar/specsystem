@@ -31,6 +31,8 @@ class DocType(models.Model):
     descr = models.CharField(max_length=4000, blank=True, null=True)
     confidential = models.BooleanField(default=False, blank=True)
     jira_temp = models.CharField(max_length=4000, blank=True, null=True)
+    sunset_interval = models.DurationField(blank=True, null=True)
+    sunset_warn = models.DurationField(blank=True, null=True)
 
     class Meta:
         managed = True
@@ -183,6 +185,8 @@ class Spec(models.Model):
     jira = models.CharField(max_length=50, blank=True, null=True)
     anon_access = models.BooleanField(default=False)
     reason = models.CharField(max_length=4000, blank=True, null=True)
+    approved_dt = models.DateTimeField(null=True)
+    sunset_extended_dt = models.DateTimeField(null=True)
 
     class Meta:
         managed = True

@@ -23,7 +23,9 @@ class DocTypeList(GenericAPIView):
         "name": "WI",
         "descr": "Work Instruction",
         "confidential": false,
-        "jira_temp": ""
+        "jira_temp": "",
+        "sunset_interval": "1095 00:00:00",
+        "sunset_warn": "60 00:00:00"
     }
     """
     permission_classes = [IsSuperUserOrReadOnly]

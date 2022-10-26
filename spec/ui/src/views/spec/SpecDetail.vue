@@ -3,7 +3,7 @@
         <q-card-section class="row">
             <q-card-actions class="text-h4">{{props.num+' / '+props.ver}}</q-card-actions>
             <q-card-actions>
-                <q-btn label="Show Revisions" color="primary" icon="storage"
+                <q-btn :label="(state != 'Active' ? 'This is not an Active revision. Click to ' : '') + 'Show Revisions'" :color="state != 'Active' ? 'orange' : 'primary'" icon="storage"
                             @click="showRevs=!showRevs"
                             data-cy="spec-detail-update"/>
             </q-card-actions>
@@ -52,7 +52,7 @@
                 hide-bottom
                 data-cy="spec-table">
                 <template v-slot:top-left>
-                    <span class="text-h6">Other version of this spec:</span>
+                    <span class="text-h6">Other version(s) of this spec:</span>
                 </template>
                 <template v-slot:header="props">
                     <q-th v-for="col in props.cols" 
@@ -79,17 +79,16 @@
 
         <q-card-section class="q-pt-none row">
             <table class="paddingBetweenCols">
-                <tr><th align="left">
-                State
-                </th><th align="left">
-                Anonymous Access
-                </th><th align="left">
-                Document Type
-                </th><th align="left">
-                Department
-                </th><th align="left"  v-show="(String(jira).length > 0) || (edit && isAdmin)">
-                Jira
-                </th></tr>
+                <tr>
+                    <th align="left">State</th>
+                    <th align="left">Anonymous Access</th>
+                    <th align="left">Document Type</th>
+                    <th align="left">Department</th>
+                    <th align="left"  v-show="(String(jira).length > 0) || (edit && isAdmin)">Jira</th>
+                    <th align="left"  v-show="(String(approved_dt).length > 0)">Approve Date</th>
+                    <th align="left"  v-show="(String(sunset_extended_dt).length > 0)">Date Extended</th>
+                    <th align="left"  v-show="(String(sunset_dt).length > 0)">Sunset Date</th>
+                </tr>
                 <tr><td>
                     <q-select
                         v-model="state"
@@ -124,6 +123,15 @@
                 </td><td v-show="(String(jira).length > 0) || (edit && isAdmin)">
                     <q-input v-show="edit && isAdmin" label="Jira" v-model.trim="jira" data-cy="spec-detail-jira" dense />
                     <a  v-show="!edit || !isAdmin" :href="jira_url" target="_blank" rel="noopener noreferrer">{{jira}}</a>
+                </td><td v-show="(String(approved_dt).length > 0)">
+                    {{approved_dt.substring(0,10)}}
+                </td><td v-show="(String(sunset_extended_dt).length > 0)">
+                    {{sunset_extended_dt.substring(0,10)}}
+                </td><td v-show="(String(sunset_dt).length > 0)" :bgcolor="(new Date().getTime() > sunset_warn_dt) && state === 'Active' ? 'orange':''">
+                    {{sunset_dt.substring(0,10)}}                    
+                            <q-btn 
+                                v-if="new Date().getTime() > sunset_warn_dt && state === 'Active' && String(sunset_extended_dt).length === 0" 
+                                label="Extend" icon="more_time" @click="extendSunset()"  data-cy="spec-detail-extend"/>
                 </td></tr>
             </table>
             <q-space/>
@@ -379,6 +387,12 @@
             </q-card>
         </q-dialog>
     </q-card>
+    <q-dialog v-model="extend_spec">
+        <extend-spec-dialog
+            :num = "props.num"
+            :ver = "props.ver"
+            @updateSpec="loadSpec()"/>
+    </q-dialog >
     <q-dialog v-model="reject_spec">
         <reject-spec-dialog
             :num = "props.num"
@@ -400,12 +414,14 @@ import { apiServerHost, defineProps, deleteData, dispDate, genCy, getCookie, pos
 import { computed, onMounted, ref, } from 'vue'
 import { useRouter, } from 'vue-router'
 import { useStore } from 'vuex'
+import ExtendSpecDialog from '@/views/spec/ExtendSpec.vue'
 import RejectSpecDialog from '@/views/spec/RejectSpec.vue'
 import ReviseSpecDialog from '@/views/spec/ReviseSpec.vue'
 
 export default {
     name: 'SpecDetailPage',
     components: {
+        ExtendSpecDialog,
         RejectSpecDialog,
         ReviseSpecDialog,
     },
@@ -420,6 +436,7 @@ export default {
     const store = useStore()
 
     const anon_access = ref({label:'False',value:false})
+    const approved_dt = ref('')
     const comment = ref('')
     const created_by = ref('')
     const create_dt = ref('')
@@ -429,6 +446,7 @@ export default {
     const doc_type = ref('')
     const doc_typeList = ref([])
     const edit = ref(false)
+    const extend_spec = ref(false)
     const isAdmin = ref(computed(() => store.getters.isAdmin))
     const isAuthenticated = ref(computed(() => store.getters.authenticated))
     const keywords = ref('')
@@ -450,6 +468,9 @@ export default {
     const state = ref('')
     const state_loaded = ref('')
     const submitDisabled = ref(false)
+    const sunset_dt = ref('')
+    const sunset_extended_dt = ref('')
+    const sunset_warn_dt = ref('')
     const title = ref('')
     const version_list = ref([])
 
@@ -537,28 +558,37 @@ export default {
         }
     }
 
+    async function extendSunset(){
+        extend_spec.value = true
+    }
+
     function loadForm(res) {        
         edit.value = false
+        extend_spec.value = false
         reject_spec.value = false
         revise_spec.value = false
 
-        doc_type.value = res['doc_type']
-        department.value = res['department']
-        title.value = res['title']
-        keywords.value = res['keywords']
-        reason.value = res['reason']
-        state.value = res['state']
-        state_loaded.value = res['state']
+        anon_access.value = res['anon_access']
+        approved_dt.value = res['approved_dt'] ? res['approved_dt'] : ''
         created_by.value = res['created_by']
         create_dt.value = res['create_dt']
-        mod_ts.value = res['mod_ts']
+        department.value = res['department']
+        doc_type.value = res['doc_type']
+        fileRows.value = res['files']
+        histRows.value = res['hist']
         jira.value = res['jira']
         jira_url.value = res['jira_url']
-        sigRows.value = res['sigs']
-        fileRows.value = res['files']
+        keywords.value = res['keywords']
+        mod_ts.value = res['mod_ts']
+        reason.value = res['reason']
         refRows.value = res['refs']
-        histRows.value = res['hist']
-        anon_access.value = res['anon_access']
+        sigRows.value = res['sigs']
+        state.value = res['state']
+        state_loaded.value = res['state']
+        sunset_dt.value = 'sunset_dt' in res ? res['sunset_dt'] : ''
+        sunset_extended_dt.value =  res['sunset_extended_dt'] ? res['sunset_extended_dt'] : ''
+        sunset_warn_dt.value = 'sunset_warn_dt' in res ? new Date(res['sunset_warn_dt']) : null
+        title.value = res['title']
     }
 
     async function loadOtherVersions() {

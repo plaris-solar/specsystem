@@ -75,14 +75,18 @@ doctype_post_1 = {
     'name':'SOP',
     'descr':'Standard Operating Procedure - Op',
     'confidential':False,
-    'jira_temp':''
+    'jira_temp':'',
+    'sunset_interval': '1 00:00:00',
+    'sunset_warn': '23:50:00'
 }
 
 doctype_post_2 = {
     'name':'WI',
     'descr':'Work Instruction - Op',
     'confidential':False,
-    'jira_temp':''
+    'jira_temp':'',
+    'sunset_interval': '1 00:00:00',
+    'sunset_warn': '23:50:00'
 }
 
 doctype_post_3 = {
@@ -96,7 +100,9 @@ doctype_put_1 = {
     'name':'WI',
     'descr':'Work Instruction - Updated',
     'confidential':True,
-    'jira_temp':'New Jira Template'
+    'jira_temp':'New Jira Template',
+    'sunset_interval': '2 00:00:00',
+    'sunset_warn': '20:50:00'
 }
 
 doctype_put_err_1 = {

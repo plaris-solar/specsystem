@@ -40,7 +40,7 @@
                           style="vertical-align:top">
                         {{col.label}}
                         <br/>
-                        <span v-show="['num','title','keywords','state','created_by'].includes(col.name)">
+                        <span v-show="['num','title','doc_type','department','keywords','state','created_by'].includes(col.name)">
                             <q-icon name="filter_alt"/>
                             <q-input 
                                 v-model.trim="filter[col.name]" 

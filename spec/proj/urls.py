@@ -19,7 +19,7 @@ from spec.views.approvalMatrixViews import ApprovalMatrixDetail, ApprovalMatrixL
 from spec.views.docTypeViews import DocTypeDetail, DocTypeList
 from spec.views.departmentViews import DepartmentDetail, DepartmentList
 from spec.views.roleViews import RoleDetail, RoleList
-from spec.views.specViews import SpecDetail, SpecFileDetail, SpecList, SpecReject, SpecSign, SpecSubmit
+from spec.views.specViews import SpecDetail, SpecExtend, SpecFileDetail, SpecList, SpecReject, SpecSign, SpecSubmit
 from spec.views.userViews import UserDetail, UserList, UserWatchView
 from user.views import GetUser, AdminToken, UserToken
 from . import views
@@ -45,6 +45,7 @@ urlpatterns = [
     path('submit/<num>/<ver>', SpecSubmit.as_view()),
     path('sign/<num>/<ver>', SpecSign.as_view()),
     path('reject/<num>/<ver>', SpecReject.as_view()),
+    path('extend/<num>/<ver>', SpecExtend.as_view()),
 
     path('db/qa/delete/', views.QaDbReset.as_view()),
     path('auth/info', GetUser.as_view()),

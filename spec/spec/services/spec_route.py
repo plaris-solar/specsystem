@@ -17,7 +17,7 @@ def genPdf(spec):
     if settings.SOFFICE is None:
         return # pragma nocover
     if shutil.which(settings.SOFFICE) is None: # pragma nocover
-        raise ValidationError({"errorCode":"SPEC-R12", "error": f"LibreOffice application not found at: {settings.SOFFICE}"})
+        raise ValidationError({"errorCode":"SPEC-R15", "error": f"LibreOffice application not found at: {settings.SOFFICE}"})
 
     pdfFileName=f"{spec.num}_{spec.ver}.pdf"
     # Remove any existing PDF file
@@ -57,7 +57,7 @@ def genPdf(spec):
         with open(tempFilePath/pdfFileName, mode='rb') as f:
             specFile.file.save(pdfFileName, File(f))
     except BaseException as be:
-        formatError(be, "SPEC-R11") #pragma nocover
+        formatError(be, "SPEC-R14") #pragma nocover
 
     finally:
         try:
@@ -129,7 +129,7 @@ def specSubmit(request, spec):
 
 def specSign(request, spec, validated_data):
     if spec.state != 'Signoff':
-        raise ValidationError({"errorCode":"SPEC-R10", "error": "Spec must be in Signoff state to accept signatures"})
+        raise ValidationError({"errorCode":"SPEC-R06", "error": "Spec must be in Signoff state to accept signatures"})
         
     sig = spec.sigs.filter(role__role=validated_data['role'], signer__username=validated_data['signer']).first()
     if sig is None:
@@ -173,6 +173,7 @@ def specSign(request, spec, validated_data):
         )
 
     spec.mod_ts = request._req_dt
+    spec.approved_dt = request._req_dt
     spec.state = 'Active'
     spec.save()
 
@@ -202,6 +203,9 @@ def specSign(request, spec, validated_data):
     return spec
 
 def specReject(request, spec, validated_data):
+    if spec.state != 'Signoff':
+        raise ValidationError({"errorCode":"SPEC-R07", "error": "Spec must be in Signoff state to reject"})
+
     spec.mod_ts = request._req_dt
     spec.state = 'Draft'
     spec.save()
@@ -221,6 +225,26 @@ def specReject(request, spec, validated_data):
     )
 
     jira.reject(spec)
+
+    return spec
+
+def specExtend(request, spec, validated_data):
+    if spec.state != 'Active':
+        raise ValidationError({"errorCode":"SPEC-R08", "error": "Spec must be in Active state to extend sunset period"})
+    if spec.sunset_extended_dt is not None:
+        raise ValidationError({"errorCode":"SPEC-R09", "error": "Spec sunset date can only be extended once. Create a new revision."})
+
+    spec.mod_ts = request._req_dt
+    spec.sunset_extended_dt = request._req_dt
+    spec.save()
+
+    SpecHist.objects.create(
+        spec=spec,
+        mod_ts = request._req_dt,
+        upd_by = request.user,
+        change_type = 'Extend',
+        comment = validated_data['comment']
+    )
 
     return spec
 

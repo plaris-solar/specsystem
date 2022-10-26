@@ -7,13 +7,13 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from ..services import jira
-from ..services.spec_route import specReject, specSign, specSubmit
+from ..services.spec_route import specExtend, specReject, specSign, specSubmit
 from ..services.spec_create import specCreate, specRevise
 from ..services.spec_update import specFileUpload, specUpdate
 from utils.dev_utils import formatError
 
 from ..models import Spec, SpecFile
-from ..serializers.specSerializers import FilePostSerializer, SpecPostSerializer, SpecRejectSerializer, SpecReviseSerializer, SpecSerializer, SpecSignSerializer
+from ..serializers.specSerializers import FilePostSerializer, SpecExtendSerializer, SpecPostSerializer, SpecRejectSerializer, SpecReviseSerializer, SpecSerializer, SpecSignSerializer
 
 class SpecList(GenericAPIView):
     """ 
@@ -45,6 +45,8 @@ class SpecList(GenericAPIView):
             queryset = self.queryset
             queryset = queryset.filter(num = request.GET.get('num')) if request.GET.get('num') else queryset
             queryset = queryset.filter(title__contains = request.GET.get('title')) if request.GET.get('title') else queryset
+            queryset = queryset.filter(doc_type__name__contains = request.GET.get('doc_type')) if request.GET.get('doc_type') else queryset
+            queryset = queryset.filter(department__name__contains = request.GET.get('department')) if request.GET.get('department') else queryset
             queryset = queryset.filter(keywords__contains = request.GET.get('keywords')) if request.GET.get('keywords') else queryset
             queryset = queryset.filter(state__contains = request.GET.get('state')) if request.GET.get('state') else queryset
             queryset = queryset.filter(created_by__username = request.GET.get('created_by')) if request.GET.get('created_by') else queryset
@@ -284,4 +286,30 @@ class SpecReject(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-SV18")
+
+
+
+class SpecExtend(APIView):
+    """
+    post:
+    extend/<num>/<ver>
+    Extend spec sunset date
+
+    {
+        "comment": "No changes required. Still in use."
+    }
+    """
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    def post(self, request, num, ver, format=None):
+        try:
+            with transaction.atomic():
+                spec = Spec.lookup(num, ver, request.user)
+                serializer = SpecExtendSerializer(data=request.data)
+                if not serializer.is_valid():
+                    raise ValidationError({"errorCode":"SPEC-SV17", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                spec = specExtend(request, spec, serializer.validated_data)
+            serializer = SpecSerializer(spec, context={'user':request.user})
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except BaseException as be: # pragma: no cover
+            formatError(be, "SPEC-SV19")
 

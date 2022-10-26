@@ -11,6 +11,8 @@
                 :options="[{label:'True',value:true}, {label:'False',value:false}]"
                 data-cy="confidential-create-doctype"/>
             <q-input label="Jira Template" v-model.trim="jira_temp"  data-cy="jira_temp-create-ApprovalMatrix"/>
+            <q-input label="Sunset Interval (duration)" v-model.trim="sunset_interval"  data-cy="sunset_interval-create-ApprovalMatrix"/>
+            <q-input label="Sunset Warning (duration before sunset)" v-model.trim="sunset_warn"  data-cy="sunset_warn-create-ApprovalMatrix"/>
         </q-card-section>
 
         <q-card-actions class="bg-white text-teal" align="center">
@@ -42,6 +44,8 @@ export default {
     const descr = ref('')
     const doctype = ref('')
     const jira_temp = ref('')
+    const sunset_interval = ref('')
+    const sunset_warn = ref('')
 
     async function saveDoctype(){
         const body = {
@@ -49,6 +53,8 @@ export default {
             descr: descr.value,
             confidential: confidential.value.value,
             jira_temp: jira_temp.value,
+            sunset_interval: sunset_interval.value,
+            sunset_warn: sunset_warn.value,
         }
 
         if (props.createMode) {
@@ -71,6 +77,8 @@ export default {
             descr.value = props.doctypeRow['descr']
             if (props.doctypeRow['confidential']) {confidential.value = {label:'True',value:true}} else {confidential.value={label:'False',value:false}}
             jira_temp.value = props.doctypeRow['jira_temp']
+            sunset_interval.value = props.doctypeRow['sunset_interval']
+            sunset_warn.value = props.doctypeRow['sunset_warn']
         }
     })
 </script>

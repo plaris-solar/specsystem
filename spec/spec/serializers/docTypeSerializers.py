@@ -6,7 +6,7 @@ from ..models import DocType
 class DocTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocType
-        fields = ('name', 'descr', 'confidential', 'jira_temp', )
+        fields = ('name', 'descr', 'confidential', 'jira_temp', 'sunset_interval', 'sunset_warn', )
 
     def to_representation(self, value):
         data = super(DocTypeSerializer, self).to_representation(value)
@@ -20,5 +20,5 @@ class DocTypeSerializer(serializers.ModelSerializer):
 class DocTypePutSerializer(serializers.ModelSerializer):
     class Meta:
         model = DocType
-        fields = ('descr', 'confidential', 'jira_temp', )
+        fields = ('descr', 'confidential', 'jira_temp', 'sunset_interval', 'sunset_warn',  )
 

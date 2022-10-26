@@ -39,7 +39,7 @@ class SpecSerializer(serializers.ModelSerializer):
     class Meta:
         model = Spec
         fields = ('num', 'ver', 'title', 'doc_type', 'department', 'keywords', 'state', 'created_by', 
-            'create_dt', 'mod_ts', 'jira', 'anon_access', 'reason', )
+            'create_dt', 'mod_ts', 'jira', 'anon_access', 'reason', 'approved_dt', 'sunset_extended_dt', )
 
     def to_representation(self, value):
         data = super(SpecSerializer, self).to_representation(value)
@@ -65,6 +65,16 @@ class SpecSerializer(serializers.ModelSerializer):
         if value.jira is not None and len(value.jira) > 0 \
             and settings.JIRA_URI is not None and len(settings.JIRA_URI) > 0:
             data['jira_url'] = f'{settings.JIRA_URI}/browse/{value.jira}'
+        
+        # determine sunset date, if any
+        if value.doc_type.sunset_interval:
+            if value.approved_dt:
+                data['sunset_dt'] = value.approved_dt + value.doc_type.sunset_interval
+            if value.sunset_extended_dt:
+                data['sunset_dt'] = value.sunset_extended_dt + value.doc_type.sunset_interval
+
+            if value.doc_type.sunset_warn and 'sunset_dt' in data:
+                data['sunset_warn_dt'] = data['sunset_dt'] - value.doc_type.sunset_warn
 
         return data
         
@@ -97,6 +107,9 @@ class FilePostSerializer(serializers.Serializer):
 class SpecSignSerializer(serializers.Serializer):
     role = serializers.CharField()
     signer = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
+
+class SpecExtendSerializer(serializers.Serializer):
+    comment = serializers.CharField()
 
 class SpecRejectSerializer(serializers.Serializer):
     comment = serializers.CharField()

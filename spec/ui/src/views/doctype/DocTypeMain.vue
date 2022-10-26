@@ -269,6 +269,8 @@ export default {
             { name: 'descr', align: 'center', label: 'Description', field: 'descr', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'confidential', align: 'center', label: 'Confidential', field: 'confidential', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
             { name: 'jira_temp', align: 'center', label: 'Jira Template', field: 'jira_temp', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: true},
+            { name: 'sunset_interval', align: 'center', label: 'Sunset Interval', field: 'jira_temp', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
+            { name: 'sunset_warn', align: 'center', label: 'Sunset Warning', field: 'jira_temp', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
         ]
 </script>
 
