@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.http import FileResponse
+from django.shortcuts import render
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import status
 from rest_framework.decorators import APIView
@@ -184,12 +185,15 @@ class SpecFileDetail(APIView):
 
     def get(self, request, num, ver="*", fileName=None, format=None):
         try:
-            specFile = SpecFile.lookup(num, ver, fileName, request.user)
+            specFile = SpecFile.lookup(num, ver, fileName, request)
             osFileName = specFile.file.path
             response = FileResponse(open(osFileName, 'rb'), filename=specFile.filename)
             return response
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-SV10")
+            try:
+                formatError(be, "SPEC-SV10")
+            except ValidationError as exc:
+                return render(request, 'file_error_page.html', exc.detail, status=400)
 
     def post(self, request, num, ver, format=None):
         try:
@@ -306,10 +310,39 @@ class SpecExtend(APIView):
                 spec = Spec.lookup(num, ver, request.user)
                 serializer = SpecExtendSerializer(data=request.data)
                 if not serializer.is_valid():
-                    raise ValidationError({"errorCode":"SPEC-SV17", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                    raise ValidationError({"errorCode":"SPEC-SV19", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 spec = specExtend(request, spec, serializer.validated_data)
             serializer = SpecSerializer(spec, context={'user':request.user})
             return Response(serializer.data, status=status.HTTP_200_OK)
         except BaseException as be: # pragma: no cover
-            formatError(be, "SPEC-SV19")
+            formatError(be, "SPEC-SV20")
 
+class SunsetList(APIView):
+    """ 
+    get:
+    sunset/
+    Return list of specs approaching sunset date (doc_type has sunset defined and spec is past the warn threshold)
+    """
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    def get(self, request, num=None, format=None):
+        try:
+            queryset = Spec.objects.raw("""
+                select top 1000 s.*
+                from (
+                    select s.*,
+                        (
+                            select max(updDate) from (values (s.approved_dt),(s.sunset_extended_dt)) as updDate(updDate)
+                        ) sunset_base_dt
+                    from spec s
+                    where s.state = 'Active'
+                ) s
+                inner join doc_type dt on s.doc_type_id = dt.name and dt.sunset_interval is not null and dt.sunset_warn is not null
+                where dateadd(second, -(dt.sunset_warn/1000000), 
+                        dateadd(second, dt.sunset_interval/1000000, sunset_base_dt ) ) < GETUTCDATE()
+                order by dateadd(second, dt.sunset_interval/1000000, sunset_base_dt )
+            """)
+            
+            serializer = SpecSerializer(queryset, many=True, context={'user':request.user})
+            return Response(serializer.data)
+        except BaseException as be: # pragma: no cover
+            formatError(be, "SPEC-SV21")

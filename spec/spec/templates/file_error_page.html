@@ -1,0 +1,12 @@
+{% block content %}
+<h1>File Not Found</h1>
+<h2><a href="{% url 'home' %}">Spec System</a></h2>
+
+Error Code: {{ errorCode }}
+<br/>
+Error Message: {{ error }}
+<br/>
+<br/>
+Stack Trace: <code>{{ traceBack }}</code>
+
+{% endblock %}

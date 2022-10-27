@@ -4,7 +4,13 @@
       <q-toolbar>
         <q-btn-dropdown flat round dense icon="menu" class="q-mr-sm">
           <q-list>
-            <q-item clickable data-cy="app-role-btn">
+            <q-item clickable data-cy="app-sunset-btn">
+              <q-item-selection @click="router.push('/ui-sunset/')">Sunset List</q-item-selection>
+            </q-item>
+             <q-item clickable data-cy="app-doctype-btn">
+              <q-item-selection @click="router.push('/ui-doctype/')">Document Types</q-item-selection>
+            </q-item>
+             <q-item clickable data-cy="app-role-btn">
               <q-item-selection @click="router.push('/ui-role/')">Roles</q-item-selection>
             </q-item>
             <q-item clickable data-cy="app-dept-btn">
@@ -13,10 +19,7 @@
             <q-item clickable data-cy="app-apvl-mt-btn">
               <q-item-selection @click="router.push('/ui-apvl-mt/')">Approval Matrix</q-item-selection>
             </q-item>
-            <q-item clickable data-cy="app-doctype-btn">
-              <q-item-selection @click="router.push('/ui-doctype/')">Document Types</q-item-selection>
-            </q-item>
-            <q-item clickable v-show="isAdmin" data-cy="app-token-btn">
+           <q-item clickable v-show="isAdmin" data-cy="app-token-btn">
               <q-item-selection @click="router.push('/ui-token/')">API Tokens</q-item-selection>
             </q-item>            
           </q-list>

@@ -73,8 +73,8 @@
                                     {{props.row['num']}}/{{props.row['ver']}}
                                 </router-link>
                                 &nbsp;
-                                <q-btn v-if="props.row['state']!=='Draft'" round color="primary" 
-                                        :href="apiServerHost+'/file/'+props.row['num']+'/'+props.row['ver']"
+                                <q-btn v-if="props.row['state']==='Active'" round color="primary" 
+                                        :href="apiServerHost+'/file/'+props.row['num']+'/'+props.row['ver']+'?state='+props.row['state']"
                                         target="_blank"
                                         icon="description" size="xs"
                                         data-cy="open-file">

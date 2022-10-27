@@ -281,7 +281,7 @@
                             </q-btn>
                         </q-td>
                         <q-td>
-                            <a :href="apiServerHost+'/file/'+props.num+'/'+props.ver+'/'+tprops.row['filename']" data-cy="spec-detail-file-filename"
+                            <a :href="apiServerHost+'/file/'+props.num+'/'+props.ver+'/'+tprops.row['filename']+'?state='+state" data-cy="spec-detail-file-filename"
                                 target="_blank">
                                 {{tprops.row['filename']}}
                             </a>
@@ -594,6 +594,8 @@ export default {
     async function loadOtherVersions() {
         let res = await retrieveData(`spec/${props.num}?incl_obsolete=true`);
         version_list.value = res['results']
+        /* Put the most recent at the top of the list */
+        version_list.value.sort((a,b) => {return -1*a.create_dt.localeCompare(b.create_dt)})
     }
 
     async function loadSpec() {

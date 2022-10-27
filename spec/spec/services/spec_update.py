@@ -13,6 +13,9 @@ def specUpdate(request, spec, validated_data):
         if not validated_data['comment'] or len(validated_data['comment']) == 0:
             raise ValidationError({"errorCode":"SPEC-U53", "error": "State changes updates require a comment."})
         spec.state = validated_data['state']
+
+        if spec.state == 'Active' and spec.approved_dt is None:
+            spec.approved_dt = request._req_dt
     
     # Only superusers can set the anon_access.
     if request.user.is_superuser:

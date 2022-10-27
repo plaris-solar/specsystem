@@ -2,6 +2,7 @@ import re
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.db import models
+from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 class UserDelegate(models.Model):
@@ -214,7 +215,28 @@ class Spec(models.Model):
             try:
                 spec = Spec.objects.get(num=num, state="Active")
             except Spec.DoesNotExist:
-                raise ValidationError({"errorCode":"SPEC-M06", "error": f"No actve version of Spec ({num})."})           
+                raise ValidationError({"errorCode":"SPEC-M06", "error": f"No actve version of Spec ({num})."})    
+        
+        # Check if the sunset date has passed and Obsolete the spec, if it has.
+        if spec.state == 'Active' and spec.doc_type.sunset_interval:
+            overdue = False
+            if spec.sunset_extended_dt and (spec.sunset_extended_dt + spec.doc_type.sunset_interval) < timezone.now():
+                overdue = True
+            if (spec.approved_dt + spec.doc_type.sunset_interval) < timezone.now():
+                overdue = True
+            if overdue:
+                spec.state = 'Obsolete'
+                spec.save()
+                SpecHist.objects.create(
+                    spec=spec,
+                    mod_ts = timezone.now(),
+                    upd_by = user,
+                    change_type = 'Sunset',
+                    comment = 'Spec has passed its sunset date and has been obsoleted by the system.'
+                )
+                if ver == '*':
+                    raise ValidationError({"errorCode":"SPEC-M10", "error": f"No actve version of Spec ({num})."})    
+
         if not spec.anon_access and not user.is_authenticated:
             raise ValidationError({"errorCode":"SPEC-M08", "error": f"spec {spec.num}-{spec.ver} cannot read without logging in."})
         if spec.doc_type.confidential:
@@ -260,8 +282,13 @@ class SpecFile(models.Model):
         unique_together = (('spec', 'filename'),)        
 
     @staticmethod
-    def lookup(num, ver, fileName, user):
-        spec = Spec.lookup(num, ver, user)
+    def lookup(num, ver, fileName, request):
+        spec = Spec.lookup(num, ver, request.user)
+
+        state = request.GET.get('state') if request.GET.get('state') else 'Active'
+        if state != spec.state:
+            raise ValidationError({"errorCode":"SPEC-M11", "error": f"Spec ({num}/{ver}) is {spec.state}, not in {state} state."})
+       
         if fileName is None:
             fileName = "*"
             specFile = spec.files.order_by('seq').first()

@@ -330,20 +330,19 @@ class SpecTest(SpecTestCase):
         self.assertEqual(response.status_code, 204)
 
         # Error: get deleted file
-        response = self.get_request(f'/file/{spec_ids[0]}/A/torch.jpg', auth_lvl='USER')
+        response = self.get_request(f'/file/{spec_ids[0]}/A/torch.jpg?state=Draft', auth_lvl='USER')
         self.assertEqual(response.status_code, 400)
-        resp = json.loads(response.content)
-        self.assertEqual(resp['error'],  f"File torch.jpg is not attached to spec ({spec_ids[0]}/A).")
+        self.assertIn(f"File torch.jpg is not attached to spec ({spec_ids[0]}/A).", response.content.decode())
 
         # Get first file on spec
-        response = self.get_request(f'/file/{spec_ids[0]}/A', auth_lvl='USER')
+        response = self.get_request(f'/file/{spec_ids[0]}/A?state=Draft', auth_lvl='USER')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.filename,  'Text1.docx')
 
         # Get file by name
         with open('spec/tests/test_files/file_one.txt', 'rb') as fp:
             file_content = fp.read()
-        response = self.get_request(f'/file/{spec_ids[0]}/A/file_one.txt', auth_lvl='USER')
+        response = self.get_request(f'/file/{spec_ids[0]}/A/file_one.txt?state=Draft', auth_lvl='USER')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.filename,  'file_one.txt')
         stream = b''.join(response.streaming_content)

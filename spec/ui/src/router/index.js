@@ -5,6 +5,7 @@ import DocTypePage from "@/views/doctype/DocTypeMain.vue"
 import RolePage from "@/views/role/RoleMain.vue"
 import SpecDetailPage from "@/views/spec/SpecDetail.vue"
 import SpecPage from "@/views/spec/SpecMain.vue"
+import SunsetList from "@/views/spec/SunsetList.vue"
 import TokenPage from "@/views/token/TokenMain.vue"
 import UserDetailPage from "@/views/user/UserDetail.vue"
 
@@ -19,9 +20,9 @@ const routes = [
     component: ApprovalMatrixPage
   },
   {
-    path: '/ui-token',
-    name: 'Token',
-    component: TokenPage
+    path: '/ui-dept',
+    name: 'Department',
+    component: DepartmentPage
   },
   {
     path: '/ui-doctype',
@@ -34,11 +35,6 @@ const routes = [
     component: RolePage
   },
   {
-    path: '/ui-dept',
-    name: 'Department',
-    component: DepartmentPage
-  },
-  {
     path: '/ui-spec',
     name: 'Spec',
     component: SpecPage
@@ -48,6 +44,16 @@ const routes = [
     name: 'Spec Detail',
     component: SpecDetailPage,
     props: true,
+  },
+  {
+    path: '/ui-sunset',
+    name: 'Sunset List',
+    component: SunsetList,
+  },
+  {
+    path: '/ui-token',
+    name: 'Token',
+    component: TokenPage
   },
   {
     path: '/ui-user/:username',
