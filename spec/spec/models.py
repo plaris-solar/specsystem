@@ -198,11 +198,11 @@ class Spec(models.Model):
     def __str__(self):
         return f'{self.num}-{self.ver} {self.state}: {self.title}'
 
-    def checkEditable(self, user):
-        if self.state == 'Draft':
-            return
+    def checkEditable(self, user):    
+        if self.state != "Draft" and not user.is_superuser:
+            raise ValidationError({"errorCode":"SPEC-M07", "error": f"Spec is not in Draft state, it cannot be edited."})
 
-        raise ValidationError({"errorCode":"SPEC-M07", "error": f"Spec is not in Draft state, it cannot be edited."})
+        return
     
     def checkSunset(self):
         """If Active spec is past sunset date, set to Obsolete"""
@@ -241,7 +241,7 @@ class Spec(models.Model):
             except Spec.DoesNotExist:
                 raise ValidationError({"errorCode":"SPEC-M06", "error": f"No actve version of Spec ({num})."})    
 
-        if not spec.anon_access and not user.is_authenticated:
+        if not user.is_authenticated and ( not spec.anon_access or spec.state != "Active"):
             raise ValidationError({"errorCode":"SPEC-M08", "error": f"spec {spec.num}-{spec.ver} cannot read without logging in."})
         if spec.doc_type.confidential:
             if not spec.department.isReader(user):

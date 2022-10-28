@@ -3,6 +3,7 @@ from .spec_create import specSetReqSigs, specSigCreate
 from ..models import Department, DocType, Role, SpecFile, SpecHist, SpecReference
 
 def specUpdate(request, spec, validated_data):
+    spec.checkEditable(request.user)
     # Check that user can't save when not in draft state
     if spec.state != "Draft" and not request.user.is_superuser:
         raise ValidationError({"errorCode":"SPEC-U51", "error": "Spec is not in Draft state. Cannot update."})
@@ -56,6 +57,14 @@ def specUpdate(request, spec, validated_data):
         spec.files.filter(filename=file_data['filename']).update(seq=seq)
         spec.files.filter(filename=file_data['filename']).update(incl_pdf=file_data['incl_pdf'])
 
+    if spec.state != 'Draft':
+        SpecHist.objects.create(
+            spec=spec,
+            mod_ts = request._req_dt,
+            upd_by = request.user,
+            change_type = 'Admin Update',
+            comment = f'Admin update made while spec in state: {spec.state}'
+        )
     if validated_data['comment'] and len(validated_data['comment']) > 0:
         SpecHist.objects.create(
             spec=spec,

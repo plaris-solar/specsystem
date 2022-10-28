@@ -13,7 +13,7 @@ from ..services.spec_create import specCreate, specRevise
 from ..services.spec_update import specFileUpload, specUpdate
 from utils.dev_utils import formatError
 
-from ..models import Spec, SpecFile
+from ..models import Spec, SpecFile, SpecHist
 from ..serializers.specSerializers import FilePostSerializer, SpecExtendSerializer, SpecPostSerializer, SpecRejectSerializer, SpecReviseSerializer, SpecSerializer, SpecSignSerializer
 
 class SpecList(GenericAPIView):
@@ -152,7 +152,8 @@ class SpecDetail(APIView):
         try:
             with transaction.atomic():
                 spec = Spec.lookup(num, ver, request.user)
-                spec.checkEditable(request.user)
+                if spec.state != 'Draft':
+                    raise ValidationError({"errorCode":"SPEC-SV22", "error": "Spec is not in Draft state. Cannot delete."})
                 jira.delete(spec)
                 spec.delete()
             return Response(status=status.HTTP_204_NO_CONTENT) 
@@ -204,6 +205,14 @@ class SpecFileDetail(APIView):
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-SV11", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 spec = specFileUpload(request, spec, serializer.validated_data)
+                if spec.state != 'Draft':
+                    SpecHist.objects.create(
+                        spec=spec,
+                        mod_ts = request._req_dt,
+                        upd_by = request.user,
+                        change_type = 'Admin Update',
+                        comment = f'File {serializer.validated_data["file"].name} added while spec in state: {spec.state}'
+                    )
             serializer = SpecSerializer(spec, context={'user':request.user})
             return Response(serializer.data, status=status.HTTP_200_OK)
         except BaseException as be: # pragma: no cover
@@ -215,6 +224,14 @@ class SpecFileDetail(APIView):
                 spec = Spec.lookup(num, ver, request.user)
                 spec.checkEditable(request.user)
                 SpecFile.objects.filter(spec=spec, filename=fileName).delete()
+                if spec.state != 'Draft':
+                    SpecHist.objects.create(
+                        spec=spec,
+                        mod_ts = request._req_dt,
+                        upd_by = request.user,
+                        change_type = 'Admin Update',
+                        comment = f'File {fileName} deleted while spec in state: {spec.state}'
+                    )
             return Response(status=status.HTTP_204_NO_CONTENT) 
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-SV13")
