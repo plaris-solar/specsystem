@@ -70,11 +70,12 @@
         :key="route.fullPath"
       >
       </router-view>
+
+      <q-dialog v-model="login">
+        <login-popup-page @close="login=false;router.push('/ui-spec/')"/>
+      </q-dialog >
     </q-page-container>
 
-    <q-dialog v-model="login">
-      <login-popup-page @close="login=false;router.push('/ui-spec/')"/>
-    </q-dialog >
   </q-layout>
 </template>
 
