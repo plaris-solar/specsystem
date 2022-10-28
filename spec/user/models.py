@@ -14,3 +14,15 @@ class User(DjangoUser):
         if not user.is_active:
             raise ValidationError({"errorCode":"USER-M02", "error": f"User: {username} is not an active account."})
         return user
+
+    @staticmethod
+    def getSystemUser():
+        """Return the system_user. If not present, make one and return it."""
+        SYS_USERNAME='system_user'
+        user = DjangoUser.objects.filter(username=SYS_USERNAME).first()
+        if not user:
+            user = DjangoUser.objects.create_user(
+                username=SYS_USERNAME,
+                password='xx'
+            )
+        return user

@@ -1,13 +1,14 @@
 import re
 from django.conf import settings
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User as DjangoUser
 from django.db import models
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
+from user.models import User as SpecUser
 
 class UserDelegate(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='delegates')
-    delegate = models.ForeignKey(User, on_delete=models.CASCADE, related_name='delegates_for')
+    user = models.ForeignKey(DjangoUser, on_delete=models.CASCADE, related_name='delegates')
+    delegate = models.ForeignKey(DjangoUser, on_delete=models.CASCADE, related_name='delegates_for')
 
     class Meta:
         managed = True
@@ -17,7 +18,7 @@ class UserDelegate(models.Model):
         return self.delegate.username
 
 class UserWatch(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='watches')
+    user = models.ForeignKey(DjangoUser, on_delete=models.CASCADE, related_name='watches')
     num = models.IntegerField()
 
     class Meta:
@@ -72,7 +73,7 @@ class Role(models.Model):
 
 class RoleUser(models.Model):
     role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='users')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='+')
+    user = models.ForeignKey(DjangoUser, on_delete=models.CASCADE, related_name='+')
 
     class Meta:
         managed = True
@@ -180,7 +181,7 @@ class Spec(models.Model):
     department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name='+')
     keywords = models.CharField(max_length=4000, blank=True, null=True)
     state = models.CharField(max_length=50)
-    created_by = models.ForeignKey(User, on_delete=models.PROTECT, related_name='+')
+    created_by = models.ForeignKey(DjangoUser, on_delete=models.PROTECT, related_name='+')
     create_dt = models.DateTimeField()
     mod_ts = models.DateTimeField()
     jira = models.CharField(max_length=50, blank=True, null=True)
@@ -202,40 +203,43 @@ class Spec(models.Model):
             return
 
         raise ValidationError({"errorCode":"SPEC-M07", "error": f"Spec is not in Draft state, it cannot be edited."})
-        
+    
+    def checkSunset(self):
+        """If Active spec is past sunset date, set to Obsolete"""
+        if self.state == 'Active' and self.doc_type.sunset_interval:
+            overdue = False
+            if self.sunset_extended_dt:
+                if (self.sunset_extended_dt + self.doc_type.sunset_interval) < timezone.now():
+                    overdue = True
+            elif self.approved_dt and (self.approved_dt + self.doc_type.sunset_interval) < timezone.now():
+                overdue = True
+            if overdue:
+                self.state = 'Obsolete'
+                self.save()
+                SpecHist.objects.create(
+                    spec=self,
+                    mod_ts = timezone.now(),
+                    upd_by = SpecUser.getSystemUser(),
+                    change_type = 'Sunset',
+                    comment = 'Spec has passed its sunset date and has been obsoleted by the system.'
+                )
 
     @staticmethod
     def lookup(num, ver, user):
         if ver != "*":
             try:
                 spec = Spec.objects.get(num=num, ver=ver)
+                spec.checkSunset()
             except Spec.DoesNotExist:
                 raise ValidationError({"errorCode":"SPEC-M04", "error": f"Spec ({num}/{ver}) does not exist."})
         else:
             try:
                 spec = Spec.objects.get(num=num, state="Active")
+                spec.checkSunset()
+                if spec.state != 'Active':
+                    raise Spec.DoesNotExist()
             except Spec.DoesNotExist:
                 raise ValidationError({"errorCode":"SPEC-M06", "error": f"No actve version of Spec ({num})."})    
-        
-        # Check if the sunset date has passed and Obsolete the spec, if it has.
-        if spec.state == 'Active' and spec.doc_type.sunset_interval:
-            overdue = False
-            if spec.sunset_extended_dt and (spec.sunset_extended_dt + spec.doc_type.sunset_interval) < timezone.now():
-                overdue = True
-            if (spec.approved_dt + spec.doc_type.sunset_interval) < timezone.now():
-                overdue = True
-            if overdue:
-                spec.state = 'Obsolete'
-                spec.save()
-                SpecHist.objects.create(
-                    spec=spec,
-                    mod_ts = timezone.now(),
-                    upd_by = user,
-                    change_type = 'Sunset',
-                    comment = 'Spec has passed its sunset date and has been obsoleted by the system.'
-                )
-                if ver == '*':
-                    raise ValidationError({"errorCode":"SPEC-M10", "error": f"No actve version of Spec ({num})."})    
 
         if not spec.anon_access and not user.is_authenticated:
             raise ValidationError({"errorCode":"SPEC-M08", "error": f"spec {spec.num}-{spec.ver} cannot read without logging in."})

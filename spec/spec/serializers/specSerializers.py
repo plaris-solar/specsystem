@@ -42,6 +42,7 @@ class SpecSerializer(serializers.ModelSerializer):
             'create_dt', 'mod_ts', 'jira', 'anon_access', 'reason', 'approved_dt', 'sunset_extended_dt', )
 
     def to_representation(self, value):
+        value.checkSunset()
         data = super(SpecSerializer, self).to_representation(value)
         # Sort the related fields
         sigs = value.sigs.order_by('-from_am', 'role', ).all()
