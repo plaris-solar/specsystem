@@ -4,23 +4,23 @@
       <q-toolbar>
         <q-btn-dropdown flat round dense icon="menu" class="q-mr-sm">
           <q-list>
-            <q-item clickable data-cy="app-sunset-btn">
-              <q-item-selection @click="router.push('/ui-sunset/')">Sunset List</q-item-selection>
+            <q-item clickable @click="router.push('/ui-sunset/')" data-cy="app-sunset-btn">
+              Sunset List
             </q-item>
-             <q-item clickable data-cy="app-doctype-btn">
-              <q-item-selection @click="router.push('/ui-doctype/')">Document Types</q-item-selection>
+            <q-item clickable @click="router.push('/ui-doctype/')" data-cy="app-doctype-btn">
+              Document Types
             </q-item>
-             <q-item clickable data-cy="app-role-btn">
-              <q-item-selection @click="router.push('/ui-role/')">Roles</q-item-selection>
+            <q-item clickable @click="router.push('/ui-role/')" data-cy="app-role-btn">
+              Roles
             </q-item>
-            <q-item clickable data-cy="app-dept-btn">
-              <q-item-selection @click="router.push('/ui-dept/')">Departments</q-item-selection>
+            <q-item clickable @click="router.push('/ui-dept/')" data-cy="app-dept-btn">
+              Departments
             </q-item>
-            <q-item clickable data-cy="app-apvl-mt-btn">
-              <q-item-selection @click="router.push('/ui-apvl-mt/')">Approval Matrix</q-item-selection>
+            <q-item clickable @click="router.push('/ui-apvl-mt/')" data-cy="app-apvl-mt-btn">
+              Approval Matrix
             </q-item>
-           <q-item clickable v-show="isAdmin" data-cy="app-token-btn">
-              <q-item-selection @click="router.push('/ui-token/')">API Tokens</q-item-selection>
+           <q-item clickable v-show="isAdmin" @click="router.push('/ui-token/')" data-cy="app-token-btn">
+              API Tokens
             </q-item>            
           </q-list>
         </q-btn-dropdown>
