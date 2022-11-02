@@ -25,7 +25,7 @@
                 </template>
                 <template v-slot:top-right>
                     <q-btn color="primary" 
-                        v-show="isAdmin && isAuthenticated"
+                        v-show="isAuthenticated"
                         @click="add_spec = true"
                         label="Add Spec"
                         icon-right="add"
@@ -147,7 +147,6 @@ export default {
     const num_pages = ref()
 
     const isAuthenticated = ref(computed(() => store.getters.authenticated))
-    const isAdmin = ref(computed(() => store.getters.isAdmin))
     const username = ref(computed(() => store.getters.username))
 
     const props = defineProps({
