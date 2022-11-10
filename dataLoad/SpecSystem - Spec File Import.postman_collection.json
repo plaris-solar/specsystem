@@ -1,0 +1,103 @@
+{
+	"info": {
+		"_postman_id": "1a2bd2b8-d768-427d-a521-0e37ce41c5b7",
+		"name": "SpecSystem - Spec File Import",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Post Spec File",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"File added to spec.\", () => {\r",
+							"    if(responseCode.code != 200) { \r",
+							"        var jsonData = JSON.parse(responseBody);\r",
+							"        tests[\"TEST FAILED - \"+pm.iterationData.get(\"ID\")+\"_\"+pm.iterationData.get(\"Revision\")+\" \"+pm.iterationData.get(\"file\")+\" \"+jsonData[\"errorCode\"]+\": \"+jsonData[\"error\"]] = responseCode.code === 200;\r",
+							"    }\r",
+							"    //pm.response.to.have.status(200);\r",
+							"})\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "file",
+							"type": "file",
+							"src": "{{file}}"
+						}
+					],
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/file/{{ID}}/{{Revision}}",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"file",
+						"{{ID}}",
+						"{{Revision}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "value",
+				"value": "token {{auth_token}}",
+				"type": "string"
+			},
+			{
+				"key": "key",
+				"value": "Authorization",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "References",
+			"value": ""
+		}
+	]
+}

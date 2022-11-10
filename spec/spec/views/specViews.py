@@ -7,14 +7,68 @@ from rest_framework.decorators import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
+
+from proj.util import IsSuperUserOrReadOnly
 from ..services import jira
 from ..services.spec_route import specExtend, specReject, specSign, specSubmit
-from ..services.spec_create import specCreate, specRevise
+from ..services.spec_create import specCreate, specImport, specRevise
 from ..services.spec_update import specFileUpload, specUpdate
 from utils.dev_utils import formatError
 
 from ..models import Spec, SpecFile, SpecHist
-from ..serializers.specSerializers import FilePostSerializer, SpecExtendSerializer, SpecPostSerializer, SpecRejectSerializer, SpecReviseSerializer, SpecSerializer, SpecSignSerializer
+from ..serializers.specSerializers import FilePostSerializer, ImportSpecSerializer, SpecExtendSerializer, SpecPostSerializer, SpecRejectSerializer, SpecReviseSerializer, SpecSerializer, SpecSignSerializer
+
+
+class HelpFile(APIView):
+    """
+    get:
+    file/<doc>
+    Return specific file (user, admin, design)
+    """
+    def get(self, request, doc, format=None):
+        try:
+            if doc.lower() == 'user':
+                osFileName = 'specFile.file.path'
+                filename = 'name.pdf'
+            response = FileResponse(open(osFileName, 'rb'), filename=filename)
+            return response
+        except BaseException as be: # pragma: no cover
+            try:
+                formatError(be, "SPEC-SV10")
+            except ValidationError as exc:
+                return render(request, 'file_error_page.html', exc.detail, status=400)
+
+class ImportSpec(GenericAPIView):
+    """ 
+    post:
+    Used for initial import of specs to specified state with specified dates
+
+    {
+        "num": {{id}},
+        "ver": "{{Revision}}",
+        "state": "{{State}}",
+        "title": "{{Document Name}}",
+        "keywords": "",
+        "doc_type": "{{Document Type}}",
+        "department": "{{Department}}",
+        "reason": "{{Document Subject}}",
+        "create_dt": "{{Creation Date}}",
+        "approved_dt": "{{Date Released}}",
+        "comment": "Owner: {{Owner}}\nDescription: {{Description}}\nReferences: {{Refereneces}}"
+    }
+    """
+    permission_classes = [IsSuperUserOrReadOnly]
+    def post(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                serializer = ImportSpecSerializer(data=request.data)
+                if not serializer.is_valid():
+                    raise ValidationError({"errorCode":"SPEC-SV23", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                spec = specImport(request, serializer.validated_data)
+            serializer = SpecSerializer(spec, context={'user':request.user})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except BaseException as be: # pragma: no cover
+            formatError(be, "SPEC-SV24")
 
 class SpecList(GenericAPIView):
     """ 

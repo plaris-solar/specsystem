@@ -33,7 +33,6 @@
           </q-btn>          
         </q-toolbar-title>
 
-
         <div>
           <q-btn  label="Specs"
                   @click="router.push('/ui-spec/')"
@@ -61,6 +60,32 @@
                   flat icon="logout"
                   data-cy="app-logout-btn">
           </q-btn>
+        </div>
+        <div>
+          <q-btn-dropdown label="Help" flat icon="help_outline" data-cy="app-help-btn">
+            <q-list>
+              <q-item clickable 
+                href="/static/HighLevelDesign.pdf" target="_blank"
+                data-cy="app-sunset-btn">
+                Sunset List
+              </q-item>
+              <q-item clickable @click="router.push('/ui-doctype/')" data-cy="app-doctype-btn">
+                Document Types
+              </q-item>
+              <q-item clickable @click="router.push('/ui-role/')" data-cy="app-role-btn">
+                Roles
+              </q-item>
+              <q-item clickable @click="router.push('/ui-dept/')" data-cy="app-dept-btn">
+                Departments
+              </q-item>
+              <q-item clickable @click="router.push('/ui-apvl-mt/')" data-cy="app-apvl-mt-btn">
+                Approval Matrix
+              </q-item>
+            <q-item clickable v-show="isAdmin" @click="router.push('/ui-token/')" data-cy="app-token-btn">
+                API Tokens
+              </q-item>            
+            </q-list>
+          </q-btn-dropdown>
         </div>
       </q-toolbar>
     </q-header>

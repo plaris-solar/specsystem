@@ -4,6 +4,21 @@ from rest_framework import serializers
 from ..models import Spec, SpecFile, SpecHist, SpecReference, SpecSig
 
 
+class ImportSpecSerializer(serializers.Serializer):
+    num = serializers.IntegerField()
+    ver = serializers.CharField()
+    state = serializers.CharField()
+    title = serializers.CharField()
+    doc_type = serializers.CharField()
+    department = serializers.CharField()
+    keywords = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
+    reason = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
+    jira = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
+    create_dt = serializers.DateTimeField()
+    approved_dt = serializers.DateTimeField()
+    mod_ts = serializers.DateTimeField()
+    comment = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
+
 class SpecSigSerializer(serializers.ModelSerializer):
     spec_one = serializers.BooleanField(source='role.spec_one')
     class Meta:

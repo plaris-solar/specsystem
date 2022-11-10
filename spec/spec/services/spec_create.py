@@ -5,9 +5,47 @@ from django.core.mail import EmailMessage
 from rest_framework.exceptions import ValidationError
 from spec.services.revletter import get_next_version
 from user.models import User
-from ..models import ApprovalMatrix, Department, DocType, Role, Spec, SpecSig, SpecFile, SpecReference, UserWatch
+from ..models import ApprovalMatrix, Department, DocType, Role, Spec, SpecHist, SpecSig, SpecFile, SpecReference, UserWatch
 from . import jira
 
+
+def specImport(request, validated_data):
+    """Used for initial import of specs to specified state with specified dates"""
+    comment = validated_data.pop("comment")
+
+    validated_data['doc_type'] = DocType.lookupOrCreate(validated_data['doc_type'])
+    validated_data['department'] = Department.lookupOrCreate(validated_data['department'])
+
+    validated_data['created_by'] = request.user
+
+    spec = Spec.objects.filter(num = validated_data['num'], ver = validated_data['ver']).first()
+    if spec:
+        spec.state = validated_data['state']
+        spec.title = validated_data['title']
+        spec.doc_type = validated_data['doc_type']
+        spec.department = validated_data['department']
+        spec.keywords = validated_data['keywords']
+        spec.reason = validated_data['reason']
+        spec.jira = validated_data['jira']
+        spec.create_dt = validated_data['create_dt']
+        spec.approved_dt = validated_data['approved_dt']
+        spec.mod_ts = validated_data['mod_ts']
+        spec.save()
+    else:
+        spec = Spec.objects.create(**validated_data)
+    
+    if len(comment) == 0:
+        comment = 'Initial Load'
+    SpecHist.objects.create(
+        spec=spec,
+        mod_ts = request._req_dt,
+        upd_by = request.user,
+        change_type = 'Import',
+        comment = comment
+    )
+
+    return spec
+    
 def specSigCreate(request, spec, role, signerName, from_am):
     if signerName:
         signer = User.lookup(username=signerName)
