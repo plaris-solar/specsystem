@@ -132,19 +132,6 @@ def specRevise(request, spec, validated_data):
     spec.save()
     
     specSetReqSigs(request, spec)
-       
-    for specFile in orig_spec.files.all():    
-        if specFile.filename == f"{orig_spec.num}_{orig_spec.ver}.pdf": # Skip the rendered PDF
-            continue
-        
-        specFile.id = None
-        specFile.spec=spec
-        # Create a copy of the file, so it is independent
-        # This assures the original file is not deleted from disk as the new spec is edited.
-        new_file = ContentFile(specFile.file.read())
-        new_file.name = specFile.filename
-        specFile.file = new_file
-        specFile.save()
 
     for ref_data in orig_spec.refs.all():
         ref_data.id = None
