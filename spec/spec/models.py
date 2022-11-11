@@ -50,6 +50,14 @@ class DocType(models.Model):
             raise ValidationError({"errorCode":"SPEC-M01", "error": f"Document Type: {docTypeName} does not exist."})
         return doctype
 
+    @staticmethod
+    def lookupOrCreate(docTypeName):
+        docTypeName=re.sub(r'[^-a-zA-Z0-9_:]','_',docTypeName) # translate illegal characters to an _
+        doctype = DocType.objects.filter(name=docTypeName).first()
+        if doctype:
+            return doctype
+        return DocType.objects.create(name=docTypeName)
+ 
 class Role(models.Model):
     role = models.CharField(primary_key=True, max_length=50)
     descr = models.CharField(max_length=4000, blank=True, null=True)
@@ -99,6 +107,16 @@ class Department(models.Model):
             raise ValidationError({"errorCode":"SPEC-M03", "error": f"Department: {deptName} does not exist."})
         return dept
     
+    @staticmethod
+    def lookupOrCreate(deptName):
+        deptName=re.sub(r'[^-a-zA-Z0-9_:]','_',deptName) # translate illegal characters to an _
+        deptName=re.sub(r':{2,}',':',deptName) # Remove consecutive colons (blank department path item)
+        deptName=re.sub(r':$','',deptName) # Remove trailing colon (blank department path)
+        doctype = Department.objects.filter(name=deptName).first()
+        if doctype:
+            return doctype
+        return Department.objects.create(name=deptName)
+
     def isReader(self, user):
         for role in self.readRoles.all():
             if role.isMember(user):

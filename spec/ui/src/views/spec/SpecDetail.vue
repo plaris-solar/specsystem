@@ -333,7 +333,7 @@
                             <q-td>{{tprops.row['upd_by']}}</q-td>  
                             <q-td>{{dispDate(tprops.row['mod_ts'])}}</q-td>  
                             <q-td>{{tprops.row['change_type']}}</q-td>  
-                            <q-td>{{tprops.row['comment']}}</q-td>    
+                            <q-td><pre>{{tprops.row['comment']}}</pre></q-td>    
                         </q-tr>
                     </template>
                 </q-table>

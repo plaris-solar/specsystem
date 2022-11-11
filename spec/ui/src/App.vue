@@ -33,7 +33,6 @@
           </q-btn>          
         </q-toolbar-title>
 
-
         <div>
           <q-btn  label="Specs"
                   @click="router.push('/ui-spec/')"
@@ -62,6 +61,27 @@
                   data-cy="app-logout-btn">
           </q-btn>
         </div>
+        <div>
+          <q-btn-dropdown label="Help" flat icon="help_outline" data-cy="app-help-btn">
+            <q-list>
+              <q-item clickable 
+                :href="apiServerHost+'/help/user'" target="_blank"
+                data-cy="app-help-user">
+                User Guide
+              </q-item>
+              <q-item clickable 
+                :href="apiServerHost+'/help/admin'" target="_blank"
+                data-cy="app-help-admin">
+                Admin Guide
+              </q-item>
+              <q-item clickable 
+                :href="apiServerHost+'/help/design'" target="_blank"
+                data-cy="app-help-design">
+                High Level Design
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </div>
       </q-toolbar>
     </q-header>
 
@@ -82,9 +102,9 @@
 <script>
 import LoginPopupPage from '@/components/LoginPopup.vue'
 import {
+  apiServerHost,
   retrieveData
 } from './utils';
-
 import {ref, onMounted, watch, computed} from 'vue';
 import {useStore} from 'vuex'
 import { useRouter, useRoute } from 'vue-router'

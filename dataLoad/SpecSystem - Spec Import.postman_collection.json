@@ -1,0 +1,116 @@
+{
+	"info": {
+		"_postman_id": "49dcd0e5-58d2-4b32-be1f-92f79df9d707",
+		"name": "SpecSystem - Spec Import",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Import Spec",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Spec created.\", () => {\r",
+							"    if(responseCode.code != 201) { \r",
+							"        var jsonData = JSON.parse(responseBody);\r",
+							"        tests[\"TEST FAILED - \"+pm.iterationData.get(\"ID\")+\"_\"+pm.iterationData.get(\"Revision\")+\" \"+jsonData[\"errorCode\"]+\": \"+jsonData[\"error\"]] = responseCode.code === 201;\r",
+							"    }\r",
+							"    pm.response.to.have.status(201);\r",
+							"})\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.variables.set(\"References\", \r",
+							"    String(pm.iterationData.get(\"References\")).split(\", 2\").join(\"\\\\n\\\\t2\").replaceAll(\"\\n\",\"\\\\n\").replaceAll(\"\\\"\",\"\\\\\\\"\"))\r",
+							"\r",
+							"pm.variables.set(\"Document Name\", \r",
+							"    String(pm.iterationData.get(\"Document Name\")).replaceAll(\"\\n\",\"\\\\n\").replaceAll(\"\\\"\",\"\\\\\\\"\"))\r",
+							"\r",
+							"pm.variables.set(\"Description\", \r",
+							"    String(pm.iterationData.get(\"Description\")).replaceAll(\"\\n\",\"\\\\n\").replaceAll(\"\\\"\",\"\\\\\\\"\"))\r",
+							"\r",
+							"pm.variables.set(\"Document Title\", \r",
+							"    String(pm.iterationData.get(\"Document Title\")).replaceAll(\"\\n\",\"\\\\n\").replaceAll(\"\\\"\",\"\\\\\\\"\"))\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"num\": {{ID}},\r\n    \"ver\": \"{{Revision}}\",\r\n    \"state\": \"Active\",\r\n    \"title\": \"{{Document Name}}\",\r\n    \"doc_type\": \"{{Document Type}}\",\r\n    \"department\": \"{{Department}}:{{Zone}}:{{Process Step}}\",\r\n    \"keywords\": \"\",\r\n    \"reason\": \"Document imported from Team Center.\",\r\n    \"create_dt\": \"{{Creation Date}}\",\r\n    \"approved_dt\": \"{{Date Released}}\",\r\n    \"mod_ts\": \"{{Date Modified}}\",\r\n    \"comment\": \"Document imported from Team Center.\\n\\nOwner: {{Owner}}\\nDescription: {{Description}}\\nReferences: {{References}}\\nDocument Title: {{Document Title}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/importSpec/",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"importSpec",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "apikey",
+		"apikey": [
+			{
+				"key": "value",
+				"value": "token {{auth_token}}",
+				"type": "string"
+			},
+			{
+				"key": "key",
+				"value": "Authorization",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "References",
+			"value": ""
+		}
+	]
+}

@@ -1,20 +1,99 @@
+import os
+import subprocess
+from django.conf import settings
 from django.db import transaction
 from django.http import FileResponse
 from django.shortcuts import render
+from pathlib import Path
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import status
 from rest_framework.decorators import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
+from subprocess import run
+
+from proj.util import IsSuperUserOrReadOnly
 from ..services import jira
 from ..services.spec_route import specExtend, specReject, specSign, specSubmit
-from ..services.spec_create import specCreate, specRevise
+from ..services.spec_create import specCreate, specImport, specRevise
 from ..services.spec_update import specFileUpload, specUpdate
 from utils.dev_utils import formatError
 
 from ..models import Spec, SpecFile, SpecHist
-from ..serializers.specSerializers import FilePostSerializer, SpecExtendSerializer, SpecPostSerializer, SpecRejectSerializer, SpecReviseSerializer, SpecSerializer, SpecSignSerializer
+from ..serializers.specSerializers import FilePostSerializer, ImportSpecSerializer, SpecExtendSerializer, SpecPostSerializer, SpecRejectSerializer, SpecReviseSerializer, SpecSerializer, SpecSignSerializer
+
+
+class HelpFile(APIView):
+    """
+    get:
+    help/<doc>
+    Return specific file (user, admin, design)
+    """
+    def genPdf(self, doc):
+        if doc.lower() == 'user':
+            osFileName = 'help/user_guide.docx'
+            filename = 'user_guide.pdf'
+        elif doc.lower() == 'admin':
+            osFileName = 'help/admin_guide.docx'
+            filename = 'admin_guide.pdf'
+        elif doc.lower() == 'design':
+            osFileName = 'help/high_level_design.docx'
+            filename = 'high_level_design.pdf'
+        else:
+            raise ValidationError("SPEC-SV26", f"Valid help choices are: 'user' for the User Guide, 'admin' for the Admin Guide and 'design' for the High Level Design")
+        
+        
+        osPdfFileName = os.path.splitext(osFileName)[0]+'.pdf'
+        if not Path(osPdfFileName).exists():
+            p = run([settings.SOFFICE, '--norestore', '--safe-mode', '--view', '--convert-to', 'pdf', '--outdir', str(Path(osFileName).parent), osFileName]
+                , stdout=subprocess.PIPE)
+            if p.returncode != 0: #pragma nocover
+                raise ValidationError({"errorCode":"SPEC-SV27", "error": f"Error converting file ({osFileName}) to PDF: {p.returncode} {p.stdout}"})
+        return (osPdfFileName, filename)
+
+    def get(self, request, doc, format=None):
+        try:
+            (osFileName, filename) = self.genPdf(doc.lower())
+            response = FileResponse(open(osFileName, 'rb'), filename=filename)
+            return response
+        except BaseException as be: # pragma: no cover
+            try:
+                formatError(be, "SPEC-SV25")
+            except ValidationError as exc:
+                return render(request, 'file_error_page.html', exc.detail, status=400)
+
+class ImportSpec(GenericAPIView):
+    """ 
+    post:
+    Used for initial import of specs to specified state with specified dates
+
+    {
+        "num": {{id}},
+        "ver": "{{Revision}}",
+        "state": "{{State}}",
+        "title": "{{Document Name}}",
+        "keywords": "",
+        "doc_type": "{{Document Type}}",
+        "department": "{{Department}}",
+        "reason": "{{Document Subject}}",
+        "create_dt": "{{Creation Date}}",
+        "approved_dt": "{{Date Released}}",
+        "comment": "Owner: {{Owner}}\nDescription: {{Description}}\nReferences: {{Refereneces}}"
+    }
+    """
+    permission_classes = [IsSuperUserOrReadOnly]
+    def post(self, request, *args, **kwargs):
+        try:
+            with transaction.atomic():
+                serializer = ImportSpecSerializer(data=request.data)
+                if not serializer.is_valid():
+                    raise ValidationError({"errorCode":"SPEC-SV23", "error": "Invalid message format", "schemaErrors":serializer.errors})
+                spec = specImport(request, serializer.validated_data)
+            serializer = SpecSerializer(spec, context={'user':request.user})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        except BaseException as be: # pragma: no cover
+            formatError(be, "SPEC-SV24")
 
 class SpecList(GenericAPIView):
     """ 
