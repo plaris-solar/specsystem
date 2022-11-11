@@ -1,12 +1,17 @@
+import os
+import subprocess
+from django.conf import settings
 from django.db import transaction
 from django.http import FileResponse
 from django.shortcuts import render
+from pathlib import Path
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework import status
 from rest_framework.decorators import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
+from subprocess import run
 
 from proj.util import IsSuperUserOrReadOnly
 from ..services import jira
@@ -22,19 +27,39 @@ from ..serializers.specSerializers import FilePostSerializer, ImportSpecSerializ
 class HelpFile(APIView):
     """
     get:
-    file/<doc>
+    help/<doc>
     Return specific file (user, admin, design)
     """
+    def genPdf(self, doc):
+        if doc.lower() == 'user':
+            osFileName = 'help/user_guide.docx'
+            filename = 'user_guide.pdf'
+        elif doc.lower() == 'admin':
+            osFileName = 'help/admin_guide.docx'
+            filename = 'admin_guide.pdf'
+        elif doc.lower() == 'design':
+            osFileName = 'help/high_level_design.docx'
+            filename = 'high_level_design.pdf'
+        else:
+            raise ValidationError("SPEC-SV26", f"Valid help choices are: 'user' for the User Guide, 'admin' for the Admin Guide and 'design' for the High Level Design")
+        
+        
+        osPdfFileName = os.path.splitext(osFileName)[0]+'.pdf'
+        if not Path(osPdfFileName).exists():
+            p = run([settings.SOFFICE, '--norestore', '--safe-mode', '--view', '--convert-to', 'pdf', '--outdir', str(Path(osFileName).parent), osFileName]
+                , stdout=subprocess.PIPE)
+            if p.returncode != 0: #pragma nocover
+                raise ValidationError({"errorCode":"SPEC-SV27", "error": f"Error converting file ({osFileName}) to PDF: {p.returncode} {p.stdout}"})
+        return (osPdfFileName, filename)
+
     def get(self, request, doc, format=None):
         try:
-            if doc.lower() == 'user':
-                osFileName = 'specFile.file.path'
-                filename = 'name.pdf'
+            (osFileName, filename) = self.genPdf(doc.lower())
             response = FileResponse(open(osFileName, 'rb'), filename=filename)
             return response
         except BaseException as be: # pragma: no cover
             try:
-                formatError(be, "SPEC-SV10")
+                formatError(be, "SPEC-SV25")
             except ValidationError as exc:
                 return render(request, 'file_error_page.html', exc.detail, status=400)
 

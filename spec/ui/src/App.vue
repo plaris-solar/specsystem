@@ -65,25 +65,20 @@
           <q-btn-dropdown label="Help" flat icon="help_outline" data-cy="app-help-btn">
             <q-list>
               <q-item clickable 
-                href="/static/HighLevelDesign.pdf" target="_blank"
-                data-cy="app-sunset-btn">
-                Sunset List
+                :href="apiServerHost+'/help/user'" target="_blank"
+                data-cy="app-help-user">
+                User Guide
               </q-item>
-              <q-item clickable @click="router.push('/ui-doctype/')" data-cy="app-doctype-btn">
-                Document Types
+              <q-item clickable 
+                :href="apiServerHost+'/help/admin'" target="_blank"
+                data-cy="app-help-admin">
+                Admin Guide
               </q-item>
-              <q-item clickable @click="router.push('/ui-role/')" data-cy="app-role-btn">
-                Roles
+              <q-item clickable 
+                :href="apiServerHost+'/help/design'" target="_blank"
+                data-cy="app-help-design">
+                High Level Design
               </q-item>
-              <q-item clickable @click="router.push('/ui-dept/')" data-cy="app-dept-btn">
-                Departments
-              </q-item>
-              <q-item clickable @click="router.push('/ui-apvl-mt/')" data-cy="app-apvl-mt-btn">
-                Approval Matrix
-              </q-item>
-            <q-item clickable v-show="isAdmin" @click="router.push('/ui-token/')" data-cy="app-token-btn">
-                API Tokens
-              </q-item>            
             </q-list>
           </q-btn-dropdown>
         </div>
@@ -107,9 +102,9 @@
 <script>
 import LoginPopupPage from '@/components/LoginPopup.vue'
 import {
+  apiServerHost,
   retrieveData
 } from './utils';
-
 import {ref, onMounted, watch, computed} from 'vue';
 import {useStore} from 'vuex'
 import { useRouter, useRoute } from 'vue-router'

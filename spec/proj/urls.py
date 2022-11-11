@@ -19,7 +19,7 @@ from spec.views.approvalMatrixViews import ApprovalMatrixDetail, ApprovalMatrixL
 from spec.views.docTypeViews import DocTypeDetail, DocTypeList
 from spec.views.departmentViews import DepartmentDetail, DepartmentList
 from spec.views.roleViews import RoleDetail, RoleList
-from spec.views.specViews import ImportSpec, SpecDetail, SpecExtend, SpecFileDetail, SpecList, SpecReject, SpecSign, SpecSubmit, SunsetList
+from spec.views.specViews import HelpFile, ImportSpec, SpecDetail, SpecExtend, SpecFileDetail, SpecList, SpecReject, SpecSign, SpecSubmit, SunsetList
 from spec.views.userViews import UserDetail, UserList, UserWatchView
 from user.views import GetUser, AdminToken, UserToken
 from . import views
@@ -38,7 +38,7 @@ urlpatterns = [
     path('file/<num>', SpecFileDetail.as_view()),
     path('file/<num>/<ver>', SpecFileDetail.as_view()),
     path('file/<num>/<ver>/<fileName>', SpecFileDetail.as_view()),
-    path('help/<doc>', SpecFileDetail.as_view()),
+    path('help/<doc>', HelpFile.as_view()),
     path('importSpec/', ImportSpec.as_view()),
     path('reject/<num>/<ver>', SpecReject.as_view()),
     path('role/', RoleList.as_view()),

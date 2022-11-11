@@ -1,0 +1,5 @@
+# Ignore .pdfs
+*.pdf
+
+# But not these files...
+!.gitignore
