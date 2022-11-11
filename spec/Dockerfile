@@ -38,8 +38,8 @@ RUN ln -sf /dev/stdout /var/log/nginx/access.log \
   && ln -sf /dev/stderr /var/log/nginx/error.log
 
 # Build help files
-RUN libreoffice --norestore --safe-mode --view --convert-to pdf --outdir $APP/help user_guide.docx
-  && libreoffice --norestore --safe-mode --view --convert-to pdf --outdir $APP/help admin_guide.docx
+RUN libreoffice --norestore --safe-mode --view --convert-to pdf --outdir $APP/help user_guide.docx \
+  && libreoffice --norestore --safe-mode --view --convert-to pdf --outdir $APP/help admin_guide.docx \
   && libreoffice --norestore --safe-mode --view --convert-to pdf --outdir $APP/help high_level_design.docx
 
 # Install the dependencies; build the ui folder; publish frontend
