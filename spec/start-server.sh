@@ -4,8 +4,12 @@ if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ] ; 
     python manage.py createsuperuser --no-input
 fi
 
+if [ -f /app/ext/config/resolv.conf ]; then
+    cp /app/ext/config/resolv.conf /etc/
+fi
+
 if [ -f /app/ext/config/nginx.conf ]; then
-    cp /app/ext/config/nginx.conf /etc/nginx
+    cp /app/ext/config/nginx.conf /etc/nginx/
 fi
 
 if [ -f /app/ext/config/settings_local.py ]; then

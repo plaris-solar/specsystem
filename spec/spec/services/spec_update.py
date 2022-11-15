@@ -4,9 +4,6 @@ from ..models import Department, DocType, Role, SpecFile, SpecHist, SpecReferenc
 
 def specUpdate(request, spec, validated_data):
     spec.checkEditable(request.user)
-    # Check that user can't save when not in draft state
-    if spec.state != "Draft" and not request.user.is_superuser:
-        raise ValidationError({"errorCode":"SPEC-U51", "error": "Spec is not in Draft state. Cannot update."})
 
     if spec.state != validated_data['state']:
         if not request.user.is_superuser:

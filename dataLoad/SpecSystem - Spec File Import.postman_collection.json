@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "1a2bd2b8-d768-427d-a521-0e37ce41c5b7",
+		"_postman_id": "71315217-434c-4695-a3ae-5d6c86582297",
 		"name": "SpecSystem - Spec File Import",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -14,6 +14,7 @@
 						"exec": [
 							"pm.test(\"File added to spec.\", () => {\r",
 							"    if(responseCode.code != 200) { \r",
+							"        console.log(responseBody);\r",
 							"        var jsonData = JSON.parse(responseBody);\r",
 							"        tests[\"TEST FAILED - \"+pm.iterationData.get(\"ID\")+\"_\"+pm.iterationData.get(\"Revision\")+\" \"+pm.iterationData.get(\"file\")+\" \"+jsonData[\"errorCode\"]+\": \"+jsonData[\"error\"]] = responseCode.code === 200;\r",
 							"    }\r",
