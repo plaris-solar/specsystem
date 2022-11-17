@@ -18,6 +18,7 @@ class ImportSpecSerializer(serializers.Serializer):
     approved_dt = serializers.DateTimeField()
     mod_ts = serializers.DateTimeField()
     comment = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
+    jira_create = serializers.BooleanField(required=False, default=False, allow_null=True)
 
 class SpecSigSerializer(serializers.ModelSerializer):
     spec_one = serializers.BooleanField(source='role.spec_one')
