@@ -79,7 +79,8 @@ class ImportSpec(GenericAPIView):
         "reason": "{{Document Subject}}",
         "create_dt": "{{Creation Date}}",
         "approved_dt": "{{Date Released}}",
-        "comment": "Owner: {{Owner}}\nDescription: {{Description}}\nReferences: {{Refereneces}}"
+        "comment": "Owner: {{Owner}}\nDescription: {{Description}}\nReferences: {{Refereneces}}",
+        "jira_create": false
     }
     """
     permission_classes = [IsSuperUserOrReadOnly]

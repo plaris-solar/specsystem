@@ -12,6 +12,7 @@ from . import jira
 def specImport(request, validated_data):
     """Used for initial import of specs to specified state with specified dates"""
     comment = validated_data.pop("comment")
+    jira_create = validated_data.pop("jira_create")
 
     validated_data['doc_type'] = DocType.lookupOrCreate(validated_data['doc_type'])
     validated_data['department'] = Department.lookupOrCreate(validated_data['department'])
@@ -43,6 +44,11 @@ def specImport(request, validated_data):
         change_type = 'Import',
         comment = comment
     )
+
+    if jira_create:
+        jira.create(spec)
+        jira.submit(spec)
+        jira.active(spec)
 
     return spec
     
