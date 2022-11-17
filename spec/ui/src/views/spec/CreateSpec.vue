@@ -1,10 +1,14 @@
 <template>
   <q-card class="dialog-window">
         <q-card-section class="bg-primary text-white row ">
+            <q-btn color="primary" icon="adb" @click="adminMode=!adminMode" v-if="isAdmin" dense data-cy="spec-admin-create"/> 
+            <q-space/>           
             <div class="text-h4">Create Spec</div>
             <q-btn icon="close" flat round dense data-cy="spec-create-close" v-close-popup /> 
         </q-card-section>
-        <q-card-section class="q-pt-none">
+        <q-card-section class="q-pt-none">        
+            <q-input label="Num" v-model.trim="num" v-if="adminMode" data-cy="spec-create-num"/>
+            <q-input label="Ver" v-model.trim="ver" v-if="adminMode" data-cy="spec-create-ver"/>
             <q-select
                 label="Document Type"
                 v-model="doc_type"
@@ -23,7 +27,8 @@
         </q-card-section>
 
         <q-card-actions class="bg-white text-teal" align="center">
-          <q-btn label="Save" color="primary" icon="save" @click="saveSpec()" data-cy="spec-create-create"/>
+          <q-btn label="Save" color="primary" icon="save" @click="saveSpec()" v-if="!adminMode" data-cy="spec-create-create"/>
+          <q-btn label="Create with ID" color="red" icon="save" @click="saveSpec()" v-else data-cy="spec-create-create-admin"/>
           <div class="spacer"/>
           <q-btn label="Cancel" color="red" icon="cancel" v-close-popup data-cy="spec-create-cancel"/>
         </q-card-actions>
@@ -43,8 +48,9 @@
 
 <script>
 import { postData, retrieveData, showNotif, } from '@/utils.js'
-import {ref, onMounted} from 'vue'
-import {useRouter, } from 'vue-router'
+import { computed, onMounted, ref, } from 'vue'
+import { useStore } from 'vuex'
+import { useRouter, } from 'vue-router'
 
 export default {
     name: 'CreateSpecDialog',
@@ -52,24 +58,32 @@ export default {
 </script>
 
 <script setup>    
+    const store = useStore()
+
+    const adminMode = ref(false)
     const department = ref('')
     const deptList = ref([])
     const doc_type = ref('')
     const doc_typeList = ref([])
+    const isAdmin = ref(computed(() => store.getters.isAdmin))
+    const num = ref('')
     const router=useRouter();
-    const waiting = ref(false)
     const title = ref('')
+    const ver = ref('')
+    const waiting = ref(false)
 
     async function saveSpec(){
         waiting.value = true
         const body = {
+            num: adminMode.value ? num.value : null,
+            ver: adminMode.value ? ver.value : null,
             state: 'Draft',
             title: title.value,
             doc_type: doc_type.value,
             department: department.value,
             sigs:[],
-            files:[],
             refs:[],
+            files:[]
         }
 
 
