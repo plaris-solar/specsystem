@@ -219,7 +219,7 @@
                 <template v-slot:header>
                     <q-th v-show="edit"/>
                     <q-th align="left">Spec Number</q-th>
-                    <q-th align="left">Version (optional)</q-th>
+                    <q-th align="left" v-show="edit">Version (optional)</q-th>
                 </template>
                 <template v-slot:body="tprops">
                     <q-tr>
@@ -230,10 +230,18 @@
                                     data-cy="ref-delete-btn">
                             </q-btn>
                         </q-td>
-                        <q-td>
+                        <q-td v-show="!edit">
+                            <router-link :to="'/ui-spec/'+tprops.row['num']+'/'+tprops.row['ver']" v-if="tprops.row['ver'] !== null">
+                                {{tprops.row['num']}}/{{tprops.row['ver']}}
+                                </router-link>                        
+                            <router-link :to="'/ui-spec/'+tprops.row['num']+'/*'" v-else>
+                                {{tprops.row['num']}}
+                                </router-link>                        
+                        </q-td>
+                        <q-td v-show="edit">
                             <q-input v-model.trim="tprops.row['num']" type="number" data-cy="spec-detail-ref-num" dense borderless :readonly="!edit"/>
                         </q-td>                        
-                        <q-td>
+                        <q-td v-show="edit">
                             <q-input v-model.trim="tprops.row['ver']" data-cy="spec-detail-ref-ver" dense borderless :readonly="!edit"/>
                         </q-td>
                     </q-tr>
