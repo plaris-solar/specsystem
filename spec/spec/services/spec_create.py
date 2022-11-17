@@ -86,10 +86,15 @@ def specCreate(request, validated_data):
             raise ValidationError({"errorCode":"SPEC-C02", "error": f"Only Admins can create a spec with a specific number"})
         if not validated_data['ver'] or len(validated_data['ver']) == 0:
             raise ValidationError({"errorCode":"SPEC-C03", "error": f"Ver must be specified, when Num is specified"})
+
+        specNum = Spec.objects.filter(num=validated_data['num']).first()
+        if specNum:
+            raise ValidationError({"errorCode":"SPEC-C04", "error": f"Num {validated_data['num']} is already used in the system."})
+
         validated_data['ver'] = validated_data['ver'].upper()
     else:
         specNum = Spec.objects.values('num').order_by('-num').values_list('num', flat=True).first()
-        validated_data['num'] = specNum + 1 if specNum and specNum >= 300000 else 300000
+        validated_data['num'] = specNum + 1 if specNum else 1
         validated_data['ver'] = 'A'
 
     validated_data['state'] = 'Draft'
