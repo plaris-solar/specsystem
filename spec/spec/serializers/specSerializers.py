@@ -104,6 +104,8 @@ class SpecFilePostSerializer(serializers.Serializer):
     incl_pdf = serializers.BooleanField(required=False, default=False)
 
 class SpecPostSerializer(serializers.Serializer):
+    num = serializers.IntegerField(required=False, default=None, allow_null=True)
+    ver = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True, max_length=2)
     state = serializers.CharField()
     title = serializers.CharField()
     doc_type = serializers.CharField()
