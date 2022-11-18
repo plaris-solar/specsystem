@@ -35,7 +35,7 @@ def specImport(request, validated_data):
     else:
         spec = Spec.objects.create(**validated_data)
     
-    if len(comment) == 0:
+    if not comment:
         comment = 'Initial Load'
     SpecHist.objects.create(
         spec=spec,

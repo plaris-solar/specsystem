@@ -145,7 +145,7 @@ def active(spec): # pragma nocover
             jira.transition_issue(st, transition='Approve')
 
     except BaseException as be:
-        raise ValidationError({"errorCode":"SPEC-J03", "error": f"Error transitioning Jira issue {spec.jira} to Draft, Error: {be}"})
+        raise ValidationError({"errorCode":"SPEC-J03", "error": f"Error transitioning Jira issue {spec.jira} to Active, Error: {be}"})
 
 def delete(spec): # pragma nocover
     """Delete the Jira Tasks"""

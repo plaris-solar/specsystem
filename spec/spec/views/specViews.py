@@ -41,7 +41,9 @@ class HelpFile(APIView):
             osFileName = 'help/high_level_design.docx'
             filename = 'high_level_design.pdf'
         else:
-            raise ValidationError("SPEC-SV26", f"Valid help choices are: 'user' for the User Guide, 'admin' for the Admin Guide and 'design' for the High Level Design")
+            raise ValidationError({
+                "errorCode": "SPEC-SV26", "error":
+                f"Valid help choices are: 'user' for the User Guide, 'admin' for the Admin Guide and 'design' for the High Level Design"})
         
         
         osPdfFileName = os.path.splitext(osFileName)[0]+'.pdf'
@@ -78,6 +80,7 @@ class ImportSpec(GenericAPIView):
         "department": "{{Department}}",
         "reason": "{{Document Subject}}",
         "create_dt": "{{Creation Date}}",
+        "mod_ts": "{{Modification Date}}",
         "approved_dt": "{{Date Released}}",
         "comment": "Owner: {{Owner}}\nDescription: {{Description}}\nReferences: {{Refereneces}}",
         "jira_create": false
