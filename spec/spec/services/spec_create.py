@@ -62,6 +62,11 @@ def specSigCreate(request, spec, role, signerName, from_am):
     else:
         signer = None
 
+    # If the role has users specified, the signer must be in the list
+    if signer and role.users.count() > 0 and not role.isMember(signer):
+        raise ValidationError({"errorCode":"SPEC-C07", 
+            "error": f"Signer {signer} for Role {role.role} needs to be in list: {list(role.users.values('user__username').values_list('user__username', flat=True))}"})
+
     if not from_am and signer:
         specRole = SpecSig.objects.filter(spec=spec, role=role, signer=None, from_am=True).first()
         if specRole:
