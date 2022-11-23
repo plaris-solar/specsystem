@@ -60,7 +60,7 @@ class UserDetail(APIView):
             with transaction.atomic():
                 username = User.lookup(username)
                 serializer = UserUpdateSerializer(username, data=request.data)
-                if not serializer.is_valid():
+                if not serializer.is_valid(): # pragma nocover
                     raise ValidationError({"errorCode":"SPEC-U03", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 serializer.save()
             serializer = UserSerializer(username)

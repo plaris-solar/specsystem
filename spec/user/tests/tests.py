@@ -1,6 +1,9 @@
 import json, os
 from django.conf import settings
+from rest_framework.exceptions import ValidationError
 from utils.test_utils import SpecTestCase
+from django.contrib.auth.models import User as DjangoUser
+from user.models import User
 from . import test_resources as tr
 
 TEST_FILE_DIR = 'data/tests/test_files/'
@@ -114,3 +117,21 @@ class UserTest(SpecTestCase):
         self.assertEqual(len(resp), 2)
         self.assertEqual(resp[0]['user'], os.environ['ADMIN_USER'])
         self.assertEqual(resp[0]['expired'], False)
+
+    def test_user_lookup(self):
+        """Unit test for user.models.User.lookup()"""
+        user = User.lookup(os.environ['USER_USER'])
+        self.assertIsNotNone(user)
+
+        user = DjangoUser.objects.filter(username=os.environ['USER_USER']).first()
+        user.is_active = False
+        user.save()
+
+        with self.assertRaises(ValidationError) as ve:
+            user = User.lookup(os.environ['USER_USER'])
+        self.assertEqual(ve.exception.detail['error'], f"User: {os.environ['USER_USER']} is not an active account.")
+
+        user.delete()
+        with self.assertRaises(ValidationError) as ve:
+            user = User.lookup('BAD_USER_NAME')
+        self.assertEqual(ve.exception.detail['error'], "User: BAD_USER_NAME does not exist.")

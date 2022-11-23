@@ -25,7 +25,7 @@ def genPdf(spec):
 
     tempFilePath = Path(settings.TEMP_PDF) / str(spec.num)
     tempPdfPath = tempFilePath / 'out'
-    if tempFilePath.exists():
+    if tempFilePath.exists(): # pragma nocover
         shutil.rmtree(tempFilePath)
     try:
         os.makedirs(tempPdfPath)
@@ -47,7 +47,7 @@ def genPdf(spec):
                 try:
                     fileName = os.path.splitext(tempPdfPath/file.file.name)[0]+'.pdf'
                     merger.append(fileName)
-                except BaseException as be:
+                except BaseException as be: # pragma nocover
                     raise ValidationError({"errorCode":"SPEC-R13", "error": f"Error appending pdf file to merged pdf ({file.file.name}) to PDF: {be}"})
         merger.write(tempFilePath/pdfFileName)
         merger.close()
@@ -56,19 +56,19 @@ def genPdf(spec):
         specFile = SpecFile.objects.create(spec=spec, seq=0, filename=pdfFileName, incl_pdf=False)
         with open(tempFilePath/pdfFileName, mode='rb') as f:
             specFile.file.save(pdfFileName, File(f))
-    except BaseException as be:
-        formatError(be, "SPEC-R14") #pragma nocover
+    except BaseException as be: # pragma nocover
+        formatError(be, "SPEC-R14")
 
     finally:
         try:
             merger.close()
-        except:
+        except: # pragma nocover
             pass
         # Clean up the folder, no matter success or failure
         try:
             if tempFilePath.exists():
                 shutil.rmtree(tempFilePath)
-        except BaseException as be:
+        except BaseException as be: # pragma nocover
             pass
 
 def specSubmit(request, spec):
@@ -115,7 +115,7 @@ def specSubmit(request, spec):
     to = spec.sigs.filter(signer__isnull=False,signer__email__isnull=False).values_list('signer__email', flat=True)
     if len(to) > 0 and settings.EMAIL_HOST is not None and len(settings.EMAIL_HOST) > 0:
         email = EmailMessage(
-            subject=f'{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} Spec {spec.num} "{spec.title}" needs our review',
+            subject=f'{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} Spec {spec.num} "{spec.title}" needs your review',
             body=f'''{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} Spec {spec.num}/{spec.ver} "{spec.title}" needs your review
             {request.build_absolute_uri('/ui-spec/'+str(spec.num)+'/'+spec.ver)}
             ''',
@@ -216,6 +216,9 @@ def specReject(request, spec, validated_data):
         sig.signed_dt = None
         sig.save()
 
+    # Remove the generated .pdf file
+    SpecFile.objects.filter(spec=spec, filename=f"{spec.num}_{spec.ver}.pdf").delete()
+    
     SpecHist.objects.create(
         spec=spec,
         mod_ts = request._req_dt,

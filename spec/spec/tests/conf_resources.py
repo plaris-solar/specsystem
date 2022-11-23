@@ -18,14 +18,14 @@ role_post_3 = {
     'role':'Op_Line1',
     'descr':'Operations Line 1',
     'spec_one':True,
-    'users':f''
+    'users':f'{os.getenv("ADMIN_USER")}'
 }
 
 role_put_1 = {
     'role':'Qual',
     'descr':'Quality - Descr updated',
     'spec_one':True,
-    'users':f'{os.getenv("USER_USER")}'
+    'users':f'{os.getenv("ADMIN_USER")}'
 }
 
 role_put_err_1 = {
@@ -74,10 +74,10 @@ dept_put_err_2 = {
 doctype_post_1 = {
     'name':'SOP',
     'descr':'Standard Operating Procedure - Op',
-    'confidential':False,
+    'confidential':True,
     'jira_temp':'',
-    'sunset_interval': '1 00:00:00',
-    'sunset_warn': '23:50:00'
+    'sunset_interval': None,
+    'sunset_warn': None
 }
 
 doctype_post_2 = {
@@ -103,6 +103,15 @@ doctype_put_1 = {
     'jira_temp':'New Jira Template',
     'sunset_interval': '2 00:00:00',
     'sunset_warn': '20:50:00'
+}
+
+doctype_put_2 = {
+    'name':'SOP',
+    'descr':'Standard Operating Procedure - Op',
+    'confidential':False,
+    'jira_temp':None,
+    'sunset_interval': '2 00:00:00',
+    'sunset_warn': '1 23:59:58'
 }
 
 doctype_put_err_1 = {
