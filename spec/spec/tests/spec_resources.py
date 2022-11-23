@@ -98,6 +98,22 @@ spec_put_4 = {
     "comment": "Change state for testing"
 }
 
+spec_put_5 = {
+    "title": "SOP, Spec Import",
+    "keywords": "keyword one import",
+    "doc_type": "WI",
+    "reason": "import for test",
+    "department": "Quality",
+    'create_dt': '2022-08-28T00:00:00Z',
+    'mod_ts': '2022-08-29T00:00:00Z',
+    "state":"Draft",
+
+    "sigs": [{'role':conf.role_post_1a['role'],'signer':None, 'from_am':True}, ],
+    "files": [{"filename":"Text1.docx", "incl_pdf":True}, ],
+    "refs": [],
+    "comment": "Change state to Signoff for testing"
+}
+
 spec_put_err_1 = {
     "title": {},
     "keywords": "SPEC",
@@ -144,6 +160,19 @@ spec_import_post_2 = {
     "state":"Active",
 }
 
+spec_import_post_3 = {
+    "num": 400003,
+    "ver": 'B',
+    "title": "SOP, Spec Import",
+    "keywords": "keyword one import",
+    "doc_type": "WI",
+    "reason": "import for test",
+    "department": "Quality",
+    'create_dt': '2022-08-28T00:00:00Z',
+    'mod_ts': '2022-08-29T00:00:00Z',
+    "state":"Draft"
+}
+
 
 sign_post_1 = {
     "role": "Qual",
@@ -158,6 +187,11 @@ sign_post_2 = {
 sign_post_3 = {
     "role": "Op_Line1",
     "signer": os.getenv('ADMIN_USER')
+}
+
+sign_post_4 = {
+    "role": "Qual",
+    "signer": None
 }
 
 user_get_1 = {

@@ -7,6 +7,13 @@ role_post_1 = {
     'users':f'{os.getenv("ADMIN_USER")}, {os.getenv("USER_USER")}'
 }
 
+role_post_1a = {
+    'role':'Qual',
+    'descr':'Quality',
+    'spec_one':False,
+    'users':f'{os.getenv("ADMIN_USER")}'
+}
+
 role_post_2 = {
     'role':'Op',
     'descr':'Operations',
@@ -43,6 +50,11 @@ dept_post_0 = {
 dept_post_1 = {
     'name':'Quality',
     'readRoles':role_post_1['role']
+}
+
+dept_post_1a = {
+    'name':'Quality',
+    'readRoles':role_post_1a['role']
 }
 
 dept_post_2 = {
@@ -126,6 +138,12 @@ approvalmatrix_post_1 = {
     "doc_type": doctype_post_1['name'],
     "department": dept_post_0['name'],
     "signRoles": role_post_1['role']
+}
+
+approvalmatrix_post_1a = {
+    "doc_type": doctype_post_2['name'],
+    "department": dept_post_1a['name'],
+    "signRoles": role_post_1a['role']
 }
 
 approvalmatrix_post_2 = {

@@ -9,7 +9,6 @@ from . import spec_resources as spec
 # Test page order, content, file not selected not in pdf
 
 # TODO: To change setttings for specific test, use: https://docs.djangoproject.com/en/4.1/topics/testing/tools/#overriding-settings
-# TODO: To test email output use: https://docs.djangoproject.com/en/4.1/topics/testing/tools/#email-services
 
 class RouteTest(SpecTestCase):
 
@@ -283,17 +282,14 @@ class RouteTest(SpecTestCase):
         self.assertEqual(response.status_code, 200)
 
         # Specify spec-user as signer for op_line1
+        # Error: not valid for role
         spec_put = copy.deepcopy(spec.spec_put_3)
         spec_put['sigs'][-1]['signer'] = os.getenv('USER_USER')
         response = self.put_request(f'/spec/{spec_ids[0]}/B', spec_put, auth_lvl='ADMIN')
-        self.assertEqual(response.status_code, 200)
-
-        # Submit:
-        response = self.post_request(f'/submit/{spec_ids[0]}/B', auth_lvl='USER')
         self.assertEqual(response.status_code, 400)
         resp = json.loads(response.content)
         self.assertIn('error', resp)
-        self.assertEqual(resp['error'], "Signer SPEC-Test-User for Role Op_Line1 needs to be in list: SPEC-Admin-Test-User")
+        self.assertEqual(resp['error'], "Signer SPEC-Test-User for Role Op_Line1 needs to be in list: ['SPEC-Admin-Test-User']")
 
         # Update spec - Add signers. Set file order and incl_pdf
         response = self.put_request(f'/spec/{spec_ids[0]}/B', spec.spec_put_3, auth_lvl='ADMIN')
@@ -329,4 +325,40 @@ class RouteTest(SpecTestCase):
         self.assertIn('state', resp)
         self.assertEqual(resp['state'], 'Obsolete')
 
+    def test_signCheck(self):
+        # Load needed roles
+        response = self.post_request('/role/', conf.role_post_1a, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)
+        # Load needed Departments
+        response = self.post_request('/dept/', conf.dept_post_1a, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)
+        # Load needed Doc Types
+        response = self.post_request('/doctype/', conf.doctype_post_2, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)
+        # Load needed Approval Matricies
+        response = self.post_request('/approvalmatrix/', conf.approvalmatrix_post_1a, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)
 
+        # Import new spec
+        response = self.post_request('/importSpec/', spec.spec_import_post_3, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)
+
+        # Add file to spec
+        with open('spec/tests/test_files/Text1.docx', 'rb') as fp:
+            response = self.post_binary_request(f'/file/{spec.spec_import_post_3["num"]}/{spec.spec_import_post_3["ver"]}', {'file': (fp, 'Text1.docx')}, auth_lvl='USER')
+        self.assertEqual(response.status_code, 200)
+
+        # Update spec - Add signers. 
+        response = self.put_request(f'/spec/{spec.spec_import_post_3["num"]}/{spec.spec_import_post_3["ver"]}', spec.spec_put_5, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 200)
+
+        # Submit:
+        response = self.post_request(f'/submit/{spec.spec_import_post_3["num"]}/{spec.spec_import_post_3["ver"]}', auth_lvl='USER')
+        self.assertEqual(response.status_code, 200)
+        
+        # Sign QUAL sig in draft state
+        response = self.post_request(f'/sign/{spec.spec_import_post_3["num"]}/{spec.spec_import_post_3["ver"]}', spec.sign_post_4, auth_lvl='USER')
+        self.assertEqual(response.status_code, 400)
+        resp = json.loads(response.content)
+        self.assertIn('error', resp)
+        self.assertEqual(resp['error'], f"Current user {os.getenv('USER_USER')} is not valid for role. Options are: ['{os.getenv('ADMIN_USER')}']")
