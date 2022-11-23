@@ -5,8 +5,22 @@
             <q-btn icon="close" flat round dense data-cy="token-create-close" v-close-popup /> 
         </q-card-section>
         <q-card-section class="q-pt-none">
-            <q-input label="Document Type" v-model.trim="doc_type" data-cy="doc_type-create-ApprovalMatrix"/>
-            <q-input label="Department" v-model.trim="department" data-cy="department-create-ApprovalMatrix"/>
+            <q-select
+                label="Document Type"
+                v-model="doc_type"
+                :options="doc_typeList"
+                emit-value
+                :disable="!props.createMode"
+                data-cy="doc_type-create-ApprovalMatrix"
+            />
+            <q-select
+                label="Department"
+                v-model="department"
+                :options="deptList"
+                emit-value
+                :disable="!props.createMode"
+                data-cy="department-create-ApprovalMatrix"
+            />
             <q-input label="Required Signer Roles" v-model.trim="signRoles"  data-cy="signRoles-create-ApprovalMatrix"/>
         </q-card-section>
 
@@ -19,7 +33,7 @@
 </template>
 
 <script>
-import { defineProps, postData, putData } from '@/utils.js'
+import { defineProps, postData, putData, retrieveData, } from '@/utils.js'
 import {ref, defineEmits, onMounted} from 'vue'
 
 export default {
@@ -35,8 +49,10 @@ export default {
 
     const emit = defineEmits(['updateTable'])
 
-    const doc_type = ref('')
     const department = ref('')
+    const deptList = ref([])
+    const doc_type = ref('')
+    const doc_typeList = ref([])
     const id = ref('')
     const signRoles = ref('')
 
@@ -68,7 +84,17 @@ export default {
             department.value = props.ApprovalMatrixRow['department']
             signRoles.value = props.ApprovalMatrixRow['signRoles']
         }
+
+        loadLists()
     })
+
+    async function loadLists() {
+        let data_rows = await retrieveData('doctype/?limit=1000');
+        doc_typeList.value = data_rows['results'].map((e) => {return ({label:e['name'],value:e['name']})})
+        
+        data_rows = await retrieveData('dept/?limit=1000');
+        deptList.value = data_rows['results'].map((e) => {return ({label:e['name'],value:e['name']})})
+    }
 </script>
 
 <style scoped>
