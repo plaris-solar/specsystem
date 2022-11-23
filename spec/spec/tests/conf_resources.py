@@ -28,6 +28,13 @@ role_post_3 = {
     'users':f'{os.getenv("ADMIN_USER")}'
 }
 
+role_post_4 = {
+    'role':'Qual',
+    'descr':'Quality',
+    'spec_one':False,
+    'users':f''
+}
+
 role_put_1 = {
     'role':'Qual',
     'descr':'Quality - Descr updated',
