@@ -43,6 +43,10 @@ class ConfTest(SpecTestCase):
         response = self.get_request('/role/?search=Op')
         self.assertEqual(response.status_code, 200)
         resp = json.loads(response.content)
+        self.assertEqual(len(resp['results'][0]['user_arr']), 2)
+        self.assertEqual(len(resp['results'][1]['user_arr']), 1)
+        del resp['results'][0]['user_arr']
+        del resp['results'][1]['user_arr']
         self.assertEqual(resp, self.paginate_results([tr.role_post_2, tr.role_post_3]))
 
         # Error: Update role with spec_one a number (not a boolean)
@@ -58,6 +62,8 @@ class ConfTest(SpecTestCase):
         response = self.get_request(f'/role/{tr.role_put_1["role"]}')
         self.assertEqual(response.status_code, 200)
         resp = json.loads(response.content)
+        self.assertEqual(len(resp['user_arr']), 1)
+        del resp['user_arr']
         self.assertEqual(resp, tr.role_put_1)
 
         # Error: permissions
@@ -352,4 +358,13 @@ class ConfTest(SpecTestCase):
         resp = json.loads(response.content)
         self.assertEqual(resp['error'], f"ApprovalMatrix ({am_ids[0]}) does not exist.")
 
-        
+    def test_roleSpecOne(self):
+        response = self.post_request('/role/', tr.role_post_4, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)    
+        resp = json.loads(response.content)
+        self.assertEqual(resp['spec_one'], True)    
+
+        response = self.put_request(f'/role/{tr.role_post_4["role"]}', tr.role_post_4, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 200)    
+        resp = json.loads(response.content)
+        self.assertEqual(resp['spec_one'], True)    

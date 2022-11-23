@@ -13,6 +13,14 @@ class RoleSerializer(serializers.ModelSerializer):
     def to_representation(self, value):
         data = super(RoleSerializer, self).to_representation(value)
         data['users'] = ', '.join(sorted(data['users']))
+        data['user_arr'] = []
+        for roleUser in value.users.all():
+            data['user_arr'].append({
+                "username":roleUser.user.username,
+                "email":roleUser.user.email,
+                "first_name":roleUser.user.first_name,
+                "last_name":roleUser.user.last_name
+            })
         return data
 
 class RolePostSerializer(serializers.ModelSerializer):
@@ -29,6 +37,12 @@ class RolePostSerializer(serializers.ModelSerializer):
             for role_user in users:
                 user = User.lookup(username=role_user)
                 role_user = RoleUser.objects.create(role=role,user=user)
+        
+        # If the user list is empty, the user must specify a person on the spec
+        if role.users.count() == 0:
+            role.spec_one = True
+            role.save()
+            
         return role
 
 class RoleUpdateSerializer(serializers.Serializer):
@@ -47,6 +61,11 @@ class RoleUpdateSerializer(serializers.Serializer):
             if len(username) > 0:
                 user = User.lookup(username=username)
                 role_user = RoleUser.objects.create(role=role, user=user)
+        
+        # If the user list is empty, the user must specify a person on the spec
+        if role.users.count() == 0:
+            role.spec_one = True
+            role.save()
 
         return role
 

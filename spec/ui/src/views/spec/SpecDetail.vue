@@ -180,8 +180,14 @@
                                 dense :readonly="!edit"
                             />                     
                         </q-td>
-                        <q-td>   
-                            <q-input
+                        <q-td>     
+                            <q-select v-if="edit && roleUserMap[tprops.row['role']] && roleUserMap[tprops.row['role']].length > 1"
+                                v-model="tprops.row['signer']"
+                                :options="roleUserMap[tprops.row['role']]"
+                                emit-value
+                                dense :readonly="!edit"
+                            />       
+                            <q-input v-else
                                 v-model="tprops.row['signer']" 
                                 :data-cy="genCy(`signer`, tprops.row['signer'])"
                                 dense borderless :readonly="!edit"/>                        
@@ -468,6 +474,7 @@ export default {
     const reject_spec = ref(false)
     const revise_spec = ref(false)
     const roleList = ref([])
+    const roleUserMap = ref({})
     const router=useRouter();
     const showRevs = ref(false)
     const sigRow = ref({})
@@ -667,7 +674,17 @@ export default {
     async function loadLists() {
         let data_rows = await retrieveData('role/?limit=1000');
         roleList.value = data_rows['results'].map((e) => {return ({label:e['role'],value:e['role']})})
-        
+        roleUserMap.value = {}
+        data_rows['results'].forEach(entry => {
+            roleUserMap.value[entry['role']] = [{label:'Any',value:''}].concat(
+                entry['user_arr'].map((e) => 
+                    {
+                        return ({label:e['username'] + ', ' + e['first_name'] + ' ' + e['last_name'],
+                            value:e['username']})
+                    })
+                )         
+        })
+
         data_rows = await retrieveData('doctype/?limit=1000');
         doc_typeList.value = data_rows['results'].map((e) => {return ({label:e['name'],value:e['name']})})
         
