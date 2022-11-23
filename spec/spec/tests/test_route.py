@@ -1,5 +1,6 @@
 import copy, json, os, mock
-from django.conf import settings
+from django.contrib.auth.models import User
+from django.core import mail
 from utils.test_utils import SpecTestCase
 from . import conf_resources as conf
 from . import spec_resources as spec
@@ -93,6 +94,19 @@ class RouteTest(SpecTestCase):
         with open('spec/tests/test_files/file_one.txt', 'rb') as fp:
             response = self.post_binary_request(f'/file/{spec_ids[0]}/A', {'file':(fp, 'file_one.txt')},  auth_lvl='USER')
         self.assertEqual(response.status_code, 200)
+        with open('spec/tests/test_files/small_pdf.pdf', 'rb') as fp:
+            response = self.post_binary_request(f'/file/{spec_ids[0]}/A', {'file':(fp, 'small_pdf.pdf')},  auth_lvl='USER')
+        self.assertEqual(response.status_code, 200)
+
+        # Set email on account, so the email check below will work
+        user = User.objects.get(username=os.getenv('USER_USER'))
+        user.email = 'user@test.com'
+        user.save()
+
+        # Set email on account, so the email check below will work
+        user = User.objects.get(username=os.getenv('ADMIN_USER'))
+        user.email = 'admin@test.com'
+        user.save()
 
         # Update spec - Add signers. Set file order and incl_pdf
         response = self.put_request(f'/spec/{spec_ids[0]}/A', spec.spec_put_2, auth_lvl='ADMIN')
@@ -123,6 +137,9 @@ class RouteTest(SpecTestCase):
         response = self.put_request(f'/spec/{spec_ids[0]}/A', spec_put, auth_lvl='ADMIN')
         self.assertEqual(response.status_code, 200)
 
+        # Empty the test outbox
+        mail.outbox = []
+
         # Submit:
         response = self.post_request(f'/submit/{spec_ids[0]}/A', auth_lvl='USER')
         self.assertEqual(response.status_code, 200)
@@ -133,6 +150,12 @@ class RouteTest(SpecTestCase):
         resp = json.loads(response.content)
         self.assertIn('state', resp)
         self.assertEqual(resp['state'], 'Signoff')
+
+        # Check email sent
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('user@test.com', mail.outbox[0].to)
+        self.assertIn('admin@test.com', mail.outbox[0].to)
+        self.assertEqual(mail.outbox[0].subject, f'[From Test] Spec {spec_ids[0]} "SOP, Spec Creation" needs your review')
 
         # Sign spec with no credentials
         response = self.post_request(f'/sign/{spec_ids[0]}/A', spec.sign_post_1)
@@ -199,6 +222,13 @@ class RouteTest(SpecTestCase):
         response = self.post_request(f'/sign/{spec_ids[0]}/A', spec.sign_post_2, auth_lvl='ADMIN')
         self.assertEqual(response.status_code, 200)
 
+        # Add watch, self
+        response = self.post_request(f'/user/watch/{os.getenv("USER_USER")}/{spec_ids[0]}', {}, auth_lvl="USER")
+        self.assertEqual(response.status_code, 200)
+        
+        # Empty the test outbox
+        mail.outbox = []
+
         # Sign op_line1 sig
         response = self.post_request(f'/sign/{spec_ids[0]}/A', spec.sign_post_3, auth_lvl='ADMIN')
         self.assertEqual(response.status_code, 200)
@@ -210,6 +240,13 @@ class RouteTest(SpecTestCase):
         self.assertIn('state', resp)
         self.assertEqual(resp['state'], 'Active')
 
+        # Check email sent
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('user@test.com', mail.outbox[0].to)
+        self.assertNotIn('admin@test.com', mail.outbox[0].to)
+        self.assertEqual(mail.outbox[0].subject, f'[From Test] A new version of Spec {spec_ids[0]} "SOP, Spec Creation" you are watching has been activated.')
+
+
         # Reject the active spec
         response = self.post_request(f'/reject/{spec_ids[0]}/A', {'comment': 'test reject'}, auth_lvl='USER')
         self.assertEqual(response.status_code, 400)
@@ -217,9 +254,25 @@ class RouteTest(SpecTestCase):
         self.assertIn('error', resp)
         self.assertEqual(resp['error'], "Spec must be in Signoff state to reject")
 
+        # Add watch, self
+        response = self.post_request(f'/user/watch/{os.getenv("USER_USER")}/{spec_ids[0]}', {}, auth_lvl="USER")
+        self.assertEqual(response.status_code, 200)
+
+        # Set email on account, so the email check below will work
+        user = User.objects.get(username=os.getenv('USER_USER'))
+        user.email = 'test@test.com'
+        user.save()
+
+        # Empty the test outbox
+        mail.outbox = []
+
         # Revise spec
         response = self.post_request(f'/spec/{spec_ids[0]}/A', {"reason": "test revision"}, auth_lvl='USER')
         self.assertEqual(response.status_code, 201)
+
+        # Check email sent
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, f'[From Test] Spec {spec_ids[0]} "SOP, Spec Creation" you are watching is being revised by {os.getenv("USER_USER")}')
 
         # Add two files to new spec revision
         with open('spec/tests/test_files/Text1.docx', 'rb') as fp:

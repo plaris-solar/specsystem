@@ -1,5 +1,7 @@
 import copy, json, os, html, time
 from django.conf import settings
+from spec.models import Spec
+from spec.services import revletter
 from utils.test_utils import SpecTestCase
 from . import conf_resources as conf
 from . import spec_resources as spec
@@ -238,7 +240,21 @@ class SpecTest(SpecTestCase):
         response = self.post_request('/importSpec/', spec_err_post, auth_lvl='ADMIN')
         self.assert_schema_err(response.content, 'num')
 
+        # Bad revision
+        spec_err_post = copy.deepcopy(spec.spec_import_post_1)
+        spec_err_post['ver'] = '01'
+        response = self.post_request('/importSpec/', spec_err_post, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 400)
+        resp = json.loads(response.content)
+        self.assertEqual(resp['error'], "Ver can only contain uppercase letters.")
+
+        self.assertFalse(revletter.valid_rev({}))
+
         # Import new spec
+        response = self.post_request('/importSpec/', spec.spec_import_post_1, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)
+
+        # Import new spec - second time to hit Document.lookupOrCreate (doctype exists)
         response = self.post_request('/importSpec/', spec.spec_import_post_1, auth_lvl='ADMIN')
         self.assertEqual(response.status_code, 201)
 
@@ -253,9 +269,16 @@ class SpecTest(SpecTestCase):
         self.assertEqual(resp['hist'][0]['change_type'], 'Import')
         self.assertEqual(resp['hist'][0]['comment'], 'Initial Load')
 
+        # Try and get Draft spec without specifying revision
+        response = self.get_request(f'/spec/400000/*', auth_lvl='USER')
+        self.assertEqual(response.status_code, 400)
+        resp = json.loads(response.content)
+        self.assertEqual(resp['error'], 'No active version of Spec (400000).')
+
         # Import existing spec
         spec_import = copy.deepcopy(spec.spec_import_post_2)
         spec_import['num'] = spec_ids[1]
+        spec_import['jira_create'] = True
         response = self.post_request('/importSpec/', spec_import, auth_lvl='ADMIN')
         self.assertEqual(response.status_code, 201)
 
@@ -269,6 +292,40 @@ class SpecTest(SpecTestCase):
         self.assertEqual(resp['created_by'], os.getenv('ADMIN_USER'))
         self.assertEqual(resp['hist'][0]['change_type'], 'Import')
         self.assertEqual(resp['hist'][0]['comment'], 'Initial Load')
+
+        # Get Active spec without specifying revision
+        response = self.get_request(f'/spec/{spec_ids[1]}/*', auth_lvl='USER')
+        self.assertEqual(response.status_code, 200)
+        resp = json.loads(response.content)
+        self.assertEqual(resp['created_by'], os.getenv('ADMIN_USER'))
+        self.assertEqual(resp['hist'][0]['change_type'], 'Import')
+        self.assertEqual(resp['hist'][0]['comment'], 'Initial Load')
+
+        # Remove user from Read Role
+        response = self.put_request(f'/role/{conf.role_put_1["role"]}', conf.role_put_1, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 200)
+        
+        response = self.get_request(f'/spec/{spec_ids[1]}/A', auth_lvl='USER')
+        self.assertEqual(response.status_code, 400)
+        resp = json.loads(response.content)
+        self.assertEqual(resp['error'], f'User {os.getenv("USER_USER")} cannot read confiential specs in department HR.')
+
+        # Update doc_type to WI. With an Active spec will trigger sunset
+        spec_import['doc_type'] = 'WI'
+        response = self.post_request('/importSpec/', spec_import, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)
+        resp = json.loads(response.content)
+        self.assertEqual(resp['state'], 'Obsolete')
+
+        # Reset the state to Active to hit a specific branch of spec.models.lookup()
+        specToUpdate = Spec.objects.get(num=spec_ids[1], ver='A')
+        specToUpdate.state = 'Active'
+        specToUpdate.save()
+
+        response = self.get_request(f'/spec/{spec_ids[1]}/*', auth_lvl='USER')
+        self.assertEqual(response.status_code, 400)
+        resp = json.loads(response.content)
+        self.assertEqual(resp['error'], f'No active version of Spec ({spec_ids[1]}).')
 
     def test_spec_create(self):
         self.post_conf()
@@ -299,6 +356,14 @@ class SpecTest(SpecTestCase):
         resp = json.loads(response.content)
         self.assertIn('error', resp)
         self.assertEqual(resp['error'], "Ver must be specified, when Num is specified")
+
+        # Post spec with numeric version
+        spec_post['ver'] = '01'
+        response = self.post_request('/spec/', spec_post, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 400)
+        resp = json.loads(response.content)
+        self.assertIn('error', resp)
+        self.assertEqual(resp['error'], "Ver can only contain uppercase letters.")
 
         # Re-add version
         spec_post['ver'] = 'A'
@@ -392,6 +457,11 @@ class SpecTest(SpecTestCase):
         response = self.get_request(f'/file/{spec_ids[0]}/A/torch.jpg?state=Draft', auth_lvl='USER')
         self.assertEqual(response.status_code, 400)
         self.assertIn(f"File torch.jpg is not attached to spec ({spec_ids[0]}/A).", response.content.decode())
+
+        # Get first file on spec
+        response = self.get_request(f'/file/{spec_ids[0]}/A?state=Active', auth_lvl='USER')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn(f"Spec ({spec_ids[0]}/A) is Draft, not in Active state.", response.content.decode())
 
         # Get first file on spec
         response = self.get_request(f'/file/{spec_ids[0]}/A?state=Draft', auth_lvl='USER')
@@ -558,11 +628,6 @@ class SpecTest(SpecTestCase):
         response = self.put_request(f'/user/{os.getenv("ADMIN_USER")}', {"delegates": os.getenv('USER_USER')}, auth_lvl='')
         self.assert_auth_error(response, 'NO_AUTH')
 
-        # # Make spec-user a delegate of spec-admin-user as spec-user
-        # response = self.put_request(f'/user/{os.getenv("ADMIN_USER")}', {"delegates": os.getenv('USER_USER')},
-        #                             auth_lvl="USER")
-        # self.assertEqual(response.status_code, 200)
-
         # Make spec-user a delegate of spec-admin-user
         response = self.put_request(f'/user/{os.getenv("ADMIN_USER")}', {"delegates": os.getenv('USER_USER')}, auth_lvl="ADMIN")
         self.assertEqual(response.status_code, 200)
@@ -580,3 +645,63 @@ class SpecTest(SpecTestCase):
         resp = json.loads(response.content)
         self.assertEqual(resp['delegates_for'], [os.getenv('ADMIN_USER')])
 
+        # Add a specs to watch
+        self.post_conf()
+
+        spec_ids = []
+
+        response = self.post_request('/spec/', spec.spec_post_1, auth_lvl='USER')
+        self.assertEqual(response.status_code, 201)
+        resp = json.loads(response.content)
+        resp_post_1 = resp
+        spec_ids.append(resp['num'])
+
+        response = self.post_request('/spec/', spec.spec_post_2, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 201)
+        resp = json.loads(response.content)
+        spec_ids.append(resp['num'])
+
+        # Add watch: different user, not admin
+        response = self.post_request(f'/user/watch/{os.getenv("ADMIN_USER")}/{spec_ids[0]}', {}, auth_lvl='USER')
+        self.assertEqual(response.status_code, 400)
+        resp = json.loads(response.content)
+        self.assertIn("Only admins can change other's settings.", resp['error'])
+
+        # Add watch, self
+        response = self.post_request(f'/user/watch/{os.getenv("USER_USER")}/{spec_ids[0]}', {}, auth_lvl="USER")
+        self.assertEqual(response.status_code, 200)
+        resp = json.loads(response.content)
+        self.assertIn(spec_ids[0], resp['watches'])
+
+        # Add watch, invalid spec
+        response = self.post_request(f'/user/watch/{os.getenv("USER_USER")}/000', {}, auth_lvl="USER")
+        self.assertEqual(response.status_code, 400)
+        resp = json.loads(response.content)
+        self.assertIn("Spec 0 does not exist.", resp['error'])
+
+        # Add watch, as admin
+        response = self.post_request(f'/user/watch/{os.getenv("USER_USER")}/{spec_ids[1]}', {}, auth_lvl="ADMIN")
+        self.assertEqual(response.status_code, 200)
+        resp = json.loads(response.content)
+        self.assertIn(spec_ids[0], resp['watches'])
+        self.assertIn(spec_ids[1], resp['watches'])
+
+        # Delete watch: different user, not admin
+        response = self.delete_request(f'/user/watch/{os.getenv("ADMIN_USER")}/{spec_ids[0]}', {}, auth_lvl='USER')
+        self.assertEqual(response.status_code, 400)
+        resp = json.loads(response.content)
+        self.assertIn("Only admins can change other's settings.", resp['error'])
+
+        # Delete watch, self
+        response = self.delete_request(f'/user/watch/{os.getenv("USER_USER")}/{spec_ids[0]}', {}, auth_lvl="USER")
+        self.assertEqual(response.status_code, 200)
+        resp = json.loads(response.content)
+        self.assertNotIn(spec_ids[0], resp['watches'])
+        self.assertIn(spec_ids[1], resp['watches'])
+
+        # Delete watch, as admin
+        response = self.delete_request(f'/user/watch/{os.getenv("USER_USER")}/{spec_ids[1]}', {}, auth_lvl="ADMIN")
+        self.assertEqual(response.status_code, 200)
+        resp = json.loads(response.content)
+        self.assertNotIn(spec_ids[0], resp['watches'])
+        self.assertNotIn(spec_ids[1], resp['watches'])

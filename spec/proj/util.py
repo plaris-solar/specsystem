@@ -38,7 +38,7 @@ from django_auth_ldap.backend import LDAPBackend
 class MyLDAPBackend(LDAPBackend):
     """ A custom LDAP authenticate_ldap_user  backend """
     def __set_is_flags(self, user):
-        if not user:
+        if not user: # pragma nocover
             return None
         # Users in any disabled OU are not active
         user.is_active = True

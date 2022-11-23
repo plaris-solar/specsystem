@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.mail import EmailMessage
 from rest_framework.exceptions import ValidationError
-from spec.services.revletter import get_next_version
+from spec.services.revletter import get_next_version, valid_rev
 from user.models import User
 from ..models import ApprovalMatrix, Department, DocType, Role, Spec, SpecHist, SpecSig, SpecFile, SpecReference, UserWatch
 from . import jira
@@ -13,6 +13,9 @@ def specImport(request, validated_data):
     """Used for initial import of specs to specified state with specified dates"""
     comment = validated_data.pop("comment")
     jira_create = validated_data.pop("jira_create")
+    
+    if not valid_rev(validated_data['ver']):
+        raise ValidationError({"errorCode":"SPEC-C06", "error": f"Ver can only contain uppercase letters."})
 
     validated_data['doc_type'] = DocType.lookupOrCreate(validated_data['doc_type'])
     validated_data['department'] = Department.lookupOrCreate(validated_data['department'])
@@ -25,6 +28,7 @@ def specImport(request, validated_data):
         spec.title = validated_data['title']
         spec.doc_type = validated_data['doc_type']
         spec.department = validated_data['department']
+        spec.state = validated_data['state']
         spec.keywords = validated_data['keywords']
         spec.reason = validated_data['reason']
         spec.jira = validated_data['jira']
@@ -69,20 +73,13 @@ def specSigCreate(request, spec, role, signerName, from_am):
 
 def specSetReqSigs(request, spec):
     spec.sigs.all().delete()
-    signRoles = ApprovalMatrix.lookupRoles(spec.doc_type, spec.department.name)
+    signRoles = ApprovalMatrix.lookupRoles(spec.doc_type, spec.department)
     for signRole in signRoles:
         specSigCreate(request, spec, signRole.role, None, True)
 
-def specFileCreate(request, spec, filename, seq):
-    specFile = SpecFile.objects.create(spec=spec, filename=filename, seq=seq)
-
 def specCreate(request, validated_data):
-    sigs_data = validated_data.pop("sigs")
-    files_data = validated_data.pop("files")
-    refs_data = validated_data.pop("refs")
     docTypeName = validated_data.pop("doc_type")
     deptName = validated_data.pop("department")
-    comment = validated_data.pop("comment")
 
     validated_data['doc_type'] = DocType.lookup(docTypeName)
     validated_data['department'] = Department.lookup(deptName)
@@ -92,6 +89,8 @@ def specCreate(request, validated_data):
             raise ValidationError({"errorCode":"SPEC-C02", "error": f"Only Admins can create a spec with a specific number"})
         if not validated_data['ver'] or len(validated_data['ver']) == 0:
             raise ValidationError({"errorCode":"SPEC-C03", "error": f"Ver must be specified, when Num is specified"})
+        if not valid_rev(validated_data['ver']):
+            raise ValidationError({"errorCode":"SPEC-C05", "error": f"Ver can only contain uppercase letters."})
 
         specNum = Spec.objects.filter(num=validated_data['num']).first()
         if specNum:
@@ -112,15 +111,6 @@ def specCreate(request, validated_data):
     spec = Spec.objects.create(**validated_data)
 
     specSetReqSigs(request, spec)
-    for sig_data in sigs_data:
-        specSigCreate(request, spec, Role.lookup(sig_data['role']), sig_data['signer'], False)
-
-    for file_data in files_data:
-        specFileCreate(request, spec, file_data['filename'], file_data['seq'])
-
-    for ref_data in refs_data:
-        ref_data['spec'] = spec
-        SpecReference.objects.create(**ref_data)
 
     jira.create(spec)
 

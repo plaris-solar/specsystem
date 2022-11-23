@@ -65,7 +65,7 @@ spec_put_2 = {
     "sigs": [{'role':conf.role_post_1['role'],'signer':os.getenv("USER_USER"), 'from_am':True}, 
              {'role':conf.role_post_2['role'],'signer':os.getenv("ADMIN_USER"), 'from_am':False},
              {'role':conf.role_post_3['role'],'signer':None, 'from_am':True}],
-    "files": [{"filename":"torch.jpg", "incl_pdf":False}, {"filename":"Text1.docx", "incl_pdf":True}],
+    "files": [{"filename":"torch.jpg", "incl_pdf":False}, {"filename":"Text1.docx", "incl_pdf":True}, {"filename":"small_pdf.pdf", "incl_pdf":True}],
     "refs": [],
     "state":"Draft",
     "comment": "Change state back to Draft for testing"
@@ -79,7 +79,7 @@ spec_put_3 = {
     "jira": "TEST-1",
     "sigs": [{'role':conf.role_post_1['role'],'signer':os.getenv("USER_USER"), 'from_am':True},
              {'role':conf.role_post_3['role'],'signer':os.getenv("ADMIN_USER"), 'from_am':True}],
-    "files": [{"filename":"torch.jpg", "incl_pdf":False}, {"filename":"Text1.docx", "incl_pdf":True}],
+    "files": [{"filename":"torch.jpg", "incl_pdf":False}, {"filename":"Text1.docx", "incl_pdf":False}],
     "refs": [],
     "state":"Draft",
     "comment": "Change state back to Draft for testing"
@@ -124,11 +124,10 @@ spec_import_post_1 = {
     "ver": 'B',
     "title": "SOP, Spec Import",
     "keywords": "keyword one import",
-    "doc_type": "SOP",
+    "doc_type": "Standard-Operating-Procedure",
     "reason": "import for test",
-    "department": "Ops:Line1",
+    "department": "Ops:Line1:Area1",
     'create_dt': '2022-08-28T00:00:00Z',
-    'approved_dt': '2022-08-29T00:00:00Z',
     'mod_ts': '2022-08-29T00:00:00Z',
     "state":"Draft"
 }
@@ -137,12 +136,12 @@ spec_import_post_2 = {
     "title": "WI, Route Spec Import",
     "ver": 'A',
     "keywords": "keyword two",
-    "doc_type": "WI",
-    "department": "Ops",
+    "doc_type": "SOP",
+    "department": "HR",
     'create_dt': '2022-08-28T00:00:00Z',
     'approved_dt': '2022-08-29T00:00:00Z',
     'mod_ts': '2022-08-29T00:00:00Z',
-    "state":"Draft",
+    "state":"Active",
 }
 
 

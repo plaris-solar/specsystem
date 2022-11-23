@@ -93,18 +93,27 @@ class SpecSerializer(serializers.ModelSerializer):
             if value.doc_type.sunset_warn and 'sunset_dt' in data:
                 data['sunset_warn_dt'] = data['sunset_dt'] - value.doc_type.sunset_warn
 
-        return data
+        return data 
+
+class SpecCreateSerializer(serializers.Serializer):
+    num = serializers.IntegerField(required=False, default=None, allow_null=True)
+    ver = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True, max_length=2)
+    state = serializers.CharField()
+    title = serializers.CharField()
+    doc_type = serializers.CharField()
+    department = serializers.CharField()
+    keywords = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
         
-class SpecSigPostSerializer(serializers.Serializer):
+class SpecSigPutSerializer(serializers.Serializer):
     role = serializers.CharField()
     signer = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
     from_am = serializers.BooleanField(required=False, default=False)
         
-class SpecFilePostSerializer(serializers.Serializer):
+class SpecFilePutSerializer(serializers.Serializer):
     filename = serializers.CharField()
     incl_pdf = serializers.BooleanField(required=False, default=False)
 
-class SpecPostSerializer(serializers.Serializer):
+class SpecPutSerializer(serializers.Serializer):
     num = serializers.IntegerField(required=False, default=None, allow_null=True)
     ver = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True, max_length=2)
     state = serializers.CharField()
@@ -113,8 +122,8 @@ class SpecPostSerializer(serializers.Serializer):
     department = serializers.CharField()
     keywords = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
     jira = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
-    sigs = SpecSigPostSerializer(many=True)
-    files = SpecFilePostSerializer(many=True)
+    sigs = SpecSigPutSerializer(many=True)
+    files = SpecFilePutSerializer(many=True)
     refs = SpecReferenceSerializer(many=True)
     anon_access = serializers.BooleanField(required=False, default=False, allow_null=True)
     reason = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)

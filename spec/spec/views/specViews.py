@@ -13,7 +13,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
 from subprocess import run
 
-from proj.util import IsSuperUserOrReadOnly
+from proj.util import IsSuperUser, IsSuperUserOrReadOnly
 from ..services import jira
 from ..services.spec_route import specExtend, specReject, specSign, specSubmit
 from ..services.spec_create import specCreate, specImport, specRevise
@@ -21,7 +21,7 @@ from ..services.spec_update import specFileUpload, specUpdate
 from utils.dev_utils import formatError
 
 from ..models import Spec, SpecFile, SpecHist
-from ..serializers.specSerializers import FilePostSerializer, ImportSpecSerializer, SpecExtendSerializer, SpecPostSerializer, SpecRejectSerializer, SpecReviseSerializer, SpecSerializer, SpecSignSerializer
+from ..serializers.specSerializers import FilePostSerializer, ImportSpecSerializer, SpecCreateSerializer, SpecExtendSerializer, SpecPutSerializer, SpecRejectSerializer, SpecReviseSerializer, SpecSerializer, SpecSignSerializer
 
 
 class HelpFile(APIView):
@@ -47,10 +47,10 @@ class HelpFile(APIView):
         
         
         osPdfFileName = os.path.splitext(osFileName)[0]+'.pdf'
-        if not Path(osPdfFileName).exists():
+        if not Path(osPdfFileName).exists(): # pragma nocover
             p = run([settings.SOFFICE, '--norestore', '--safe-mode', '--view', '--convert-to', 'pdf', '--outdir', str(Path(osFileName).parent), osFileName]
                 , stdout=subprocess.PIPE)
-            if p.returncode != 0: #pragma nocover
+            if p.returncode != 0:
                 raise ValidationError({"errorCode":"SPEC-SV27", "error": f"Error converting file ({osFileName}) to PDF: {p.returncode} {p.stdout}"})
         return (osPdfFileName, filename)
 
@@ -86,7 +86,7 @@ class ImportSpec(GenericAPIView):
         "jira_create": false
     }
     """
-    permission_classes = [IsSuperUserOrReadOnly]
+    permission_classes = [IsSuperUser]
     def post(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
@@ -150,7 +150,7 @@ class SpecList(GenericAPIView):
     def post(self, request, *args, **kwargs):
         try:
             with transaction.atomic():
-                serializer = SpecPostSerializer(data=request.data)
+                serializer = SpecCreateSerializer(data=request.data)
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-SV02", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 spec = specCreate(request, serializer.validated_data)
@@ -209,7 +209,7 @@ class SpecDetail(APIView):
         try:
             with transaction.atomic():
                 spec = Spec.lookup(num, ver, request.user)
-                serializer = SpecPostSerializer(spec, data=request.data)
+                serializer = SpecPutSerializer(spec, data=request.data)
                 if not serializer.is_valid():
                     raise ValidationError({"errorCode":"SPEC-SV05", "error": "Invalid message format", "schemaErrors":serializer.errors})
                 spec = specUpdate(request, spec, serializer.validated_data)

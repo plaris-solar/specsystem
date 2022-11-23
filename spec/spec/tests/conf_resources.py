@@ -25,7 +25,7 @@ role_put_1 = {
     'role':'Qual',
     'descr':'Quality - Descr updated',
     'spec_one':True,
-    'users':f'{os.getenv("USER_USER")}'
+    'users':f'{os.getenv("ADMIN_USER")}'
 }
 
 role_put_err_1 = {
@@ -74,10 +74,10 @@ dept_put_err_2 = {
 doctype_post_1 = {
     'name':'SOP',
     'descr':'Standard Operating Procedure - Op',
-    'confidential':False,
+    'confidential':True,
     'jira_temp':'',
-    'sunset_interval': '1 00:00:00',
-    'sunset_warn': '23:50:00'
+    'sunset_interval': None,
+    'sunset_warn': None
 }
 
 doctype_post_2 = {

@@ -14,9 +14,6 @@ class UserDelegate(models.Model):
         managed = True
         db_table = 'user_delegate'
 
-    def __str__(self):
-        return self.delegate.username
-
 class UserWatch(models.Model):
     user = models.ForeignKey(DjangoUser, on_delete=models.CASCADE, related_name='watches')
     num = models.IntegerField()
@@ -24,9 +21,6 @@ class UserWatch(models.Model):
     class Meta:
         managed = True
         db_table = 'user_watch'
-
-    def __str__(self):
-        return str(self.num)
 
 class DocType(models.Model):
     name = models.CharField(primary_key=True, max_length=50)
@@ -75,8 +69,9 @@ class Role(models.Model):
         return role
     
     def isMember(self, user):
-        if user in self.users.all():
-            return True
+        for roleUser in self.users.all():
+            if user == roleUser.user:
+                return True
         return False
 
 class RoleUser(models.Model):
@@ -117,10 +112,34 @@ class Department(models.Model):
             return doctype
         return Department.objects.create(name=deptName)
 
+    def parents(self):
+        """return list of this department and all its parents"""
+        deptList = [self]
+
+        deptName = self.name
+        while ':' in deptName:
+            # Remove the last : and everything after it, to check on the department's parent
+            deptName = re.sub(':[^:]*$', '', deptName)
+
+            try: # Department not existing is just not added to the array
+                department = Department.lookup(deptName)
+                deptList.append(department)
+            except: # pragma nocover
+                pass
+
+        try: # Department __Generic__ not existing is just not added to the array
+            department = Department.lookup('__Generic__')
+            deptList.append(department)
+        except: # pragma nocover
+            pass
+
+        return deptList
+            
     def isReader(self, user):
-        for role in self.readRoles.all():
-            if role.isMember(user):
-                return True
+        for dept in self.parents():
+            for role in dept.readRoles.all():
+                if role.role.isMember(user):
+                    return True
         return False
 
 class DepartmentReadRole(models.Model):
@@ -142,12 +161,9 @@ class ApprovalMatrix(models.Model):
         managed = True
         db_table = 'apvl_mt'
         unique_together = (('doc_type', 'department'),)
-        
-    def __str__(self):
-        return f'{self.doc_type}-{self.department}'
 
     @staticmethod
-    def lookupRoles(doc_type, deptName, orig_dept=None):
+    def lookupRoles(doc_type, origDept, orig_dept=None):
         """
         Find all the Roles required.
         Match on doc_type and department. Then remove the tail of the department after the colon and check again.
@@ -155,28 +171,10 @@ class ApprovalMatrix(models.Model):
         """
         ret = []
 
-        if deptName is None:
-            deptName = '__Generic__'
-        
-        apvl_mt = None
-        try: # Department not being found will be retried below, so eat any error on missing part
-            department = Department.lookup(deptName)
-            apvl_mt = ApprovalMatrix.objects.filter(doc_type=doc_type, department=department).first()
-        except:
-            pass
-        if apvl_mt:
-            ret = list(apvl_mt.signRoles.all())
-        
-        if orig_dept is None:
-            orig_dept = deptName
-        if deptName and ':' in deptName:
-            # Remove the last : and everything after it, to check on the department's parent
-            parent_dept = re.sub(':[^:]*$', '', deptName)
-            return ret + ApprovalMatrix.lookupRoles(doc_type, parent_dept, orig_dept)
-        
-        # Finally, try with department named __Generic__ as a coomon root department
-        if deptName != '__Generic__':
-            return ret + ApprovalMatrix.lookupRoles(doc_type, None, orig_dept)
+        for dept in origDept.parents():
+            apvl_mt = ApprovalMatrix.objects.filter(doc_type=doc_type, department=dept).first()
+            if apvl_mt:
+                ret = ret + list(apvl_mt.signRoles.all())
         
         return ret
 
@@ -212,9 +210,6 @@ class Spec(models.Model):
         managed = True
         db_table = 'spec'
         unique_together = (('num', 'ver'),)
-        
-    def __str__(self):
-        return f'{self.num}-{self.ver} {self.state}: {self.title}'
 
     def checkEditable(self, user):    
         if self.state != "Draft" and not user.is_superuser:
@@ -257,7 +252,7 @@ class Spec(models.Model):
                 if spec.state != 'Active':
                     raise Spec.DoesNotExist()
             except Spec.DoesNotExist:
-                raise ValidationError({"errorCode":"SPEC-M06", "error": f"No actve version of Spec ({num})."})    
+                raise ValidationError({"errorCode":"SPEC-M06", "error": f"No active version of Spec ({num})."})    
 
         if not user.is_authenticated and ( not spec.anon_access or spec.state != "Active"):
             raise ValidationError({"errorCode":"SPEC-M08", "error": f"spec {spec.num}-{spec.ver} cannot read without logging in."})
