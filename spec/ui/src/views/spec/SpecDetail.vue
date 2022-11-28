@@ -88,6 +88,7 @@
                     <th align="left"  v-show="(String(approved_dt).length > 0)">Approve Date</th>
                     <th align="left"  v-show="(String(sunset_extended_dt).length > 0)">Date Extended</th>
                     <th align="left"  v-show="(String(sunset_dt).length > 0)">Sunset Date</th>
+                    <th align="left">Created By</th>
                 </tr>
                 <tr><td>
                     <q-select
@@ -132,6 +133,8 @@
                             <q-btn 
                                 v-if="new Date().getTime() > sunset_warn_dt && state === 'Active' && String(sunset_extended_dt).length === 0" 
                                 label="Extend" icon="more_time" @click="extendSunset()"  data-cy="spec-detail-extend"/>
+                </td><td>
+                    <q-input :disable="!edit || !isAdmin" v-model.trim="created_by" data-cy="spec-detail-created_by" dense />
                 </td></tr>
             </table>
             <q-space/>
@@ -503,6 +506,7 @@ export default {
             refs:refRows.value,
             comment:comment.value,
             anon_access:anon_access.value.value,
+            created_by:created_by.value,
         }
 
         let res = await putData(`spec/${props.num}/${props.ver}`, body, 

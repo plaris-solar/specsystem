@@ -70,7 +70,7 @@ class SpecSerializer(serializers.ModelSerializer):
         refs = value.refs.order_by('num', 'ver', ).all()
         data['refs'] = SpecReferenceSerializer(refs, many=True, context=self.context).data
         
-        hist = value.hist.order_by('-mod_ts', ).all()
+        hist = value.hist.order_by('-mod_ts', '-id', ).all()
         data['hist'] = SpecHistSerializer(hist, many=True, context=self.context).data
 
         try:
@@ -128,6 +128,7 @@ class SpecPutSerializer(serializers.Serializer):
     anon_access = serializers.BooleanField(required=False, default=False, allow_null=True)
     reason = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
     comment = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
+    created_by = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
         
 class FilePostSerializer(serializers.Serializer):
     file = serializers.FileField()
