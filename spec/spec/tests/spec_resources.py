@@ -53,7 +53,8 @@ spec_put_1 = {
     "files": [{"filename":"torch.jpg", "incl_pdf":False}, {"filename":"Text1.docx", "incl_pdf":True}],
     "refs": [],
     "state":"Active",
-    "comment": "Change state for testing"
+    "comment": "Change state for testing",
+    "created_by": "SPEC-Admin-Test-User"
 }
 
 spec_put_2 = {
@@ -133,6 +134,19 @@ spec_put_err_2 = {
     "files": [],
     "refs": [],
     "state":"Active"
+}
+
+spec_put_err_3 = {
+    "title": "SOP, Spec Creation",
+    "keywords": "keyword one",
+    "doc_type": "SOP",
+    "department": "Ops:Line1",
+    "sigs": [],
+    "files": [],
+    "refs": [],
+    "state":"Draft",
+    "comment": None,
+    "created_by": "SPEC-Admin-Test-User"
 }
 
 spec_import_post_1 = {
