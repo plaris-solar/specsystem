@@ -111,7 +111,7 @@
                 dense
                 data-cy="spec-table">
                 <template v-slot:top>
-                    User Created Specs Still In-Porcess
+                    User Created Specs Still In-Process
                 </template>
                 <template v-slot:header="props">
                     <q-th v-for="col in props.cols" 
