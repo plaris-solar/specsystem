@@ -14,6 +14,7 @@ class ImportSpecSerializer(serializers.Serializer):
     keywords = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
     reason = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
     jira = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
+    created_by = serializers.CharField(required=False, default=None, allow_blank=True, allow_null=True)
     create_dt = serializers.DateTimeField()
     approved_dt = serializers.DateTimeField(required=False, default=None, allow_null=True)
     mod_ts = serializers.DateTimeField()
