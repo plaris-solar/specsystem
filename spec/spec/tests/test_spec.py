@@ -291,6 +291,7 @@ class SpecTest(SpecTestCase):
         spec_import = copy.deepcopy(spec.spec_import_post_2)
         spec_import['num'] = spec_ids[1]
         spec_import['jira_create'] = True
+        spec_import['created_by'] = os.getenv('USER_USER')
         response = self.post_request('/importSpec/', spec_import, auth_lvl='ADMIN')
         self.assertEqual(response.status_code, 201)
 
@@ -301,7 +302,7 @@ class SpecTest(SpecTestCase):
         for key, value in spec.spec_import_post_2.items():
             self.assertIn(key, resp)
             self.assertEqual(resp[key], value)
-        self.assertEqual(resp['created_by'], os.getenv('ADMIN_USER'))
+        self.assertEqual(resp['created_by'], os.getenv('USER_USER'))
         self.assertEqual(resp['hist'][0]['change_type'], 'Import')
         self.assertEqual(resp['hist'][0]['comment'], 'Initial Load')
 
@@ -309,7 +310,7 @@ class SpecTest(SpecTestCase):
         response = self.get_request(f'/spec/{spec_ids[1]}/*', auth_lvl='USER')
         self.assertEqual(response.status_code, 200)
         resp = json.loads(response.content)
-        self.assertEqual(resp['created_by'], os.getenv('ADMIN_USER'))
+        self.assertEqual(resp['created_by'], os.getenv('USER_USER'))
         self.assertEqual(resp['hist'][0]['change_type'], 'Import')
         self.assertEqual(resp['hist'][0]['comment'], 'Initial Load')
 

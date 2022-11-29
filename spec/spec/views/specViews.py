@@ -79,6 +79,7 @@ class ImportSpec(GenericAPIView):
         "doc_type": "{{Document Type}}",
         "department": "{{Department}}",
         "reason": "{{Document Subject}}",
+        "created_by": "{{Created By}}",
         "create_dt": "{{Creation Date}}",
         "mod_ts": "{{Modification Date}}",
         "approved_dt": "{{Date Released}}",

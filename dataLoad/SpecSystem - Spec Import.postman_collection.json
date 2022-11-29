@@ -51,7 +51,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"num\": {{ID}},\r\n    \"ver\": \"{{Revision}}\",\r\n    \"state\": \"Active\",\r\n    \"title\": \"{{Document Name}}\",\r\n    \"doc_type\": \"{{Document Type}}\",\r\n    \"department\": \"{{Department}}:{{Zone}}:{{Process Step}}\",\r\n    \"keywords\": \"\",\r\n    \"reason\": \"Document imported from Team Center.\",\r\n    \"create_dt\": \"{{Creation Date}}\",\r\n    \"approved_dt\": \"{{Date Released}}\",\r\n    \"mod_ts\": \"{{Date Modified}}\",\r\n    \"comment\": \"Document imported from Team Center.\\n\\nOwner: {{Owner}}\\nDescription: {{Description}}\\nReferences: {{References}}\\nDocument Title: {{Document Title}}\",\r\n    \"jira_create\": {{Jira Create}}\r\n}",
+					"raw": "{\r\n    \"num\": {{ID}},\r\n    \"ver\": \"{{Revision}}\",\r\n    \"state\": \"Active\",\r\n    \"title\": \"{{Document Name}}\",\r\n    \"doc_type\": \"{{Document Type}}\",\r\n    \"department\": \"{{Department}}:{{Zone}}:{{Process Step}}\",\r\n    \"keywords\": \"\",\r\n    \"reason\": \"Document imported from Team Center.\",\r\n    \"create_by\": \"{{Created By}}\",\r\n    \"create_dt\": \"{{Creation Date}}\",\r\n    \"approved_dt\": \"{{Date Released}}\",\r\n    \"mod_ts\": \"{{Date Modified}}\",\r\n    \"comment\": \"Document imported from Team Center.\\n\\nOwner: {{Owner}}\\nDescription: {{Description}}\\nReferences: {{References}}\\nDocument Title: {{Document Title}}\",\r\n    \"jira_create\": {{Jira Create}}\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"

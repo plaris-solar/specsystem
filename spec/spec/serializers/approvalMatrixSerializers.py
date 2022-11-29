@@ -31,7 +31,7 @@ class ApprovalMatrixPostSerializer(serializers.ModelSerializer):
         apvl_mt = ApprovalMatrix.objects.create(**validated_data)
 
         if sign_role_data:
-            roles = re.split(r"[\s:;,]+",sign_role_data)
+            roles = re.split(r"[\s;,]+",sign_role_data)
             for role in roles:
                 _role = Role.lookup(role)
                 _signRole = ApprovalMatrixSignRole.objects.create(apvl_mt=apvl_mt,role=_role)
@@ -54,7 +54,7 @@ class ApprovalMatrixUpdateSerializer(serializers.ModelSerializer):
 
         ApprovalMatrixSignRole.objects.filter(apvl_mt=apvl_mt).delete()
         if sign_role_data:
-            roles = re.split(r"[\s:;,]+",sign_role_data)
+            roles = re.split(r"[\s;,]+",sign_role_data)
             for role in roles:
                 _role = Role.lookup(role)
                 _signRole = ApprovalMatrixSignRole.objects.create(apvl_mt=apvl_mt,role=_role)

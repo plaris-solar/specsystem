@@ -20,7 +20,12 @@ def specImport(request, validated_data):
     validated_data['doc_type'] = DocType.lookupOrCreate(validated_data['doc_type'])
     validated_data['department'] = Department.lookupOrCreate(validated_data['department'])
 
-    validated_data['created_by'] = request.user
+    # If we can find the created_by user specified, use it
+    # Otherwise, user the user doing the load
+    try:
+        validated_data['created_by'] = User.lookup(validated_data['created_by'])
+    except:
+        validated_data['created_by'] = request.user
 
     spec = Spec.objects.filter(num = validated_data['num'], ver = validated_data['ver']).first()
     if spec:
@@ -32,6 +37,7 @@ def specImport(request, validated_data):
         spec.keywords = validated_data['keywords']
         spec.reason = validated_data['reason']
         spec.jira = validated_data['jira']
+        spec.created_by = validated_data['created_by']
         spec.create_dt = validated_data['create_dt']
         spec.approved_dt = validated_data['approved_dt']
         spec.mod_ts = validated_data['mod_ts']
