@@ -44,6 +44,7 @@ def specUpdate(request, spec, validated_data):
     spec.title = validated_data.pop("title")
     spec.keywords = validated_data.pop("keywords")
     spec.jira = validated_data.pop("jira")
+    spec.reason = validated_data.pop("reason")
     spec.save()
 
     # If spec is not in draft state, don't touch the signatures for an admin edit.

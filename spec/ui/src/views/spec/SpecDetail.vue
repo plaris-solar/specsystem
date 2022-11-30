@@ -591,7 +591,7 @@ export default {
         reject_spec.value = false
         revise_spec.value = false
 
-        anon_access.value = res['anon_access']
+        anon_access.value = res['anon_access'] ? {label:'True',value:true} : {label:'False',value:false}
         approved_dt.value = res['approved_dt'] ? res['approved_dt'] : ''
         created_by.value = res['created_by']
         create_dt.value = res['create_dt']
