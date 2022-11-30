@@ -16,7 +16,7 @@ def specUpdate(request, spec, validated_data):
         if spec.state == 'Active' and spec.approved_dt is None:
             spec.approved_dt = request._req_dt
  
-    if validated_data['created_by'] and spec.created_by != validated_data['created_by']:        
+    if validated_data['created_by'] and spec.created_by.username != validated_data['created_by']:        
         created_by = User.lookup(username=validated_data['created_by'])
         if not request.user.is_superuser:
             raise ValidationError({"errorCode":"SPEC-U54", "error": "Created By changes via update can only be done by an administrator."})
