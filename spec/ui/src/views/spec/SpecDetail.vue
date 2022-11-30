@@ -150,6 +150,7 @@
         <q-card-section class="q-pt-none row">
             <q-table
                 :rows="sigRows"
+                :rows-per-page-options="[0]"
                 hide-bottom
                 data-cy="spec-detail-sigs">
                 <template v-slot:header>
@@ -220,6 +221,7 @@
             <q-space/>
             <q-table
                 :rows="refRows"
+                :rows-per-page-options="[0]"
                 hide-bottom
                 data-cy="spec-detail-refs">
                 <template v-slot:top-left>
@@ -268,6 +270,7 @@
             <q-space/>
             <q-table
                 :rows="fileRows"
+                :rows-per-page-options="[0]"
                 hide-bottom
                 data-cy="spec-detail-files">
                 <template v-slot:top-left>
@@ -337,6 +340,7 @@
             <span class="row">
                 <q-table
                     :rows="histRows"
+                    :rows-per-page-options="[0]"
                     hide-bottom
                     data-cy="spec-detail-files">
                     <template v-slot:header>
