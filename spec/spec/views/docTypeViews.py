@@ -72,7 +72,9 @@ class DocTypeDetail(APIView):
         "name": "WI",
         "descr": "Work Instruction",
         "confidential": false,
-        "jira_temp": ""
+        "jira_temp": "",
+        "sunset_interval": "1096 00:00:00",
+        "sunset_warn": "90 00:00:00",
     }
 
     delete:

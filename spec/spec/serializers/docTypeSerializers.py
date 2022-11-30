@@ -22,3 +22,10 @@ class DocTypePutSerializer(serializers.ModelSerializer):
         model = DocType
         fields = ('descr', 'confidential', 'jira_temp', 'sunset_interval', 'sunset_warn',  )
 
+    def update(self, doctype, validated_data):
+        if not validated_data['sunset_interval']:
+            validated_data['sunset_interval'] = None
+        if not validated_data['sunset_warn']:
+            validated_data['sunset_warn'] = None
+            
+        return super(DocTypePutSerializer, self).update(doctype, validated_data)
