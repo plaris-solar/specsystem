@@ -81,7 +81,7 @@
                                     <q-tooltip>View first file</q-tooltip>
                                 </q-btn>
                             </span>
-                            <span v-else-if="col.name === 'mod_ts'">{{dispDate(props.row[col.name])}}</span>
+                            <span v-else-if="col.name === 'sunset_dt'">{{props.row[col.name].substring(0,10)}}</span>
                             <span v-else>{{props.row[col.name]}}</span>
                         </q-td>
                     </q-tr>
@@ -113,7 +113,7 @@
 </template>
 
 <script>
-import { apiServerHost, deleteData, dispDate, postData, retrieveData, } from '@/utils.js';
+import { apiServerHost, deleteData, postData, retrieveData, } from '@/utils.js';
 
 import { ref, onMounted, computed, defineProps, watch} from 'vue';
 import { useStore } from 'vuex'
@@ -260,7 +260,7 @@ export default {
             { name: 'keywords', align: 'left', label: 'Keywords', field: 'keywords', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
             { name: 'state', align: 'left', label: 'State', field: 'state', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
             { name: 'created_by', align: 'left', label: 'Created By', field: 'created_by', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
-            { name: 'mod_ts', align: 'left', label: 'Last Modified', field: 'mod_ts', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
+            { name: 'sunset_dt', align: 'left', label: 'Sunset Date', field: 'sunset_dt', classes: "tab page-col", headerStyle:"font-size:large;", style: 'width: 15em;', sortable: false},
         ]
 </script>
 

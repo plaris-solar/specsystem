@@ -301,7 +301,7 @@
                             </q-btn>
                         </q-td>
                         <q-td>
-                            <a :href="apiServerHost+'/file/'+props.num+'/'+props.ver+'/'+tprops.row['filename']+'?state='+state" data-cy="spec-detail-file-filename"
+                            <a :href="apiServerHost+'/file/'+props.num+'/'+props.ver+'/'+encodeURIComponent(tprops.row['filename'])+'?state='+state" data-cy="spec-detail-file-filename"
                                 target="_blank">
                                 {{tprops.row['filename']}}
                             </a>
@@ -535,7 +535,7 @@ export default {
         if (!window.confirm(`Delete file: ${fileRow.filename}?`)) {
             return
         }
-        let res = await deleteData(`file/${props.num}/${props.ver}/${fileRow.filename}`, {}, `Deleting file: ${fileRow.filename}`);
+        let res = await deleteData(`file/${props.num}/${props.ver}/${encodeURIComponent(fileRow.filename)}`, {}, `Deleting file: ${fileRow.filename}`);
         fileRows.value.splice(fileRows.value.indexOf(fileRow), 1)
     }
 
