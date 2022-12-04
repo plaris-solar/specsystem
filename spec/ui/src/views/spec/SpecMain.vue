@@ -81,7 +81,9 @@
                                     <q-tooltip>View first file</q-tooltip>
                                 </q-btn>
                             </span>
-                            <span v-else-if="col.name === 'sunset_dt'">{{props.row[col.name].substring(0,10)}}</span>
+                            <span v-else-if="col.name === 'sunset_dt'">
+                                {{props.row[col.name] && props.row[col.name] instanceof String ? props.row[col.name].substring(0,10):''}}
+                            </span>
                             <span v-else>{{props.row[col.name]}}</span>
                         </q-td>
                     </q-tr>
