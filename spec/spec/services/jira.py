@@ -84,7 +84,8 @@ def submit(spec): # pragma nocover
 
         for st in substasks:
             jira.transition_issue(st, transition='Submit')
-        jira.transition_issue(jira_issue, transition='Submit')
+        if jira_issue.fields.status.name != 'Signoff': 
+            jira.transition_issue(jira_issue, transition='Submit')
 
     except BaseException as be:
         raise ValidationError({"errorCode":"SPEC-J03", "error": f"Error transitioning Jira issue {spec.jira} to Submit, Error: {be}"})

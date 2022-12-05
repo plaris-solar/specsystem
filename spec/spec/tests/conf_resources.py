@@ -133,6 +133,15 @@ doctype_put_2 = {
     'sunset_warn': '1 23:59:58'
 }
 
+doctype_put_3 = {
+    'name':'WI',
+    'descr':'Work Instruction - Updated',
+    'confidential':True,
+    'jira_temp':'New Jira Template',
+    'sunset_interval': '0',
+    'sunset_warn': '0'
+}
+
 doctype_put_err_1 = {
     'name':'WI',
     'descr':'Work Instruction',
