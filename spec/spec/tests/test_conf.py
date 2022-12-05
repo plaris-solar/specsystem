@@ -235,6 +235,18 @@ class ConfTest(SpecTestCase):
             expected['jira_temp_url_base'] = f'{settings.JIRA_URI}/browse/'
         self.assertEqual(resp, expected)
 
+        # Update doctype (sunset values are 0)
+        response = self.put_request(f'/doctype/{tr.doctype_put_3["name"]}', tr.doctype_put_3, auth_lvl='ADMIN')
+        self.assertEqual(response.status_code, 200)
+
+        # Get updated doctype
+        response = self.get_request(f'/doctype/{tr.doctype_put_3["name"]}')
+        self.assertEqual(response.status_code, 200)
+        resp = json.loads(response.content)
+        self.assertEqual(resp['sunset_interval'], None)
+        self.assertEqual(resp['sunset_warn'], None)
+
+
         # Error: permissions
         response = self.delete_request(f'/doctype/{tr.doctype_put_1["name"]}')
         self.assert_auth_error(response, 'NO_AUTH')
