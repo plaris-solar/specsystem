@@ -1,5 +1,5 @@
 import re
-from spec.serializers.specSerializers import SpecSerializer
+from spec.serializers.specSerializers import SpecDetailSerializer
 from user.models import User
 from rest_framework import serializers
 
@@ -19,17 +19,17 @@ class UserSerializer(serializers.ModelSerializer):
         # Lookup any specs waiting for a signature from this user
         # Directly assigned
         req_sig = Spec.objects.filter(state='Signoff', sigs__signed_dt__isnull=True, sigs__signer=value)
-        data['req_sig'] = SpecSerializer(req_sig, many=True, context=self.context).data
+        data['req_sig'] = SpecDetailSerializer(req_sig, many=True, context=self.context).data
         # Assigned to someone user is a delegate for
         req_sig_delegate = Spec.objects.filter(state='Signoff', sigs__signed_dt__isnull=True, sigs__signer__delegates__delegate=value)
-        data['req_sig_delegate'] = SpecSerializer(req_sig_delegate, many=True, context=self.context).data
+        data['req_sig_delegate'] = SpecDetailSerializer(req_sig_delegate, many=True, context=self.context).data
         # Assigned to a role generally for which user is signer
         req_sig_role = Spec.objects.filter(state='Signoff', sigs__signed_dt__isnull=True, sigs__signer__isnull=True, sigs__role__users__user=value)
-        data['req_sig_role'] = SpecSerializer(req_sig_role, many=True, context=self.context).data
+        data['req_sig_role'] = SpecDetailSerializer(req_sig_role, many=True, context=self.context).data
 
         # Inprocess specs user created
         in_process = Spec.objects.filter(state__in=['Draft', 'Signoff'], created_by=value)
-        data['in_process'] = SpecSerializer(in_process, many=True, context=self.context).data
+        data['in_process'] = SpecDetailSerializer(in_process, many=True, context=self.context).data
 
         return data
 
