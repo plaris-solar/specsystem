@@ -49,18 +49,19 @@ class SpecReferenceSerializer(serializers.ModelSerializer):
         model = SpecReference
         fields = ('num', 'ver', )
 
-class SpecSerializer(serializers.ModelSerializer):
+class SpecDetailSerializer(serializers.ModelSerializer):
     doc_type = serializers.StringRelatedField()
     department = serializers.StringRelatedField()
     created_by = serializers.StringRelatedField()
     class Meta:
         model = Spec
         fields = ('num', 'ver', 'title', 'doc_type', 'department', 'keywords', 'state', 'created_by', 
-            'create_dt', 'mod_ts', 'jira', 'anon_access', 'reason', 'approved_dt', 'sunset_extended_dt', )
+            'create_dt', 'mod_ts', 'jira', 'anon_access', 'reason', 'approved_dt', 'sunset_extended_dt', 
+            'sunset_dt', 'sunset_warn_dt' )
 
     def to_representation(self, value):
         value.checkSunset()
-        data = super(SpecSerializer, self).to_representation(value)
+        data = super(SpecDetailSerializer, self).to_representation(value)
         # Sort the related fields
         sigs = value.sigs.order_by('-from_am', 'role', ).all()
         data['sigs'] = SpecSigSerializer(sigs, many=True, context=self.context).data
@@ -83,16 +84,28 @@ class SpecSerializer(serializers.ModelSerializer):
         if value.jira is not None and len(value.jira) > 0 \
             and settings.JIRA_URI is not None and len(settings.JIRA_URI) > 0:
             data['jira_url'] = f'{settings.JIRA_URI}/browse/{value.jira}'
-        
-        # determine sunset date, if any
-        if value.doc_type.sunset_interval:
-            if value.approved_dt:
-                data['sunset_dt'] = value.approved_dt + value.doc_type.sunset_interval
-            if value.sunset_extended_dt:
-                data['sunset_dt'] = value.sunset_extended_dt + value.doc_type.sunset_interval
 
-            if value.doc_type.sunset_warn and 'sunset_dt' in data:
-                data['sunset_warn_dt'] = data['sunset_dt'] - value.doc_type.sunset_warn
+        return data 
+
+class SpecListSerializer(serializers.ModelSerializer):
+    doc_type = serializers.StringRelatedField()
+    department = serializers.StringRelatedField()
+    created_by = serializers.StringRelatedField()
+    class Meta:
+        model = Spec
+        fields = ('num', 'ver', 'title', 'doc_type', 'department', 'keywords', 'state', 'created_by', 
+            'create_dt', 'mod_ts', 'jira', 'anon_access', 'reason', 'approved_dt', 'sunset_extended_dt', 
+            'sunset_dt', 'sunset_warn_dt' )
+
+    def to_representation(self, value):
+        value.checkSunset()
+        data = super(SpecListSerializer, self).to_representation(value)
+
+        try:
+            user = self.context.get("user")
+            data['watched'] = user.watches.filter(num=value.num).first() != None
+        except:  # AnonymousUser does not have the watches attribute
+            data['watched'] = False
 
         return data 
 

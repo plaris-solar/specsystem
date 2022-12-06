@@ -211,6 +211,21 @@ class Spec(models.Model):
         db_table = 'spec'
         unique_together = (('num', 'ver'),)
 
+    @property
+    def sunset_dt(self):
+        if self.state == 'Active' and self.doc_type.sunset_interval:
+            if self.sunset_extended_dt:
+                return self.sunset_extended_dt + self.doc_type.sunset_interval
+            elif self.approved_dt:
+                return self.approved_dt + self.doc_type.sunset_interval
+        return None
+
+    @property
+    def sunset_warn_dt(self):
+        if self.sunset_dt and self.doc_type.sunset_warn:
+            return self.sunset_dt - self.doc_type.sunset_warn
+        return None
+
     def checkEditable(self, user):    
         if self.state != "Draft" and not user.is_superuser:
             raise ValidationError({"errorCode":"SPEC-M07", "error": f"Spec is not in Draft state, it cannot be edited."})
@@ -219,14 +234,8 @@ class Spec(models.Model):
     
     def checkSunset(self):
         """If Active spec is past sunset date, set to Obsolete"""
-        if self.state == 'Active' and self.doc_type.sunset_interval:
-            overdue = False
-            if self.sunset_extended_dt:
-                if (self.sunset_extended_dt + self.doc_type.sunset_interval) < timezone.now():
-                    overdue = True
-            elif self.approved_dt and (self.approved_dt + self.doc_type.sunset_interval) < timezone.now():
-                overdue = True
-            if overdue:
+        if self.state == 'Active':
+            if self.sunset_dt and self.sunset_dt < timezone.now():
                 self.state = 'Obsolete'
                 self.save()
                 SpecHist.objects.create(

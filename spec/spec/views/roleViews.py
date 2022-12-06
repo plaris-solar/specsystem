@@ -6,6 +6,7 @@ from rest_framework.decorators import APIView
 from rest_framework.exceptions import ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.response import Response
+from spec.views.specViews import genCsv
 from utils.dev_utils import formatError
 
 from user.models import User
@@ -38,6 +39,12 @@ class RoleList(GenericAPIView):
             queryset = self.paginate_queryset(queryset.order_by('role'))
             
             serializer = RoleSerializer(queryset, many=True)
+
+            # If requested, return the entire data set in a csv file
+            if request.GET.get('output_csv'):
+                serializer = RoleSerializer(queryset, many=True, context={'user':request.user})
+                return genCsv(request, 'role_list.csv', serializer.data)
+
             return self.get_paginated_response(serializer.data)
         except BaseException as be: # pragma: no cover
             formatError(be, "SPEC-RV01")

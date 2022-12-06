@@ -23,7 +23,9 @@
           <q-tr
             :props="props"
             @click="
-              props.row._new_row && !props.selected ? (props.selected = true) : false
+              props.row._new_row && !props.selected
+                ? (props.selected = true)
+                : false
             "
           >
             <q-td
@@ -68,7 +70,9 @@
           <q-tr
             :props="props"
             @click="
-              props.row._new_row && !props.selected ? (props.selected = true) : false
+              props.row._new_row && !props.selected
+                ? (props.selected = true)
+                : false
             "
           >
             <q-td
@@ -113,7 +117,9 @@
           <q-tr
             :props="props"
             @click="
-              props.row._new_row && !props.selected ? (props.selected = true) : false
+              props.row._new_row && !props.selected
+                ? (props.selected = true)
+                : false
             "
           >
             <q-td
@@ -158,7 +164,9 @@
           <q-tr
             :props="props"
             @click="
-              props.row._new_row && !props.selected ? (props.selected = true) : false
+              props.row._new_row && !props.selected
+                ? (props.selected = true)
+                : false
             "
           >
             <q-td
@@ -245,7 +253,7 @@
             :disable="page_num == 1"
             data-cy="data-prev-btn"
           >
-            {{ "<" }}
+            {{ "&lt;" }}
           </q-btn>
           <q-input
             input-class="text-right"
@@ -254,7 +262,9 @@
             @keydown.enter.prevent="getTableData(page_num)"
             data-cy="data-page-input"
           />
-          <div class="num-pages" data-cy="data-num-pages">&nbsp;/ {{ num_pages }}</div>
+          <div class="num-pages" data-cy="data-num-pages">
+            &nbsp;/ {{ num_pages }}
+          </div>
           <q-btn
             @click="getTableData(page_num + 1)"
             :disable="page_num == num_pages"
@@ -295,7 +305,7 @@
             :disable="page_num == 1"
             data-cy="data-prev-btn"
           >
-            {{ "<" }}
+            {{ "&lt;" }}
           </q-btn>
           <q-input
             input-class="text-right"
@@ -304,7 +314,9 @@
             @keydown.enter.prevent="getTableData(page_num)"
             data-cy="data-page-input"
           />
-          <div class="num-pages" data-cy="data-num-pages">&nbsp;/ {{ num_pages }}</div>
+          <div class="num-pages" data-cy="data-num-pages">
+            &nbsp;/ {{ num_pages }}
+          </div>
           <q-btn
             @click="getTableData(page_num + 1)"
             :disable="page_num == num_pages"
@@ -319,7 +331,13 @@
 </template>
 
 <script>
-import { defineProps, deleteData, dispDate, putData, retrieveData } from "@/utils.js";
+import {
+  defineProps,
+  deleteData,
+  dispDate,
+  putData,
+  retrieveData,
+} from "@/utils.js";
 import { computed, ref, onMounted } from "vue";
 import { useStore } from "vuex";
 
@@ -389,12 +407,27 @@ const spec_columns = [
   { name: "num", align: "left", label: "Spec", field: "num" },
   { name: "title", align: "left", label: "Title", field: "title" },
   { name: "doc_type", align: "left", label: "Doc Type", field: "doc_type" },
-  { name: "department", align: "left", label: "Department", field: "department" },
+  {
+    name: "department",
+    align: "left",
+    label: "Department",
+    field: "department",
+  },
   { name: "keywords", align: "left", label: "Keywords", field: "keywords" },
   { name: "state", align: "left", label: "State", field: "state" },
-  { name: "created_by", align: "left", label: "Created By", field: "created_by" },
+  {
+    name: "created_by",
+    align: "left",
+    label: "Created By",
+    field: "created_by",
+  },
   { name: "mod_ts", align: "left", label: "Last Modified", field: "mod_ts" },
-  { name: "anon_access", align: "left", label: "Anonymous Access", field: "anon_access" },
+  {
+    name: "anon_access",
+    align: "left",
+    label: "Anonymous Access",
+    field: "anon_access",
+  },
 ];
 </script>
 
