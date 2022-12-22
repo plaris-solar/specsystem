@@ -101,6 +101,12 @@ class SpecListSerializer(serializers.ModelSerializer):
         value.checkSunset()
         data = super(SpecListSerializer, self).to_representation(value)
 
+        # Property fields are not rendered the same as database fields. So updating the format here.
+        if data["sunset_dt"]:
+            data["sunset_dt"] = data["sunset_dt"].isoformat()
+        if data["sunset_warn_dt"]:
+            data["sunset_warn_dt"] = data["sunset_warn_dt"].isoformat()
+
         try:
             user = self.context.get("user")
             data['watched'] = user.watches.filter(num=value.num).first() != None

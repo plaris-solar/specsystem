@@ -231,6 +231,19 @@ def specReject(request, spec, validated_data):
 
     jira.reject(spec)
 
+    if settings.EMAIL_HOST is not None and len(settings.EMAIL_HOST) > 0:
+        email = EmailMessage(
+            subject=f'{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} Spec {spec.num}/{spec.ver} "{spec.title}" has been rejected by {request.user.username}',
+            body=f'''{"[From Test]" if os.environ["AD_SUFFIX"] == "Test" else ""} Spec {spec.num}/{spec.ver} "{spec.title}" has been rejected by {request.user.username}
+            {request.build_absolute_uri('/ui-spec/'+str(spec.num)+'/'+spec.ver)}
+            Reason: {validated_data['comment']}
+            ''',
+            from_email=settings.EMAIL_HOST_USER,
+            to=[spec.created_by.email, ],
+            reply_to=[request.user.email],
+        )
+        email.send(fail_silently=False)
+
     return spec
 
 def specExtend(request, spec, validated_data):

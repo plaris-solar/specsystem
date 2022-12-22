@@ -26,7 +26,9 @@ spec_get_1 = {
     "ver": "A",
     'reason': 'Initial Version',
     'approved_dt': None,
-    'sunset_extended_dt':None
+    'sunset_extended_dt':None,
+    'sunset_dt':None,
+    'sunset_warn_dt':None
 }
 
 spec_post_2 = {
