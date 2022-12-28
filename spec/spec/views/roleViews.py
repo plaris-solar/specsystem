@@ -42,8 +42,7 @@ class RoleList(GenericAPIView):
 
             # If requested, return the entire data set in a csv file
             if request.GET.get('output_csv'):
-                serializer = RoleSerializer(queryset, many=True, context={'user':request.user})
-                return genCsv(request, 'role_list.csv', serializer.data)
+                return genCsv(request, 'role_list.csv', RoleSerializer(), queryset)
 
             return self.get_paginated_response(serializer.data)
         except BaseException as be: # pragma: no cover

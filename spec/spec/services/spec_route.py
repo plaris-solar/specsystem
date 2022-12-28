@@ -35,22 +35,24 @@ def genPdf(spec):
 
         # Convert each file to pdf
         # Combine the file together
-        merger = PdfFileMerger()       
-        for file in files:
-            if os.path.splitext(file.file.path)[1] == '.pdf':
-                merger.append(file.file.path)
-            else:
-                p = run([settings.SOFFICE, '--norestore', '--safe-mode', '--view', '--convert-to', 'pdf', '--outdir', str(tempPdfPath), file.file.path]
-                    , stdout=subprocess.PIPE)
-                if p.returncode != 0: #pragma nocover
-                    raise ValidationError({"errorCode":"SPEC-R10", "error": f"Error converting file ({file.file.path}) to PDF: {p.returncode} {p.stdout}"})
-                try:
-                    fileName = os.path.splitext(tempPdfPath/file.file.name)[0]+'.pdf'
-                    merger.append(fileName)
-                except BaseException as be: # pragma nocover
-                    raise ValidationError({"errorCode":"SPEC-R13", "error": f"Error appending pdf file to merged pdf ({file.file.name}) to PDF: {be}"})
-        merger.write(tempFilePath/pdfFileName)
-        merger.close()
+        with PdfFileMerger() as merger:
+            for file in files:
+                if os.path.splitext(file.file.path)[1] == '.pdf':
+                    merger.append(file.file.path)
+                else:
+                    p = run([settings.SOFFICE, '--norestore', '--safe-mode', '--view', '--convert-to', 'pdf', '--outdir', str(tempPdfPath), file.file.path]
+                        , stdout=subprocess.PIPE)
+                    if p.returncode != 0: #pragma nocover
+                        raise ValidationError({"errorCode":"SPEC-R10", "error": f"Error converting file ({file.file.path}) to PDF: {p.returncode} {p.stdout}"})
+                    try:
+                        fileName = os.path.splitext(tempPdfPath/file.file.name)[0]+'.pdf'
+                        merger.append(fileName)
+                    except BaseException as be: # pragma nocover
+                        raise ValidationError({"errorCode":"SPEC-R13", "error": f"Error appending pdf file to merged pdf ({file.file.name}) to PDF: {be}"})
+            try:
+                merger.write(tempFilePath/pdfFileName)
+            except BaseException as be: # pragma nocover
+                raise ValidationError({"errorCode":"SPEC-R19", "error": f"Error creating merged pdf file: {be}"})
 
         # Save file to spec
         specFile = SpecFile.objects.create(spec=spec, seq=0, filename=pdfFileName, incl_pdf=False)
@@ -60,10 +62,6 @@ def genPdf(spec):
         formatError(be, "SPEC-R14")
 
     finally:
-        try:
-            merger.close()
-        except: # pragma nocover
-            pass
         # Clean up the folder, no matter success or failure
         try:
             if tempFilePath.exists():
