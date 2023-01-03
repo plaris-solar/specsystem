@@ -39,8 +39,7 @@ class DepartmentList(GenericAPIView):
 
             # If requested, return the entire data set in a csv file
             if request.GET.get('output_csv'):
-                serializer = DepartmentSerializer(queryset, many=True, context={'user':request.user})
-                return genCsv(request, 'dept_list.csv', serializer.data)
+                return genCsv(request, 'dept_list.csv', DepartmentSerializer(), queryset)
 
             return self.get_paginated_response(serializer.data)
         except BaseException as be: # pragma: no cover

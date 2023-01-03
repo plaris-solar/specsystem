@@ -179,6 +179,9 @@ class RouteTest(SpecTestCase):
         self.assertIn('error', resp)
         self.assertEqual(resp['error'], "Spec must be in Draft state to submit for signatures")
 
+        # Empty the test outbox
+        mail.outbox = []
+
         # Reject the spec with no comment
         response = self.post_request(f'/reject/{spec_ids[0]}/A', {}, auth_lvl='USER')
         self.assert_schema_err(response.content, 'comment')
@@ -193,6 +196,14 @@ class RouteTest(SpecTestCase):
         resp = json.loads(response.content)
         self.assertIn('state', resp)
         self.assertEqual(resp['state'], 'Draft')
+
+        # Check email sent
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('user@test.com', mail.outbox[0].to)
+        self.assertNotIn('admin@test.com', mail.outbox[0].to)
+        self.assertEqual(f'[From Test] Spec {spec_ids[0]}/A "SOP, Spec Creation" has been rejected by {os.getenv("USER_USER")}', mail.outbox[0].subject)
+        self.assertIn(f'[From Test] Spec {spec_ids[0]}/A "SOP, Spec Creation" has been rejected by {os.getenv("USER_USER")}', mail.outbox[0].body)
+        self.assertIn(f'Reason: test reject', mail.outbox[0].body)
 
         # re-Submit:
         response = self.post_request(f'/submit/{spec_ids[0]}/A', auth_lvl='USER')

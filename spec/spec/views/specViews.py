@@ -1,5 +1,5 @@
+import csv
 import os
-import pandas as pd
 import shutil
 import subprocess
 from django.conf import settings
@@ -26,7 +26,7 @@ from ..models import Spec, SpecFile, SpecHist
 from ..serializers.specSerializers import FilePostSerializer, ImportSpecSerializer, SpecCreateSerializer, SpecExtendSerializer, SpecListSerializer, SpecPutSerializer, SpecRejectSerializer, SpecReviseSerializer, SpecDetailSerializer, SpecSignSerializer
 
 
-def genCsv(request, outFileName, dictArray):
+def genCsv(request, outFileName, serializer, queryset):
     """
     Generate a CSV file with the data from the array of dictionary entries
     Return the file as output.
@@ -36,8 +36,14 @@ def genCsv(request, outFileName, dictArray):
         shutil.rmtree(tempFilePath)
     try:
         os.makedirs(tempFilePath)
-        df = pd.DataFrame.from_dict(dictArray) 
-        df.to_csv (tempFilePath/outFileName, index = False, header=True)
+        with open(tempFilePath/outFileName, 'w', newline='', encoding='utf-8') as f:
+            w = None
+            for r in queryset:
+                d = serializer.to_representation(r)
+                if not w:
+                    w = csv.DictWriter(f, d.keys())
+                    w.writeheader()
+                w.writerow(d)
 
         response = FileResponse(open(tempFilePath/outFileName, 'rb'), filename=outFileName)
         return response
@@ -172,8 +178,7 @@ class SpecList(GenericAPIView):
 
             # If requested, return the entire data set in a csv file
             if request.GET.get('output_csv'):
-                serializer = SpecListSerializer(queryset, many=True, context={'user':request.user})
-                return genCsv(request, 'spec_list.csv', serializer.data)
+                return genCsv(request, 'spec_list.csv', SpecListSerializer(), queryset)
 
             # Generate paginated response
             queryset = self.paginate_queryset(queryset)            
@@ -481,8 +486,7 @@ class SunsetList(APIView):
 
             # If requested, return the entire data set in a csv file
             if request.GET.get('output_csv'):
-                serializer = SpecListSerializer(queryset, many=True, context={'user':request.user})
-                return genCsv(request, 'sunset_list.csv', serializer.data)
+                return genCsv(request, 'sunset_list.csv', SpecListSerializer(), queryset)
 
             return Response(serializer.data)
         except BaseException as be: # pragma: no cover

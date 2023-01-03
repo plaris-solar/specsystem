@@ -49,6 +49,19 @@ class ConfTest(SpecTestCase):
         del resp['results'][1]['user_arr']
         self.assertEqual(resp, self.paginate_results([tr.role_post_2, tr.role_post_3]))
 
+        # List all roles with 'Op' in name to a csv
+        r1 = tr.role_post_2
+        r2 = tr.role_post_3
+        expected=f'''role,descr,spec_one,users,user_arr
+{r1["role"]},{r1["descr"]},{r1["spec_one"]},"{r1["users"]}","[{{'username': 'SPEC-Admin-Test-User', 'email': '', 'first_name': 'SPEC-Admin', 'last_name': 'Test User'}}, {{'username': 'SPEC-Test-User', 'email': '', 'first_name': 'SPEC-User', 'last_name': 'Test'}}]"
+{r2["role"]},{r2["descr"]},{r2["spec_one"]},{r2["users"]},"[{{'username': 'SPEC-Admin-Test-User', 'email': '', 'first_name': 'SPEC-Admin', 'last_name': 'Test User'}}]"
+'''
+        response = self.get_request('/role/?search=Op&output_csv=true')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.filename,  'role_list.csv')
+        stream = b''.join(response.streaming_content)
+        self.assertEqual(expected,  stream.decode().replace('\r',''))
+
         # Error: Update role with spec_one a number (not a boolean)
         response = self.put_request(f'/role/{tr.role_put_1["role"]}', tr.role_put_err_1, auth_lvl='ADMIN')
         self.assertEqual(response.status_code, 400)
@@ -129,6 +142,19 @@ class ConfTest(SpecTestCase):
         self.assertEqual(response.status_code, 200)
         resp = json.loads(response.content)
         self.assertEqual(resp, self.paginate_results([tr.dept_post_2, tr.dept_post_3]))
+
+        # Get sunset list to a csv
+        r1 = tr.dept_post_2
+        r2 = tr.dept_post_3
+        expected=f'''name,readRoles
+{r1["name"]},{r1["readRoles"]}
+{r2["name"]},{r2["readRoles"]}
+'''
+        response = self.get_request('/dept/?search=Op&output_csv=true')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.filename,  'dept_list.csv')
+        stream = b''.join(response.streaming_content)
+        self.assertEqual(expected,  stream.decode().replace('\r',''))
 
         # Error: Update dept with readRoles as number (not a str)
         response = self.put_request(f'/dept/{tr.dept_put_1["name"]}', tr.dept_put_err_1, auth_lvl='ADMIN')
@@ -213,6 +239,19 @@ class ConfTest(SpecTestCase):
             if settings.JIRA_URI is not None or len(settings.JIRA_URI) > 0:
                 e['jira_temp_url_base'] = f'{settings.JIRA_URI}/browse/'
         self.assertEqual(resp, expected)
+
+        # List all doctypes with 'Op' in descr to a csv
+        r1 = expected['results'][0]
+        r2 = expected['results'][1]
+        expected=f'''name,descr,confidential,jira_temp,sunset_interval,sunset_warn,jira_temp_url_base
+{r1["name"]},{r1["descr"]},{r1["confidential"]},{r1["jira_temp"]},{r1["sunset_interval"] if r1["sunset_interval"] else ''},{r1["sunset_warn"] if r1["sunset_warn"] else ''},{settings.JIRA_URI}/browse/
+{r2["name"]},{r2["descr"]},{r2["confidential"]},{r2["jira_temp"]},{r2["sunset_interval"] if r2["sunset_interval"] else ''},{r2["sunset_warn"] if r2["sunset_warn"] else ''},{settings.JIRA_URI}/browse/
+'''
+        response = self.get_request('/doctype/?search=Op&output_csv=true')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.filename,  'doc_type_list.csv')
+        stream = b''.join(response.streaming_content)
+        self.assertEqual(expected,  stream.decode().replace('\r',''))
 
         # Error: Update doctype with readRoles as number (not a str)
         response = self.put_request(f'/doctype/{tr.doctype_put_1["name"]}', tr.doctype_put_err_1, auth_lvl='ADMIN')
@@ -316,9 +355,22 @@ class ConfTest(SpecTestCase):
         response = self.get_request('/approvalmatrix/?search=Ops')
         self.assertEqual(response.status_code, 200)
         resp = json.loads(response.content)
+        r1 = copy.deepcopy(resp['results'][0])
+        r2 = copy.deepcopy(resp['results'][1])
         resp['results'] = self.delete_list_attribs(resp['results'], ['id'])
         expected = self.paginate_results([tr.approvalmatrix_post_2, tr.approvalmatrix_post_3])
         self.assertEqual(resp, expected)
+
+        # Get sunset list to a csv
+        expected=f'''id,doc_type,department,signRoles
+{r1["id"]},{r1["doc_type"]},{r1["department"]},{r1["signRoles"]}
+{r2["id"]},{r2["doc_type"]},{r2["department"]},{r2["signRoles"]}
+'''
+        response = self.get_request('/approvalmatrix/?search=Ops&output_csv=true')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.filename,  'approvalmatrix.csv')
+        stream = b''.join(response.streaming_content)
+        self.assertEqual(expected,  stream.decode().replace('\r',''))
 
         # Error: Update approvalmatrix with signRoles as an object (not a str)
         response = self.put_request(f'/approvalmatrix/{am_ids[0]}', tr.approvalmatrix_put_err_1, auth_lvl='ADMIN')
