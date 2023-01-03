@@ -3,7 +3,8 @@ ENV APP=/app
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-RUN apt-get update \
+RUN sed -i 's/$/ contrib/' /etc/apt/sources.list \
+  && apt-get update \
   && apt-get install -y \
     build-essential \
     libpq-dev \
@@ -14,6 +15,7 @@ RUN apt-get update \
     libldap2-dev \
     libreoffice \
     openssl \
+    ttf-mscorefonts-installer \
     unixodbc-dev \
     unixodbc \
     vim
