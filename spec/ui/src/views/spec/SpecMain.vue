@@ -24,12 +24,6 @@
               icon="filter_alt_off"
               data-cy="data-clear-filter-btn"
             />
-            <q-checkbox
-              v-model="incl_obsolete"
-              label="Include Obsolete Versions"
-              @click="applyFilter()"
-              data-cy="incl_obsolete-checkbox"
-            />
           </div>
         </template>
         <template v-slot:top-right>
@@ -62,7 +56,6 @@
                   'doc_type',
                   'department',
                   'keywords',
-                  'state',
                   'created_by',
                 ].includes(col.name)
               "
@@ -73,6 +66,22 @@
                 data-cy="spec-detail-ref-num"
                 dense
                 @keydown.enter="applyFilter()"
+                @blur="applyFilter()"
+                class="inline-block"
+              />
+            </span>
+            <span v-show="['state'].includes(col.name)" class="row">
+              <q-select
+                v-model="filter_state"
+                data-cy="spec-detail-filter-state"
+                :options="[
+                  { label: 'Draft', value: 'draft' },
+                  { label: 'Signoff', value: 'signoff' },
+                  { label: 'Active', value: 'active' },
+                  { label: 'Obsolete', value: 'obsolete' },
+                ]"
+                multiple
+                dense
                 @blur="applyFilter()"
                 class="inline-block"
               />
@@ -225,8 +234,8 @@ const selected = ref([]);
 
 const add_spec = ref(false);
 const filter = ref({});
+const filter_state = ref([]);
 const filter_slug = ref("");
-const incl_obsolete = ref(false);
 const upd_spec = ref(false);
 
 const page_num = ref(1);
@@ -312,14 +321,22 @@ async function applyFilter() {
     const [key, value] = entry;
     filter_slug.value += "&" + key + "=" + value;
   });
-  if (incl_obsolete.value) {
+  if (filter_state.value.length > 0) {
     filter_slug.value += "&incl_obsolete=true";
+    filter_slug.value +=
+      "&state=" +
+      filter_state.value
+        .map(function (s) {
+          return s["value"];
+        })
+        .join();
   }
   getTableData(1);
 }
 
 async function clearFilter() {
   filter.value = {};
+  filter_state.value = [];
   applyFilter();
 }
 
