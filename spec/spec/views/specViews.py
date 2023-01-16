@@ -166,8 +166,11 @@ class SpecList(GenericAPIView):
             queryset = queryset.filter(doc_type__name__contains = request.GET.get('doc_type')) if request.GET.get('doc_type') else queryset
             queryset = queryset.filter(department__name__contains = request.GET.get('department')) if request.GET.get('department') else queryset
             queryset = queryset.filter(keywords__contains = request.GET.get('keywords')) if request.GET.get('keywords') else queryset
-            queryset = queryset.filter(state__contains = request.GET.get('state')) if request.GET.get('state') else queryset
             queryset = queryset.filter(created_by__username = request.GET.get('created_by')) if request.GET.get('created_by') else queryset
+
+            if request.GET.get('state'):
+                state_array = request.GET.get('state').split(",")
+                queryset = queryset.filter(state__in = state_array)
 
             if num is not None:
                 queryset = queryset.filter(num=num)
