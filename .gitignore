@@ -9,5 +9,5 @@ env.sh
 .vscode
 settings_local.py
 *.pyc
-docker-compose.yml
 .DS_Store
+.idea/

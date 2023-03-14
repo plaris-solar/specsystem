@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  memosystem:
+    build: ./spec
+    container_name: specsystem
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /Users/peyi/Solar/specsystem/memo_files/static:/app/memos/static
+    depends_on:
+      - sqlexpress
+      - ldap
+    # Database instance
+  sqlexpress:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    volumes:
+      - events_mssql:/var/opt/mssql
+    ports:
+      - 1433:1433
+    environment:
+      - ACCEPT_EULA=1
+      - MSSQL_SA_PASSWORD=Passw@rd
+    depends_on:
+      - ldap
+    tmpfs:
+      - /run
+  ldap:
+    image: osixia/openldap
+    container_name: ldap
+    restart: always
+    ports:
+      - 389:389
+    environment:
+      LDAP_ORGANISATION: "Company Local"
+      LDAP_DOMAIN: "company.local"
+      LDAP_ADMIN_PASSWORD: "adminpassword"
+  phpldapadmin:
+    image: osixia/phpldapadmin:latest
+    container_name: phpldapadmin
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: "ldap"
+      PHPLDAPADMIN_HTTPS: "false"
+    ports:
+      - "8080:80"
+    depends_on:
+      - ldap
+volumes:
+    events_mssql:

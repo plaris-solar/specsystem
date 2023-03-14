@@ -28,11 +28,26 @@ RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
   && ACCEPT_EULA=Y apt-get install -y msodbcsql18 \
   && ACCEPT_EULA=Y apt-get install -y mssql-tools18
 
+RUN echo "[ODBC]\n\
+Trace = No\n\
+TraceFile = /dev/null\n\
+ForceTrace = No\n\
+Pooling = No\n\
+" >> /etc/odbc.ini \
+ && echo "[mssql]\n\
+Driver = ODBC Driver 18 for SQL Server\n\
+Server = sqlexpress\n\
+Port = 1433\n\
+Database = spec_qa\n\
+Encrypt = Yes\n\
+TrustServerCertificate = Yes\n\
+" >> /etc/odbc.ini
+
 # Set the working directory to /app
 WORKDIR $APP
 
-# Copy the current directory contents into the container at /app 
-ADD . $APP
+# Copy the current directory contents into the container at /app
+COPY . $APP
 
 # Setup nginx
 COPY nginx.default /etc/nginx/sites-available/default
