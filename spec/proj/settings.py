@@ -31,7 +31,7 @@ TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
 SECRET_KEY = 'django-insecure-*OverrideThisInSetting.Local*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -67,7 +67,7 @@ MIDDLEWARE = [
 
 CORS_ORIGIN_ALLOW_ALL = True
 CORS_ALLOW_CREDENTIALS = True
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8081', 'http://127.0.0.1:8080', 'http://127.0.0.1:8081',  'http://127.0.0.1:8000', 'http://spec-dev01:80/']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8084', 'http://127.0.0.1:8084', 'http://127.0.0.1:8084',  'http://127.0.0.1:8000', 'http://spec-dev01:80/', 'https://specsystem.completesolar.biz', 'http://0.0.0.0:8084', 'http://specsystem.completesolar.com']
 TOKEN_EXPIRED_AFTER_SECONDS = 60*60*24*365 # one year (These are for automated interfaces)
 SESSION_COOKIE_AGE = 60 * 60 * 4 # four hours of web inactivity (These are for web interactions)
 
