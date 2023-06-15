@@ -353,6 +353,7 @@ const props = defineProps({
 
 const store = useStore();
 const isAdmin = ref(computed(() => store.getters.isAdmin));
+// eslint-disable-next-line 
 const username = ref(computed(() => store.getters.username));
 const delegates = ref("");
 const delegates_for = ref([]);

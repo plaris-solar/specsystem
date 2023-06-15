@@ -22,11 +22,19 @@ RUN sed -i 's/$/ contrib/' /etc/apt/sources.list \
     
 # This block loads the drivers required to make pyodbc and microsoft sql server work
 # It came from https://docs.microsoft.com/en-us/sql/connect/odbc/linux-mac/installing-the-microsoft-odbc-driver-for-sql-server?view=sql-server-ver16
-RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-  && curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-  && apt-get update \
-  && ACCEPT_EULA=Y apt-get install -y msodbcsql18 \
-  && ACCEPT_EULA=Y apt-get install -y mssql-tools18
+RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add -
+RUN curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list
+RUN apt-get update && apt-get install -y curl apt-transport-https gnupg2
+RUN TEMP_DEB="$(mktemp)" \
+ && wget -O "$TEMP_DEB" 'https://packages.microsoft.com/debian/11/prod/pool/main/m/msodbcsql18/msodbcsql18_18.2.1.1-1_arm64.deb' \
+ && yes | dpkg --skip-same-version -i "$TEMP_DEB" \
+ && rm -f "$TEMP_DEB"
+
+RUN TEMP_DEB="$(mktemp)" \
+ && wget -O "$TEMP_DEB" 'https://packages.microsoft.com/debian/11/prod/pool/main/m/mssql-tools18/mssql-tools18_18.2.1.1-1_arm64.deb' \
+ && yes | dpkg --skip-same-version -i "$TEMP_DEB" \
+ && rm -f "$TEMP_DEB"
+ 
 
 RUN echo "[ODBC]\n\
 Trace = No\n\
@@ -60,14 +68,16 @@ RUN libreoffice --norestore --safe-mode --view --convert-to pdf --outdir $APP/he
   && libreoffice --norestore --safe-mode --view --convert-to pdf --outdir $APP/help $APP/help/high_level_design.docx
 
 # Install the dependencies; build the ui folder; publish frontend
-RUN pip install --upgrade pip \
-  && pip install -r requirements.txt \
-  && cd $APP/ui \
-  && npm install \
-  && npm run build \
-  && cd $APP \
-  && python manage.py collectstatic --noinput \
-  && chmod a+x /app/start-server.sh
+
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+RUN cd $APP && python manage.py collectstatic --noinput 
+
+RUN chmod a+x /app/start-server.sh
+
+RUN cd $APP/ui/ && npm install
+RUN cd $APP/ui/ && npm run build 
+RUN cp -r /app/frontend/static/* /app/static
 
 EXPOSE 8020
 STOPSIGNAL SIGTERM

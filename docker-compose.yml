@@ -9,7 +9,7 @@ services:
       - 80:80
       - 443:443
     volumes:
-      - /Users/peyi/Solar/specsystem/memo_files/static:/app/memos/static
+      - ~/Solar/specsystem/memo_files/static:/app/memos/static
     depends_on:
       - sqlexpress
       - ldap
