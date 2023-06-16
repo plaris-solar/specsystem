@@ -104,7 +104,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # PDF Conversion tools
 # Install LibreOffice from https://www.libreoffice.org/download/download-libreoffice/
-SOFFICE = "c:/Program Files/LibreOffice/program/soffice.exe"
+SOFFICE = libreoffice
 TEMP_PDF = os.path.join(MEDIA_ROOT, 'temp')
 
 #EMAIL_HOST = 'smtp.office365.com'
