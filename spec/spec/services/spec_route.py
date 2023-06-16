@@ -113,7 +113,7 @@ def specSubmit(request, spec):
                 to=to,
                 reply_to=[spec.created_by.email],
             )
-            email.send(fail_silently=False)
+            email.send(fail_silently=True)
 
         return spec
     except BaseException as be: # pragma nocover
@@ -196,7 +196,7 @@ def specSign(request, spec, validated_data):
                 to=to,
                 reply_to=[spec.created_by.email],
             )
-            email.send(fail_silently=False)
+            email.send(fail_silently=True)
 
         return spec
     except BaseException as be: # pragma nocover
@@ -240,7 +240,7 @@ def specReject(request, spec, validated_data):
             to=[spec.created_by.email, ],
             reply_to=[request.user.email],
         )
-        email.send(fail_silently=False)
+        email.send(fail_silently=True)
 
     return spec
 
