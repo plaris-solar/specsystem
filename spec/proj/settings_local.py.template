@@ -107,8 +107,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 SOFFICE = "c:/Program Files/LibreOffice/program/soffice.exe"
 TEMP_PDF = os.path.join(MEDIA_ROOT, 'temp')
 
-EMAIL_HOST = 'smtp.office365.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'spec_system@company.com'
-EMAIL_HOST_PASSWORD = 'SuperSecret'
-EMAIL_USE_TLS    = True
+#EMAIL_HOST = 'smtp.office365.com'
+#EMAIL_PORT = 587
+#EMAIL_HOST_USER = 'spec_system@company.com'
+#EMAIL_HOST_PASSWORD = 'SuperSecret'
+#EMAIL_USE_TLS    = True
