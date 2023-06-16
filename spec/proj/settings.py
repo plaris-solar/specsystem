@@ -35,6 +35,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+JIRA_URI = 'http://jiraproject.atlassian.net'
+JIRA_USER = 'user@domain.com'
+JIRA_TOKEN = 'token-123'
+JIRA_PROJ = 'SPEC'
+
 # Application definition
 INSTALLED_APPS = [
     'corsheaders',
