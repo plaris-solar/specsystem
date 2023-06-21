@@ -54,9 +54,20 @@ export default {
         isPopUp: Boolean,
     })
 
-    onMounted(() => {
+    onMounted(async () => {
       window.addEventListener('keypress', handleKeyPress);
-    })
+
+      const response = await fetch(apiServerHost + "/api/auth_status/", {credentials: 'include'});
+      console.log(response);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.is_authenticated) {
+          store.commit('SET_AUTHENTICATED', true);
+        }
+      }
+    });
+
+
 
     watch(authenticated, (newVal, oldVal) => {
       if (newVal) {

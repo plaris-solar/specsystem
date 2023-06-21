@@ -21,13 +21,15 @@ from spec.views.departmentViews import DepartmentDetail, DepartmentList
 from spec.views.roleViews import RoleDetail, RoleList
 from spec.views.specViews import HelpFile, ImportSpec, SpecDetail, SpecExtend, SpecFileDetail, SpecList, SpecReject, SpecSign, SpecSubmit, SunsetList
 from spec.views.userViews import UserDetail, UserList, UserWatchView
-from user.views import GetUser, AdminToken, UserToken
+from user.views import GetUser, AdminToken, UserToken, CustomLoginView, CustomLogoutView, auth_status
 from . import views
 from django.views.generic.base import TemplateView
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
 
+urlpatterns = [
+    path('accounts/login/', CustomLoginView.as_view(), name='login'),
+    path('accounts/logout/', CustomLogoutView.as_view(), name='logout'),
+    path('admin/', admin.site.urls),
     path('approvalmatrix/', ApprovalMatrixList.as_view()),
     path('approvalmatrix/<id>', ApprovalMatrixDetail.as_view()),
     path('dept/', DepartmentList.as_view()),
@@ -58,6 +60,6 @@ urlpatterns = [
     path('user/', UserList.as_view()),
     path('user/<username>', UserDetail.as_view()),
     path('user/watch/<username>/<spec_num>', UserWatchView.as_view()),
-    path('accounts/', include('django.contrib.auth.urls')),
+    path('api/auth_status/', auth_status, name='auth_status'),
     re_path(r'^.*$', TemplateView.as_view(template_name="index.html"), name='home'),
 ]

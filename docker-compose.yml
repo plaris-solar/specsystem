@@ -12,8 +12,7 @@ services:
       - ~/Solar/specsystem/memo_files/static:/app/memos/static
     depends_on:
       - sqlexpress
-      - ldap
-    # Database instance
+
   sqlexpress:
     image: mcr.microsoft.com/azure-sql-edge:latest
     volumes:
@@ -23,29 +22,22 @@ services:
     environment:
       - ACCEPT_EULA=1
       - MSSQL_SA_PASSWORD=Passw@rd
-    depends_on:
-      - ldap
     tmpfs:
       - /run
-  ldap:
-    image: osixia/openldap
-    container_name: ldap
-    restart: always
+
+  phpserver:
+    image: php:7.4-apache
+    container_name: phpserver
     ports:
-      - 389:389
+      - 8888:80
+    volumes:
+      - ./auth:/var/www/html
     environment:
-      LDAP_ORGANISATION: "Company Local"
-      LDAP_DOMAIN: "company.local"
-      LDAP_ADMIN_PASSWORD: "adminpassword"
-  phpldapadmin:
-    image: osixia/phpldapadmin:latest
-    container_name: phpldapadmin
-    environment:
-      PHPLDAPADMIN_LDAP_HOSTS: "ldap"
-      PHPLDAPADMIN_HTTPS: "false"
-    ports:
-      - "8080:80"
-    depends_on:
-      - ldap
+      - APP_ID=f37844cd-afdd-42e1-a17d-5145a1a596df
+      - SECRET=KMa8Q~g21ZwF2z82di8GDqRO0LSKCWfnUtYfMaNU
+      - LOGIN_URL=https://login.microsoftonline.com/common/oauth2/v2.0/authorize
+      - REDIRECT_URL=http://localhost:8888/
+      - SPEC_LOGIN_URL=http://localhost/accounts/login/
+
 volumes:
-    events_mssql:
+  events_mssql:

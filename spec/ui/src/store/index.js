@@ -22,6 +22,24 @@ const getters = {
 };
 
 const actions = {
+  async checkAuthentication({ commit }) {
+    let res = await window.fetch(`${apiServerHost}/api/auth_status/`, {
+      credentials: 'include',
+    });
+    if (res.ok) {
+      let result = await res.json();
+      if (result.is_authenticated) {
+        commit('login', {
+            username: result.username,
+            isAdmin: result.isAdmin //assuming isAdmin is returned from the server
+        });
+      } else {
+        commit('logout');
+      }
+    } else {
+      // handle error
+    }
+  },
   async login({ commit }, payload) {
     let res = await window.fetch(`${apiServerHost}/accounts/login/`, {
       method: 'POST',
@@ -40,10 +58,14 @@ const actions = {
     }
   },
   async logout({ commit }) {
-    let res = await window.fetch(`${apiServerHost}/accounts/logout/`);
-    if (res.ok) {
+      // Attempt to log out on the server. We don't care about the result.
+      await window.fetch(`${apiServerHost}/accounts/logout/`);
+
+      // Regardless of server response, commit the logout.
       commit('logout');
-    }
+
+      // And redirect to the external login service.
+      window.location.href = process.env.VUE_APP_LOGOUT_URL;
   },
   async getPermission({commit}) {
     let isAdmin = false;

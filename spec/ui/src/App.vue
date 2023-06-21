@@ -169,14 +169,16 @@ if (!env_color.value) {
   set_app_color();
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (authenticated.value) {
-    store.dispatch("getPermission");
+    await store.dispatch("getPermission");
   }
   if (route.params.doc_type) {
     data_page.value = route.params.doc_type;
   }
+  await store.dispatch("checkAuthentication");
 });
+
 
 watch(
   () => route.path,
